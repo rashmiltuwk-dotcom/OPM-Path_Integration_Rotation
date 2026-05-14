@@ -177,48 +177,50 @@ distance =  containers.Map({'D1','D2','D3','D4'}, [1.0, 1.5, 2.0, 2.5]);
 % --- LEFT POSITION (LPos) CHUNKS ---
 % Columns: 1=Position(LPos/RPos), 2=Rotation(L/R), 3=Modality(I/P), 4=D-Factor, 5=Q-Factor
 
-chunk1 = {'LPos', 'L', 'I', 'D2', 'Q1'; 
-          'LPos', 'R', 'I', 'D3', 'Q3'; 
+% [MATLAB] Define the 8 basic blocks (Chunks) WITH POSITIONS MAPPED
+% Perfectly counterbalanced using a Graeco-Latin Square.
+
+% BASE CHUNKS (Set A)
+chunk1 = {'LPos', 'L', 'I', 'D1', 'Q1'; 
+          'RPos', 'R', 'I', 'D2', 'Q3'; 
           'LPos', 'R', 'P', 'D3', 'Q4'; 
-          'LPos', 'L', 'P', 'D1', 'Q2'};
+          'RPos', 'L', 'P', 'D4', 'Q2'};
 
-chunk2 = {'LPos', 'L', 'I', 'D1', 'Q3'; 
-          'LPos', 'R', 'I', 'D4', 'Q1'; 
-          'LPos', 'R', 'P', 'D3', 'Q2'; 
-          'LPos', 'L', 'P', 'D2', 'Q4'};
+chunk2 = {'LPos', 'L', 'I', 'D2', 'Q4'; 
+          'RPos', 'R', 'I', 'D1', 'Q2'; 
+          'LPos', 'R', 'P', 'D4', 'Q1'; 
+          'RPos', 'L', 'P', 'D3', 'Q3'};
 
-chunk3 = {'LPos', 'L', 'I', 'D3', 'Q4'; 
-          'LPos', 'R', 'I', 'D4', 'Q2'; 
-          'LPos', 'R', 'P', 'D2', 'Q3'; 
-          'LPos', 'L', 'P', 'D1', 'Q1'};
+chunk3 = {'LPos', 'L', 'I', 'D3', 'Q2'; 
+          'RPos', 'R', 'I', 'D4', 'Q4'; 
+          'LPos', 'R', 'P', 'D1', 'Q3'; 
+          'RPos', 'L', 'P', 'D2', 'Q1'};
 
-chunk4 = {'LPos', 'L', 'I', 'D2', 'Q2'; 
-          'LPos', 'R', 'I', 'D1', 'Q4'; 
-          'LPos', 'R', 'P', 'D3', 'Q1'; 
-          'LPos', 'L', 'P', 'D4', 'Q3'};
+chunk4 = {'LPos', 'L', 'I', 'D4', 'Q3'; 
+          'RPos', 'R', 'I', 'D3', 'Q1'; 
+          'LPos', 'R', 'P', 'D2', 'Q2'; 
+          'RPos', 'L', 'P', 'D1', 'Q4'};
 
-
-% --- RIGHT POSITION (RPos) CHUNKS ---
-
-chunk5 = {'RPos', 'L', 'I', 'D2', 'Q1'; 
-          'RPos', 'R', 'I', 'D3', 'Q3'; 
+% --- INVERTED CHUNKS (Set B: Exact opposite positions) ---
+chunk5 = {'RPos', 'L', 'I', 'D1', 'Q1'; 
+          'LPos', 'R', 'I', 'D2', 'Q3'; 
           'RPos', 'R', 'P', 'D3', 'Q4'; 
-          'RPos', 'L', 'P', 'D1', 'Q2'};
+          'LPos', 'L', 'P', 'D4', 'Q2'};
 
-chunk6 = {'RPos', 'L', 'I', 'D1', 'Q3'; 
-          'RPos', 'R', 'I', 'D4', 'Q1'; 
-          'RPos', 'R', 'P', 'D3', 'Q2'; 
-          'RPos', 'L', 'P', 'D2', 'Q4'};
+chunk6 = {'RPos', 'L', 'I', 'D2', 'Q4'; 
+          'LPos', 'R', 'I', 'D1', 'Q2'; 
+          'RPos', 'R', 'P', 'D4', 'Q1'; 
+          'LPos', 'L', 'P', 'D3', 'Q3'};
 
-chunk7 = {'RPos', 'L', 'I', 'D3', 'Q4'; 
-          'RPos', 'R', 'I', 'D4', 'Q2'; 
-          'RPos', 'R', 'P', 'D2', 'Q3'; 
-          'RPos', 'L', 'P', 'D1', 'Q1'};
+chunk7 = {'RPos', 'L', 'I', 'D3', 'Q2'; 
+          'LPos', 'R', 'I', 'D4', 'Q4'; 
+          'RPos', 'R', 'P', 'D1', 'Q3'; 
+          'LPos', 'L', 'P', 'D2', 'Q1'};
 
-chunk8 = {'RPos', 'L', 'I', 'D2', 'Q2'; 
-          'RPos', 'R', 'I', 'D1', 'Q4'; 
-          'RPos', 'R', 'P', 'D3', 'Q1'; 
-          'RPos', 'L', 'P', 'D4', 'Q3'};
+chunk8 = {'RPos', 'L', 'I', 'D4', 'Q3'; 
+          'LPos', 'R', 'I', 'D3', 'Q1'; 
+          'RPos', 'R', 'P', 'D2', 'Q2'; 
+          'LPos', 'L', 'P', 'D1', 'Q4'};
 
 % [MATLAB] Organize the chunks into a "Cell of Cells" for easy indexing
 allChunks = {chunk1, chunk2, chunk3, chunk4, chunk5, chunk6, chunk7, chunk8};
@@ -232,7 +234,7 @@ orderChoice = mod(pID_num - 1, 6) + 1;
 
 
 % [MATLAB] Define the 6 explicit 16-trial sequences 
-% Using Chunks 1-4 (Left) and 5-8 (Right) to ensure 32 Left / 32 Right trials.
+% Using Chunks 1-4 (Set A) and 5-8 (Set B) to ensure 32 Left / 32 Right trials.
 sequences = [
     1, 2, 6, 5,   3, 4, 8, 7,   5, 6, 2, 1,   7, 8, 4, 3;  % Order 1 (P1, P7...)
     2, 3, 7, 6,   4, 1, 5, 8,   6, 7, 3, 2,   8, 5, 1, 4;  % Order 2 (P2, P8...)

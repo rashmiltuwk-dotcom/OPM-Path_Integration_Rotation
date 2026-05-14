@@ -347,12 +347,13 @@ WaitSecs(0.5);
                 % ---------------------------------------------------------
                 % [Trigger] Code 1: Instruction to close eyes
                 if ~isempty(TL), TL.startEvent(1, t, 'CloseEyes'); end
+                OptiTrackBridge.startEvent(t, 'CloseEyes');
                 
                 % [Audio] "Close your eyes" (Blocking: wait for sound to finish)
                 play_sound_blocking(pahandle, audioData.CloseE);
                 
                 if ~isempty(TL), TL.stopEvent(1, t, 'CloseEyes'); end
-
+                OptiTrackBridge.stopEvent(t, 'CloseEyes');
                 % ---------------------------------------------------------
                 % THREE SECOND STATIONARY TIME PERIOD
                 % ---------------------------------------------------------
@@ -360,17 +361,19 @@ WaitSecs(0.5);
                 % Trigger Channel 2 is used to mark this stationary epoch in the MEG.
                 
                 if ~isempty(TL), TL.startEvent(2, t, 'Stationary'); end
+                OptiTrackBridge.startEvent(t, 'Stationary');
                 
                 WaitSecs(3.0); 
                 
                 if ~isempty(TL), TL.stopEvent(2, t, 'Stationary'); end
+                OptiTrackBridge.stopEvent(t, 'Stationary');
                 
                 % ---------------------------------------------------------
                 % EVENT 2: PHYSICAL WALK 
                 % ---------------------------------------------------------
 
                 if ~isempty(TL), TL.startEvent(3, t, 'PhysWalk'); end
-                
+                OptiTrackBridge.startEvent(t, 'PhysWalk');
                 % 1. Tell them to walk (Blocking: wait for the audio to finish completely)
                 play_sound_blocking(pahandle, audioData.StartW); 
                 
@@ -388,7 +391,7 @@ WaitSecs(0.5);
                 play_sound_blocking(pahandle, audioData.stop); 
                 
                 if ~isempty(TL), TL.stopEvent(3, t, 'PhysWalk'); end
-
+                OptiTrackBridge.stopEvent(t, 'PhysWalk');
                 % Keep the info on screen during the stationary period 
                 % so they can process it while standing still.
 
@@ -472,17 +475,17 @@ WaitSecs(0.5);
                 % Trigger Channel 2 is used to mark this stationary epoch in the MEG.
                 
                 if ~isempty(TL), TL.startEvent(2, t, 'Stationary'); end
-                
+                OptiTrackBridge.startEvent(t, 'Stationary');
                 WaitSecs(3.0); 
                 
                 if ~isempty(TL), TL.stopEvent(2, t, 'Stationary'); end
-
+                OptiTrackBridge.stopEvent(t, 'Stationary');
                 % ---------------------------------------------------------
                 % EVENT 3: PHYSICAL ROTATION (Encoding)
                 % ---------------------------------------------------------
                 % Start MEG Trigger for Encoding
                 if ~isempty(TL), TL.startEvent(4, t, 'PhysRotateEncoding'); end
-                
+                OptiTrackBridge.startEvent(t, 'PhysRotateEncoding');
                 % 1. Determine direction and play audio
                 
                 if strcmpi(strtrim(dirCode), 'L')
@@ -510,7 +513,7 @@ WaitSecs(0.5);
                 
                 % 5. END TRIGGER & STOP AUDIO (Immediate)
                 if ~isempty(TL), TL.stopEvent(4, t, 'PhysRotateEncoding'); end
-                
+                OptiTrackBridge.stopEvent(t, 'PhysRotateEncoding');
                 % Immediate feedback: No delay between target hit and "Stop" sound
                 play_sound(pahandle, audioData.stop);
 
@@ -533,7 +536,7 @@ WaitSecs(0.5);
                 % ---------------------------------------------------------
 
                 if ~isempty(TL), TL.startEvent(5, t, 'RotationProduction'); end
-                
+                OptiTrackBridge.startEvent(t, 'RotationProduction');
                 % 1. Play the Instruction (Imagine or Physical)
                 if strcmp(typeCode, 'I')
                     play_sound(pahandle, audioData.ImagineRo);
@@ -558,6 +561,8 @@ WaitSecs(0.5);
 
                 % 5. END TRIGGER
                 if ~isempty(TL), TL.stopEvent(5, t, 'RotationProduction'); end
+                OptiTrackBridge.stopEvent(t, 'RotationProduction');
+                
                 
                 [PassiveProdHeadTrace, PassiveProdTorsoTrace] = OptiTrackBridge.PassiveTrack(captureDuration);
                 
@@ -576,7 +581,7 @@ WaitSecs(0.5);
                 % ---------------------------------------------------------
 
                 if ~isempty(TL), TL.startEvent(6, t, 'ImagineWalk'); end
-                
+                OptiTrackBridge.startEvent(t, 'ImagineWalk');
                 % 1. Play the "Imagine Walking" audio
                 play_sound(pahandle, audioData.ImagineW);
                 
@@ -594,7 +599,8 @@ WaitSecs(0.5);
                 imagineWalkTime = GetSecs() - startTimeImagine; 
                 
                 if ~isempty(TL), TL.stopEvent(6, t, 'ImagineWalk'); end
-
+                OptiTrackBridge.stopEvent(t, 'ImagineWalk');
+                
                 % ---------------------------------------------------------
                 % THREE SECOND STATIONARY TIME PERIOD (IMAGINE STILL)
                 % ---------------------------------------------------------
@@ -604,21 +610,23 @@ WaitSecs(0.5);
                 play_sound(pahandle, audioData.ImagineS);
 
                 if ~isempty(TL), TL.startEvent(2, t, 'Stationary'); end
-                
+                OptiTrackBridge.startEvent(t, 'Stationary');
                 WaitSecs(3.0); 
                 
                 if ~isempty(TL), TL.stopEvent(2, t, 'Stationary'); end
+                OptiTrackBridge.stopEvent(t, 'Stationary');
 
                 % ---------------------------------------------------------
                 % EVENT 5: OPEN EYES
                 % ---------------------------------------------------------
                 % [Trigger] Code 1: Instruction to open eyes
                 if ~isempty(TL), TL.startEvent(7, t, 'OpenEyes'); end
-                
+                OptiTrackBridge.startEvent(t, 'OpenEyes');
                 % [Audio] "Close your eyes" (Blocking: wait for sound to finish)
                 play_sound_blocking(pahandle, audioData.OpenE);
                 
                 if ~isempty(TL), TL.stopEvent(7, t, 'OpenEyes'); end
+                OptiTrackBridge.stopEvent(t, 'OpenEyes');
                 
                 DrawFormattedText(win, 'Participant currently ranking...', 'center', 'center', [0 255 255]); % Cyan text to stand out
                 Screen('Flip', win);

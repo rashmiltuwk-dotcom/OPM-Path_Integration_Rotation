@@ -1,0 +1,43 @@
+%PLEASE NOTE THAT THIS SCRIPT IS TO VIEW THE FINAL I.E. SUCCESFUL ATTEMPTS
+%IF YOU WANT TO VIEW ANYTHING OTHER THAN ATTEMPTS CHANGE 'END' TO A DIFF
+%NUMBER
+
+
+
+%Trial Number You Would Like To View in The Array Goes Here
+%Choose any number to view between 1-64
+trialToView = 1;
+%Trial Number You Would Like To View in The Array Goes Here
+%The Orders of The Trials Are Dictated as Such:
+%Physically Walk (1 for Head, 2 for Torso)
+%Encoding Rotate (3 for Head, 4 for Torso
+%Response Rotate (5 for Head, 6 for Torso)
+%Imagine Walk    (7 for Head, 8 for Torso)
+%Choose between 1, 3, 5, 7
+headToView = 5;
+%Choose between 2, 4, 6, 8
+torsoToView = 6;
+%The Order of the Variables to View are As Such
+% Channel 1 is Time
+% Channel 2 is X-coordinate
+% Channel 3 is Y-coordinate
+% Channel 4 is Z-coordinate
+% Channel 5 is Roll orientation
+% Channel 6 is Pitch orientation
+% Channel 7 is Yaw orientation
+%Choose betweem 1, 2, 3, 4, 5, 6, 7 (time is preselected as a variable in t)
+variableToView = 1:7;
+
+% 1. Extract and Force 1D vectors
+he= Master5D(trialToView, end, :, headToView, variableToView);
+to= Master5D(trialToView, end, :, torsoToView, variableToView);
+
+
+% Squeeze the data to remove singleton dimensions
+h_view = squeeze(he);
+to_view = squeeze(to);
+
+
+% Now open it
+openvar('h_view')
+openvar('to_view')

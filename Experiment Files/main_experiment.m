@@ -10,7 +10,7 @@ function runExperimentTest
 
 clear all; close all; sca;
 
-Screen('Preference', 'SkipSyncTests', 1); % Bypasses timing crashes during testing
+
 
 %[MATLAB] Wipe memory & close windows, ensures something else is not playing;
 % [PTB] shut down screens, different for PTB bc we use ptb to display on
@@ -104,7 +104,7 @@ sca;
 headID = 1;
 torsoID = 2;
 
-Screen('Preference', 'SkipSyncTests', 1); 
+
 Screen('Preference', 'VisualDebugLevel', 1); % Reduces internal PTB chatter
 
 % --- SCREEN SELECTION ---

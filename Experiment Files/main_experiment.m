@@ -710,11 +710,12 @@ WaitSecs(0.5);
                 % Update the master data array
                 % Update the master data array
                 MasterData(masterIdx).TrialNum   = trueTrial;
-                MasterData(masterIdx).Attempt    = attemptNum;
                 MasterData(masterIdx).Position   = participantPosition;
                 MasterData(masterIdx).Direction  = dirCode;
-                MasterData(masterIdx).TaskType   = typeCode;
+                MasterData(masterIdx).Attempt    = attemptNum;
                 MasterData(masterIdx).TargetDeg  = targetDeg;
+                MasterData(masterIdx).TargetDist  = targetDist;
+                MasterData(masterIdx).TaskType   = typeCode;
                 MasterData(masterIdx).Status     = statusStr;
 
                 % Create a sub-folder just for the traces
@@ -799,11 +800,12 @@ WaitSecs(0.5);
                 % Update the master data array
  
                 MasterData(masterIdx).TrialNum   = trueTrial;
-                MasterData(masterIdx).Attempt    = attemptNum;
                 MasterData(masterIdx).Position   = participantPosition;
                 MasterData(masterIdx).Direction  = dirCode;
-                MasterData(masterIdx).TaskType   = typeCode;
+                MasterData(masterIdx).Attempt    = attemptNum;
                 MasterData(masterIdx).TargetDeg  = targetDeg;
+                MasterData(masterIdx).TargetDist  = targetDist;
+                MasterData(masterIdx).TaskType   = typeCode;
                 MasterData(masterIdx).Status     = statusStr;
 
                 % Create a sub-folder just for the traces

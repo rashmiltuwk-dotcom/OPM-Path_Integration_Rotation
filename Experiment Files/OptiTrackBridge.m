@@ -25,9 +25,10 @@ classdef OptiTrackBridge
         IsConnected = false;
         IsDummy     = false;
         LogFileID   = -1;
-        RecordingStartTime = 0;
+    end
 
-        
+    properties (GetAccess = public, SetAccess = public)
+        RecordingStartTime = 0; 
     end
 
     methods (Static)
@@ -62,12 +63,14 @@ classdef OptiTrackBridge
             OP_DATA_BUFFER.hroll   = NaN(n, 1);
             OP_DATA_BUFFER.hpitch  = NaN(n, 1);
             OP_DATA_BUFFER.hyaw    = NaN(n, 1);
+            OP_DATA_BUFFER.hErr    = NaN(n, 1);
             OP_DATA_BUFFER.tx      = NaN(n, 1);
             OP_DATA_BUFFER.ty      = NaN(n, 1);
             OP_DATA_BUFFER.tz      = NaN(n, 1);
             OP_DATA_BUFFER.troll   = NaN(n, 1);
             OP_DATA_BUFFER.tpitch  = NaN(n, 1);
             OP_DATA_BUFFER.tyaw    = NaN(n, 1);
+            OP_DATA_BUFFER.tErr    = NaN(n, 1);
 
             if OptiTrackBridge.FORCE_DUMMY_MODE
                 OP_BRIDGE_STATE.IsDummy = true;
@@ -225,6 +228,7 @@ classdef OptiTrackBridge
             headTrace.roll  = OP_DATA_BUFFER.hroll(1:n);
             headTrace.pitch = OP_DATA_BUFFER.hpitch(1:n);
             headTrace.yaw   = OP_DATA_BUFFER.hyaw(1:n);
+            headTrace.error = OP_DATA_BUFFER.hErr(1:n);
 
             torsoTrace.time  = t;
             torsoTrace.x     = OP_DATA_BUFFER.tx(1:n);
@@ -233,6 +237,8 @@ classdef OptiTrackBridge
             torsoTrace.roll  = OP_DATA_BUFFER.troll(1:n);
             torsoTrace.pitch = OP_DATA_BUFFER.tpitch(1:n);
             torsoTrace.yaw   = OP_DATA_BUFFER.tyaw(1:n);
+            torsoTrace.error = OP_DATA_BUFFER.tErr(1:n);
+            
         end
 
         % =================================================================
@@ -548,6 +554,7 @@ classdef OptiTrackBridge
 
             [headTrace, torsoTrace] = OptiTrackBridge.StopRecording();
         end
+
 
         % =================================================================
         % QUATERNION TO EULER  (kept for any external callers)

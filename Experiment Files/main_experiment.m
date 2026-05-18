@@ -65,15 +65,14 @@ timeStr = datestr(now, 'yyyy-mm-dd_HHMMSS');
 % Format: P001_2026-03-04_120000_Results.csv
 dataFile = sprintf('P%s_%s_%s_Results.csv', subjID, BlockNum, timeStr);
 
-% 2. The Trace Folder (The "Library" for raw motion)
-% Format: P001_Traces
-traceFolder = sprintf('P%s_%s_%s_Traces', subjID, BlockNum, timeStr);
+% 2. The Master Data File
+masterFile = sprintf('P%s_%s_%s_MasterData.mat', subjID, BlockNum, timeStr);
 
-% Create the folder if it doesn't exist.
-% Standard: This prevents a crash when we try to save raw data later.
-if ~exist(traceFolder, 'dir')
-    mkdir(traceFolder); 
-end
+
+% Initialize the empty Master Array of Structures in memory
+MasterData = struct();
+
+masterIdx = 1;
 
 % 3. TriggerLogger
 
@@ -708,20 +707,48 @@ WaitSecs(0.5);
                 results = [results; newRow];
                 writetable(results, dataFile);
                 
-                % Save Traces here
-                traceFilename = fullfile(traceFolder, sprintf('Block_%02d_Trial_%02d_Attempt_%02d_Traces.mat', targetBlock ,trueTrial, attemptNum));
+                % Update the master data array
+                % Update the master data array
+                MasterData(masterIdx).TrialNum   = trueTrial;
+                MasterData(masterIdx).Attempt    = attemptNum;
+                MasterData(masterIdx).Position   = participantPosition;
+                MasterData(masterIdx).Direction  = dirCode;
+                MasterData(masterIdx).TaskType   = typeCode;
+                MasterData(masterIdx).TargetDeg  = targetDeg;
+                MasterData(masterIdx).Status     = statusStr;
 
-                save(traceFilename, 'OpenEyesHeadTrace', 'OpenEyesTorsoTrace', ...
-                    'PhysicallyWalkHeadTrace', 'TorsoPhysicallyWalkHeadTrace', ...
-                    'StationaryHeadTraceOne', 'StationaryTorsoTraceOne', ...
-                    'EncodingRotateHeadTrace', 'EncodingRotateTorsoTrace', ...
-                    'StationaryHeadTraceTwo', 'StationaryTorsoTraceTwo', ...
-                    'ResponseRotationHeadTrace', 'ResponseRotationTorsoTrace', ...
-                    'ImagineWalkingHeadTrace', 'ImagineWalkingTorsoTrace', ...
-                    'StationaryHeadTraceThree', 'StationaryTorsoTraceThree', ...
-                    'PassiveEncodeHeadTrace', 'PassiveEncodeTorsoTrace', ...
-                    'PassiveProdHeadTrace', 'PassiveProdTorsoTrace', ...
-                    'CloseEyesHeadTrace', 'CloseEyesTorsoTrace');
+                % Create a sub-folder just for the traces
+                tracePacket = struct();
+                tracePacket.OpenEyesHeadTrace = OpenEyesHeadTrace;
+                tracePacket.OpenEyesTorsoTrace = OpenEyesTorsoTrace;
+                tracePacket.PhysicallyWalkHeadTrace = PhysicallyWalkHeadTrace;
+                tracePacket.TorsoPhysicallyWalkHeadTrace = TorsoPhysicallyWalkHeadTrace;
+                tracePacket.StationaryHeadTraceOne = StationaryHeadTraceOne;
+                tracePacket.StationaryTorsoTraceOne = StationaryTorsoTraceOne;
+                tracePacket.EncodingRotateHeadTrace = EncodingRotateHeadTrace;
+                tracePacket.EncodingRotateTorsoTrace = EncodingRotateTorsoTrace;
+                tracePacket.StationaryHeadTraceTwo = StationaryHeadTraceTwo;
+                tracePacket.StationaryTorsoTraceTwo = StationaryTorsoTraceTwo;
+                tracePacket.ResponseRotationHeadTrace = ResponseRotationHeadTrace;
+                tracePacket.ResponseRotationTorsoTrace = ResponseRotationTorsoTrace;
+                tracePacket.ImagineWalkingHeadTrace = ImagineWalkingHeadTrace;
+                tracePacket.ImagineWalkingTorsoTrace = ImagineWalkingTorsoTrace;
+                tracePacket.StationaryHeadTraceThree = StationaryHeadTraceThree;
+                tracePacket.StationaryTorsoTraceThree = StationaryTorsoTraceThree;
+                tracePacket.PassiveEncodeHeadTrace = PassiveEncodeHeadTrace;
+                tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;
+                tracePacket.PassiveProdHeadTrace = PassiveProdHeadTrace;
+                tracePacket.PassiveProdTorsoTrace = PassiveProdTorsoTrace;
+                tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
+                tracePacket.CloseEyesTorsoTrace = CloseEyesTorsoTrace;
+
+                % Attach the traces and move to the next empty slot
+                MasterData(masterIdx).Traces = tracePacket;
+                masterIdx = masterIdx + 1; 
+
+                % SAVE THE MASTER FILE TO THE HARD DRIVE NOW
+                % (Using the safe filename you generated at the top of the script)
+                save(masterFile, 'MasterData', 'results', '-v7.3');
                 
                 play_sound_blocking(pahandle, audioData.Return); 
                 trialAccepted = true; % Breaks the while loop, moves to next trial
@@ -769,19 +796,47 @@ WaitSecs(0.5);
                     results = [results; newRow];
                     writetable(results, dataFile);
                     
-                    traceFilename = fullfile(traceFolder, sprintf('Block_%02d_Trial_%02d_Attempt_%02d_Traces.mat', targetBlock ,trueTrial, attemptNum));
+                % Update the master data array
+ 
+                MasterData(masterIdx).TrialNum   = trueTrial;
+                MasterData(masterIdx).Attempt    = attemptNum;
+                MasterData(masterIdx).Position   = participantPosition;
+                MasterData(masterIdx).Direction  = dirCode;
+                MasterData(masterIdx).TaskType   = typeCode;
+                MasterData(masterIdx).TargetDeg  = targetDeg;
+                MasterData(masterIdx).Status     = statusStr;
 
-                    save(traceFilename, 'OpenEyesHeadTrace', 'OpenEyesTorsoTrace', ...
-                    'PhysicallyWalkHeadTrace', 'TorsoPhysicallyWalkHeadTrace', ...
-                    'StationaryHeadTraceOne', 'StationaryTorsoTraceOne', ...
-                    'EncodingRotateHeadTrace', 'EncodingRotateTorsoTrace', ...
-                    'StationaryHeadTraceTwo', 'StationaryTorsoTraceTwo', ...
-                    'ResponseRotationHeadTrace', 'ResponseRotationTorsoTrace', ...
-                    'ImagineWalkingHeadTrace', 'ImagineWalkingTorsoTrace', ...
-                    'StationaryHeadTraceThree', 'StationaryTorsoTraceThree', ...
-                    'PassiveEncodeHeadTrace', 'PassiveEncodeTorsoTrace', ...
-                    'PassiveProdHeadTrace', 'PassiveProdTorsoTrace', ...
-                    'CloseEyesHeadTrace', 'CloseEyesTorsoTrace');
+                % Create a sub-folder just for the traces
+                tracePacket = struct();
+                tracePacket.OpenEyesHeadTrace = OpenEyesHeadTrace;
+                tracePacket.OpenEyesTorsoTrace = OpenEyesTorsoTrace;
+                tracePacket.PhysicallyWalkHeadTrace = PhysicallyWalkHeadTrace;
+                tracePacket.TorsoPhysicallyWalkHeadTrace = TorsoPhysicallyWalkHeadTrace;
+                tracePacket.StationaryHeadTraceOne = StationaryHeadTraceOne;
+                tracePacket.StationaryTorsoTraceOne = StationaryTorsoTraceOne;
+                tracePacket.EncodingRotateHeadTrace = EncodingRotateHeadTrace;
+                tracePacket.EncodingRotateTorsoTrace = EncodingRotateTorsoTrace;
+                tracePacket.StationaryHeadTraceTwo = StationaryHeadTraceTwo;
+                tracePacket.StationaryTorsoTraceTwo = StationaryTorsoTraceTwo;
+                tracePacket.ResponseRotationHeadTrace = ResponseRotationHeadTrace;
+                tracePacket.ResponseRotationTorsoTrace = ResponseRotationTorsoTrace;
+                tracePacket.ImagineWalkingHeadTrace = ImagineWalkingHeadTrace;
+                tracePacket.ImagineWalkingTorsoTrace = ImagineWalkingTorsoTrace;
+                tracePacket.StationaryHeadTraceThree = StationaryHeadTraceThree;
+                tracePacket.StationaryTorsoTraceThree = StationaryTorsoTraceThree;
+                tracePacket.PassiveEncodeHeadTrace = PassiveEncodeHeadTrace;
+                tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;
+                tracePacket.PassiveProdHeadTrace = PassiveProdHeadTrace;
+                tracePacket.PassiveProdTorsoTrace = PassiveProdTorsoTrace;
+                tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
+                tracePacket.CloseEyesTorsoTrace = CloseEyesTorsoTrace;
+
+                MasterData(masterIdx).Traces = tracePacket;
+                masterIdx = masterIdx + 1; 
+
+                % SAVE THE MASTER FILE TO THE HARD DRIVE NOW
+                % (Using the safe filename you generated at the top of the script)
+                save(masterFile, 'MasterData', 'results', '-v7.3');
                     
                     attemptNum = attemptNum + 1;
                    
@@ -817,11 +872,6 @@ catch ME
         rethrow(ME); % Show the actual error if it wasn't a manual quit
     end
 
-    if exist('traceFolder', 'var')
-        compileData(traceFolder, pID_num, targetBlock);
-    else
-        fprintf('Data file not found. Skipping compilation.\n');
-    end
 
     return;
 
@@ -838,7 +888,7 @@ PsychPortAudio('Close');
 Screen('CloseAll');
 disp('Experiment finished successfully. Data saved.');
 
-compileData(traceFolder, pID_num, targetBlock);
+
 
 
 end
@@ -898,144 +948,3 @@ end
     end
     end
 
-    function compileData(targetFolder, pID_num, targetBlock)
-        disp('Compiling Master Table from Trace files...');
-        
-
-        traceLabels = {'OpenEyesHeadTrace', 'OpenEyesTorsoTrace', ...
-                    'PhysicallyWalkHeadTrace', 'TorsoPhysicallyWalkHeadTrace', ...
-                    'StationaryHeadTraceOne', 'StationaryTorsoTraceOne', ...
-                    'EncodingRotateHeadTrace', 'EncodingRotateTorsoTrace', ...
-                    'StationaryHeadTraceTwo', 'StationaryTorsoTraceTwo', ...
-                    'ResponseRotationHeadTrace', 'ResponseRotationTorsoTrace', ...
-                    'ImagineWalkingHeadTrace', 'ImagineWalkingTorsoTrace', ...
-                    'StationaryHeadTraceThree', 'StationaryTorsoTraceThree', ...
-                    'PassiveEncodeHeadTrace', 'PassiveEncodeTorsoTrace', ...
-                    'PassiveProdHeadTrace', 'PassiveProdTorsoTrace', ...
-                    'CloseEyesHeadTrace', 'CloseEyesTorsoTrace'};
-
-        % Find all .mat files in the target folder that match the specific naming convention
-        matFiles = dir(fullfile(targetFolder, 'Block_*_Trial_*_Attempt_*_Traces.mat'));
-
-        % Safety check: Abort script if no files matching the pattern are found
-        if isempty(matFiles), error('No files found.'); end
- 
-        % Initialize empty arrays to store the extracted trial and attempt numbers
-        trialList = []; 
-        attemptList = [];
-
-        % Loop through every discovered file to extract metadata from the filenames
-        for i = 1:length(matFiles)
-            % Use regular expressions to pull the numbers following 'Trial_' and 'Attempt_'
-            tokens = regexp(matFiles(i).name, 'Block_\d+_Trial_(\d+)_Attempt_(\d+)', 'tokens');
-            
-            % Convert the extracted string tokens into double-precision numbers and store them
-            trialList(i)   = str2double(tokens{1}{1}); % The Trial ID (e.g., Trial_12 -> 12)
-            attemptList(i) = str2double(tokens{1}{2}); % The Attempt ID (e.g., Attempt_3 -> 3)
-        end
- 
-        % =========================================================================
-        % 2. Pre-Scan for Maximums
-        % =========================================================================
-        % We need the absolute maximum time-series length to preallocate the 3rd dimension of our 5D block
-        maxTimeLen = 0; 
-
-        % Iterate through all found files to inspect their contents
-        for i = 1:length(matFiles)
-            % Load the data structure from the current .mat file
-            trialData = load(fullfile(matFiles(i).folder, matFiles(i).name));
-            
-            % Check each of our target traces to see if they exist in this specific file
-            for trIdx = 1:length(traceLabels)
-                if isfield(trialData, traceLabels{trIdx})
-                    % Extract the trace structure (e.g., walkTraces)
-                    S = trialData.(traceLabels{trIdx});
-                    
-                    % Ensure it is actually a structure before trying to read its fields
-                    if isstruct(S)
-                        fNames = fieldnames(S); % Get all field names (e.g., 'x', 'y', 'time')
-                        
-                        % Check the length of the data inside each field
-                        for f = 1:length(fNames)
-                            % Update maxTimeLen if this field's length is greater than the current max
-                            maxTimeLen = max(maxTimeLen, length(S.(fNames{f})));
-                        end
-                    end
-                end
-            end
-        end
- 
-        % =========================================================================
-        % 3. Preallocate the 5D Array [Trial x Attempt x Time x Trace x Channel]
-        % =========================================================================
-        numTrials   = max(64, max(trialList)); 
-        numAttempts = max(attemptList);        
-        numTraces   = length(traceLabels);     
-        numChannels = 7;                       % 1:Time, 2:X, 3:Y, 4:Z, 5:Roll, 6:Pitch, 7:Yaw
- 
-        % Create the massive 5D block, prefilled with NaNs
-        Master5D = NaN(numTrials, numAttempts, maxTimeLen, numTraces, numChannels);
- 
-        % =========================================================================
-        % 4. Fill the 5D Array
-        % =========================================================================
-        uniqueTrials = unique(trialList);
- 
-        for tIdx = 1:length(uniqueTrials)
-            tID = uniqueTrials(tIdx);
-            
-            attemptsForTrial = sort(attemptList(trialList == tID));
-            
-            for aIdx = 1:length(attemptsForTrial)
-                currAttempt = attemptsForTrial(aIdx);
-                
-                fIdx = find(trialList == tID & attemptList == currAttempt, 1);
-                
-                trialData = load(fullfile(matFiles(fIdx).folder, matFiles(fIdx).name));
- 
-                for trIdx = 1:numTraces
-                    varName = traceLabels{trIdx};
-                    
-                    if isfield(trialData, varName)
-                        S = trialData.(varName);
-                        
-                        if isstruct(S)
-                            fNames = fieldnames(S);
-                            
-                            for f = 1:length(fNames)
-                                fname = lower(fNames{f});
-                                dataVal = S.(fNames{f});
-                                dataVal = dataVal(:);
-                                currLen = length(dataVal);
-                                
-                                chanIdx = 0;
-                                switch fname
-                                    case 'time',  chanIdx = 1;
-                                    case 'x',     chanIdx = 2;
-                                    case 'y',     chanIdx = 3;
-                                    case 'z',     chanIdx = 4;
-                                    case 'roll',  chanIdx = 5;
-                                    case 'pitch', chanIdx = 6;
-                                    case 'yaw',   chanIdx = 7;
-                                end
-                                
-                                if chanIdx > 0
-                                    Master5D(tID, currAttempt, 1:currLen, trIdx, chanIdx) = dataVal;
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-
-        % Moved fprintf and save OUTSIDE all loops — runs once after array is fully built
-        fprintf('5D Array successfully built. Dimensions: %d x %d x %d x %d x %d\n', size(Master5D));
-
-        outputFileName = sprintf('Participant_%d_Master5D_Block_%02d.mat', pID_num, targetBlock);
-        fprintf('Saving data to %s... ', outputFileName);
-        save(outputFileName, 'Master5D', 'traceLabels', '-v7.3');
-        fprintf('Done.\n');
-
-        fprintf('5D Array successfully built and saved. Dimensions: %d x %d x %d x %d x %d\n', size(Master5D));
-    end

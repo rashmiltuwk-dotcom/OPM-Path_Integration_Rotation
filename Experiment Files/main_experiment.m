@@ -16,14 +16,7 @@ Screen('Preference', 'SkipSyncTests', 1); % Bypasses timing crashes during testi
 % [PTB] shut down screens, different for PTB bc we use ptb to display on
 % screens to prevent delay
 
-% {{{{ OPTITRACK CONNECT }}}
-connected = OptiTrackBridge.Connect(); % [OptiTrack] Initialize connection to the cameras
 
-if ~connected % [MATLAB] If the connection fails...
-
-    warning('OptiTrack NOT detected. Running in Dummy Mode?'); % [MATLAB] Print a warning
-
-end
 
 % {{{{ Psychtoolbox Setup }}}
 
@@ -45,14 +38,24 @@ InitializePsychSound(1);
 
 % --- INPUT DIALOG (Participant Metadata) ---
 
-prompt = {'Participant ID:'}; 
-definput = {'001'};
-answer = inputdlg(prompt, 'Task Setup', [1 45], definput);
+prompt = {'Participant ID:', 'Block Number:'}; 
+definput = {'001', '001'};
+answer = inputdlg(prompt, 'Task Setup', [1 45; 1 45], definput);
+
 
 if isempty(answer), return; end % Safety exit
 
 subjID  = answer{1};
+BlockNum = answer{2};
 
+% {{{{ OPTITRACK CONNECT }}}
+connected = OptiTrackBridge.Connect(subjID); % [OptiTrack] Initialize connection to the cameras
+
+if ~connected % [MATLAB] If the connection fails...
+
+    warning('OptiTrack NOT detected. Running in Dummy Mode?'); % [MATLAB] Print a warning
+
+end
 
 % --- FILE & FOLDER MANAGEMENT ---
 
@@ -60,11 +63,11 @@ timeStr = datestr(now, 'yyyy-mm-dd_HHMMSS');
 
 % 1. The Summary File (The "Manager" Spreadsheet)
 % Format: P001_2026-03-04_120000_Results.csv
-dataFile = sprintf('P%s_%s_Results.csv', subjID, timeStr);
+dataFile = sprintf('P%s_%s_%s_Results.csv', subjID, BlockNum, timeStr);
 
 % 2. The Trace Folder (The "Library" for raw motion)
 % Format: P001_Traces
-traceFolder = sprintf('P%s_%s_Traces', subjID, timeStr);
+traceFolder = sprintf('P%s_%s_%s_Traces', subjID, BlockNum, timeStr);
 
 % Create the folder if it doesn't exist.
 % Standard: This prevents a crash when we try to save raw data later.
@@ -98,7 +101,10 @@ end
 
 
 % --- EMERGENCY OVERRIDE ---
-sca; 
+sca;
+headID = 1;
+torsoID = 2;
+
 Screen('Preference', 'SkipSyncTests', 1); 
 Screen('Preference', 'VisualDebugLevel', 1); % Reduces internal PTB chatter
 
@@ -126,7 +132,7 @@ Screen('TextSize', win, 40);
 % 1  - Mode 1: Playback only (Low Latency).
 % 1  - Latency Class 1: Tells the PC to give audio 100% priority.
 % 48000 - Sample Rate: High-definition standard.
-% 2  3113- Channels: Stereo output.
+% 2   - Channels: Stereo output.
 pahandle = PsychPortAudio('Open', [], 1, 1, 48000, 2);
 
 % [MATLAB] Define a cell array of audio filenames needed for the task.
@@ -250,17 +256,39 @@ mySeq = sequences(orderChoice, :);
 % [MATLAB] Build the full 16-trial schedule
 raw_schedule = [ 
     % Block 1
-    allChunks{mySeq(1)}; allChunks{mySeq(2)}; allChunks{mySeq(3)}; allChunks{mySeq(4)}; ...
+    allChunks{mySeq(1)}; allChunks{mySeq(2)};
     % Block 2
-    allChunks{mySeq(5)}; allChunks{mySeq(6)}; allChunks{mySeq(7)}; allChunks{mySeq(8)}; ...
+    allChunks{mySeq(3)}; allChunks{mySeq(4)};
     % Block 3
-    allChunks{mySeq(9)}; allChunks{mySeq(10)}; allChunks{mySeq(11)}; allChunks{mySeq(12)}; ...
+    allChunks{mySeq(5)}; allChunks{mySeq(6)};
     % Block 4
-    allChunks{mySeq(13)}; allChunks{mySeq(14)}; allChunks{mySeq(15)}; allChunks{mySeq(16)}
+    allChunks{mySeq(7)}; allChunks{mySeq(8)};
+    % Block 5
+    allChunks{mySeq(9)}; allChunks{mySeq(10)};
+    % Block 6   
+    allChunks{mySeq(11)}; allChunks{mySeq(12)};
+    % Block 7
+    allChunks{mySeq(13)}; allChunks{mySeq(14)};
+    % Block 8
+    allChunks{mySeq(15)}; allChunks{mySeq(16)}
 ];
 
 % Standard: Assign to trials variable
-trials = raw_schedule;
+% Convert the BlockNum from the string input dialog to a number
+targetBlock = str2double(BlockNum);
+
+% Safety check: Ensure the block entered is valid
+if isnan(targetBlock) || targetBlock < 1 || targetBlock > 8
+    error('Invalid Block Number. Please enter a number between 1 and 8 in the setup dialog.');
+end
+
+% Calculate the exact row indices for this block
+% (e.g., Block 1 = rows 1:8, Block 2 = rows 9:16, etc.)
+startRow = (targetBlock - 1) * 8 + 1;
+endRow   = targetBlock * 8;
+
+% Standard: Assign ONLY the 8 specific trials to the trials variable
+trials = raw_schedule(startRow:endRow, :);
 
 % Standard: Initialize the results table with headers BEFORE the loop starts.
 results = table();
@@ -279,7 +307,9 @@ results = table();
     wait_key('space');   % Custom function: wait for keyboard input
 
 % --- BEGIN TRIAL ITERATION ---
-    for t = 1:size(trials, 1) % This will run exactly 64 times
+    for t = 1:size(trials, 1) % This will run exactly 8 times per run (1 BLOCK)
+
+    trueTrial = startRow + t - 1;
         
         trialAccepted = false; 
         attemptNum = 1; % Tracks how many times they have tried THIS trial      
@@ -292,12 +322,17 @@ results = table();
              encodeDriftHead, encodeDriftTorso, prodDriftHead, prodDriftTorso] = deal(NaN); % <-- ADDED DRIFT VARS
             rank = ''; % Reset rank
             
-            [PhysicallyWalkHeadTrace, TorsoPhysicallyWalkHeadTrace, ...
+            [OpenEyesHeadTrace, OpenEyesTorsoTrace, ...
+            PhysicallyWalkHeadTrace, TorsoPhysicallyWalkHeadTrace, ...
+            StationaryHeadTraceOne, StationaryTorsoTraceOne, ...
             EncodingRotateHeadTrace, EncodingRotateTorsoTrace, ...
+            StationaryHeadTraceTwo, StationaryTorsoTraceTwo, ...
             ResponseRotationHeadTrace, ResponseRotationTorsoTrace, ...
             ImagineWalkingHeadTrace, ImagineWalkingTorsoTrace, ...
-            PassiveEncodeHeadTrace, PassiveEncodeTorsoTrace, ...   % <-- ADDED
-            PassiveProdHeadTrace, PassiveProdTorsoTrace] = deal([]); % <-- ADDED
+            StationaryHeadTraceThree, StationaryTorsoTraceThree, ...
+            PassiveEncodeHeadTrace, PassiveEncodeTorsoTrace, ...
+            PassiveProdHeadTrace, PassiveProdTorsoTrace, ...   
+            CloseEyesHeadTrace, CloseEyesTorsoTrace] = deal([]);
             
             try % --- THE RIPCORD STARTS HERE ---
                 
@@ -305,19 +340,16 @@ results = table();
                 % ---------------------------------------------------------
                 % [MATLAB] EXTRACT TRIAL METADATA
                 % ---------------------------------------------------------
-                dirCode    = trials{t,1}; % 'L' or 'R'
-                typeCode   = trials{t,2}; % 'I' (Imagine) or 'P' (Physical)
-                distCode   = trials{t,3}; % 'D1' to 'D4'
-                qCode      = trials{t,4}; % 'Q1' to 'Q4'
-                participantPosition = trials{t,5}; %'LPos' (Left Side) or 'RPos'
+                participantPosition = trials{t,1}; %'LPos' (Left Side) or 'RPos'
+                dirCode    = trials{t,2}; % 'L' or 'R'
+                typeCode   = trials{t,3}; % 'I' (Imagine) or 'P' (Physical)
+                distCode   = trials{t,4}; % 'D1' to 'D4'
+                qCode      = trials{t,5}; % 'Q1' to 'Q4'
 
                 targetDeg  = angleMap(qCode); % Look up the degrees (60, 120, etc.)
                 targetDist = distance(distCode); % Look up the distance (1.0, 1.5, etc.)
 
-                % ---------------------------------------------------------
-                % DYNAMIC COUNTERBALANCING (Position, Direction, Task Type)
-                % ---------------------------------------------------------
-                % Using pID_num (numeric) instead of subjID (string)
+
 
 % --- UPDATED VISUAL CUE ---
 % Translate LPos/RPos into readable text for the screen
@@ -328,7 +360,7 @@ else
 end
 
 % This displays the Target Distance and the required Room Position
-line1 = sprintf('TRIAL %d of %d', t, size(trials, 1));
+line1 = sprintf('TRIAL %d of 64', trueTrial);
 line2 = sprintf('POSITION: %s', displayPosText); % Uses the translated text
 line3 = sprintf('WALK DISTANCE: %.1f m', targetDist);
 line4 = '\nResearcher: Press SPACE to begin.';
@@ -350,7 +382,10 @@ WaitSecs(0.5);
                 OptiTrackBridge.startEvent(t, 'CloseEyes');
                 
                 % [Audio] "Close your eyes" (Blocking: wait for sound to finish)
-                play_sound_blocking(pahandle, audioData.CloseE);
+                play_sound(pahandle, audioData.CloseE);
+
+                [CloseEyesHeadTrace, CloseEyesTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, 1.13);
+                
                 
                 if ~isempty(TL), TL.stopEvent(1, t, 'CloseEyes'); end
                 OptiTrackBridge.stopEvent(t, 'CloseEyes');
@@ -362,8 +397,8 @@ WaitSecs(0.5);
                 
                 if ~isempty(TL), TL.startEvent(2, t, 'Stationary'); end
                 OptiTrackBridge.startEvent(t, 'Stationary');
-                
-                WaitSecs(3.0); 
+
+                [StationaryHeadTraceOne, StationaryTorsoTraceOne] = OptiTrackBridge.PassiveTrack(headID, torsoID, 3.0);
                 
                 if ~isempty(TL), TL.stopEvent(2, t, 'Stationary'); end
                 OptiTrackBridge.stopEvent(t, 'Stationary');
@@ -382,7 +417,7 @@ WaitSecs(0.5);
                 
                 % 3. Track them until they hit the (0,0) coordinate
                 % UPDATED: Now capturing 'walkTraces' alongside distance
-                [walkDistTorso, walkDistHead, PhysicallyWalkHeadTrace, TorsoPhysicallyWalkHeadTrace] = OptiTrackBridge.WaitForOrigin(win, 0.50);
+                [walkDistTorso, walkDistHead, PhysicallyWalkHeadTrace, TorsoPhysicallyWalkHeadTrace] = OptiTrackBridge.WaitForOrigin(headID, torsoID, win, 0.5);
                 
                 % 4. STOP THE TIMER: Record exactly how long it took
                 walkTime = GetSecs() - walkStartTime; 
@@ -446,8 +481,6 @@ WaitSecs(0.5);
                         end
                     end
                     
-                    % 5. The "Brake" (Prevents the hard crash/freeze)
-                    Screen('Flip', win)
                 end
                 % --------------------------------------------
                     
@@ -476,7 +509,7 @@ WaitSecs(0.5);
                 
                 if ~isempty(TL), TL.startEvent(2, t, 'Stationary'); end
                 OptiTrackBridge.startEvent(t, 'Stationary');
-                WaitSecs(3.0); 
+                [StationaryHeadTraceTwo, StationaryTorsoTraceTwo] = OptiTrackBridge.PassiveTrack(headID, torsoID, 3.0);
                 
                 if ~isempty(TL), TL.stopEvent(2, t, 'Stationary'); end
                 OptiTrackBridge.stopEvent(t, 'Stationary');
@@ -505,7 +538,7 @@ WaitSecs(0.5);
                 % 3. DUAL TRACKING: Head and Torso
                 % [UPDATED] Catching startHead and startTorso
                 [startHead, startTorso, actualHead, actualTorso, EncodingRotateHeadTrace, EncodingRotateTorsoTrace] = ...
-                    OptiTrackBridge.WaitForRotationDual(targetDeg, win, dirCode);
+                    OptiTrackBridge.WaitForRotationDual(headID, torsoID, targetDeg, win, dirCode);
                 
                 % 4. THE STOP CLICK
                 % Calculate total time from "Go" to "Target Hit"
@@ -518,7 +551,7 @@ WaitSecs(0.5);
                 play_sound(pahandle, audioData.stop);
 
                 captureDuration = 0.5; % Record for 0.5 seconds after they stop
-                [PassiveEncodeHeadTrace, PassiveEncodeTorsoTrace] = OptiTrackBridge.PassiveTrack(captureDuration);
+                [PassiveEncodeHeadTrace, PassiveEncodeTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, captureDuration);
                 
                 if ~isempty(PassiveEncodeTorsoTrace.yaw)
                     % Calculate shortest path drift (handles 360-degree wrap around)
@@ -552,7 +585,7 @@ WaitSecs(0.5);
                 % Instead of 'WaitForRotation' (which stops at a target), we use 
                 % 'RecordUntilKey', which records until they hit '1!'.
                 [actHead, actTorso, ResponseRotationHeadTrace, ResponseRotationTorsoTrace] = ...
-                    OptiTrackBridge.RecordUntilKey('1!', win);
+                    OptiTrackBridge.RecordUntilKey(headID, torsoID, '1!', win);
                 
                 % 4. CALCULATE TASK DURATION (TaskTime)
                 % This is the time from the audio ending to the button press '1!'
@@ -564,7 +597,7 @@ WaitSecs(0.5);
                 OptiTrackBridge.stopEvent(t, 'RotationProduction');
                 
                 
-                [PassiveProdHeadTrace, PassiveProdTorsoTrace] = OptiTrackBridge.PassiveTrack(captureDuration);
+                [PassiveProdHeadTrace, PassiveProdTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, captureDuration);
                 
                 if ~isempty(PassiveProdTorsoTrace.yaw)
                     initT = PassiveProdTorsoTrace.yaw(1); finT = PassiveProdTorsoTrace.yaw(end);
@@ -592,7 +625,7 @@ WaitSecs(0.5);
                 % 3. THE "STOP" BUTTON (Key '1!')
 
                 [~, ~, ImagineWalkingHeadTrace, ImagineWalkingTorsoTrace] = ...
-                    OptiTrackBridge.RecordUntilKey('1!', win);
+                    OptiTrackBridge.RecordUntilKey(headID, torsoID, '1!', win);
                 
                 % 4. THE CALCULATION
                 % This is the only number we need for the CSV summary.
@@ -611,7 +644,7 @@ WaitSecs(0.5);
 
                 if ~isempty(TL), TL.startEvent(2, t, 'Stationary'); end
                 OptiTrackBridge.startEvent(t, 'Stationary');
-                WaitSecs(3.0); 
+                [StationaryHeadTraceThree, StationaryTorsoTraceThree] = OptiTrackBridge.PassiveTrack(headID, torsoID, 3.0);
                 
                 if ~isempty(TL), TL.stopEvent(2, t, 'Stationary'); end
                 OptiTrackBridge.stopEvent(t, 'Stationary');
@@ -623,7 +656,9 @@ WaitSecs(0.5);
                 if ~isempty(TL), TL.startEvent(7, t, 'OpenEyes'); end
                 OptiTrackBridge.startEvent(t, 'OpenEyes');
                 % [Audio] "Close your eyes" (Blocking: wait for sound to finish)
-                play_sound_blocking(pahandle, audioData.OpenE);
+                play_sound(pahandle, audioData.OpenE);
+                
+                [OpenEyesHeadTrace, OpenEyesTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, 1.089);
                 
                 if ~isempty(TL), TL.stopEvent(7, t, 'OpenEyes'); end
                 OptiTrackBridge.stopEvent(t, 'OpenEyes');
@@ -661,10 +696,12 @@ WaitSecs(0.5);
                 % END OF TRIAL: AUTO-SAVE DATA
                 % ---------------------------------------------------------
                 statusStr = 'Accepted'; % (Or 'Aborted_Mid_Trial' in the catch block)
-                newRow = table(t, {participantPosition}, {dirCode}, {typeCode}, {qCode}, targetDeg, targetDist,...
+
+                %  Added missing comma after 'DistanceFromCent'
+                newRow = table(trueTrial, {participantPosition}, {dirCode}, {typeCode}, {qCode}, targetDeg, targetDist,...
                     walkDistTorso, walkDistHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
                     encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {statusStr}, ...
-                    'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent'...
+                    'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
                     'WalkDistTorso','WalkDistHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
                     'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'Status'});
                 
@@ -672,20 +709,25 @@ WaitSecs(0.5);
                 writetable(results, dataFile);
                 
                 % Save Traces here
-                traceFilename = fullfile(traceFolder, sprintf('Trial_%02d_Attempt_%02d_Traces.mat', t, attemptNum));
+                traceFilename = fullfile(traceFolder, sprintf('Block_%02d_Trial_%02d_Attempt_%02d_Traces.mat', targetBlock ,trueTrial, attemptNum));
 
-                save(traceFilename, 'PhysicallyWalkHeadTrace', 'TorsoPhysicallyWalkHeadTrace', ...
+                save(traceFilename, 'OpenEyesHeadTrace', 'OpenEyesTorsoTrace', ...
+                    'PhysicallyWalkHeadTrace', 'TorsoPhysicallyWalkHeadTrace', ...
+                    'StationaryHeadTraceOne', 'StationaryTorsoTraceOne', ...
                     'EncodingRotateHeadTrace', 'EncodingRotateTorsoTrace', ...
+                    'StationaryHeadTraceTwo', 'StationaryTorsoTraceTwo', ...
                     'ResponseRotationHeadTrace', 'ResponseRotationTorsoTrace', ...
                     'ImagineWalkingHeadTrace', 'ImagineWalkingTorsoTrace', ...
+                    'StationaryHeadTraceThree', 'StationaryTorsoTraceThree', ...
                     'PassiveEncodeHeadTrace', 'PassiveEncodeTorsoTrace', ...
-                    'PassiveProdHeadTrace', 'PassiveProdTorsoTrace');
+                    'PassiveProdHeadTrace', 'PassiveProdTorsoTrace', ...
+                    'CloseEyesHeadTrace', 'CloseEyesTorsoTrace');
                 
                 play_sound_blocking(pahandle, audioData.Return); 
                 trialAccepted = true; % Breaks the while loop, moves to next trial
                 
-            % ---------------------------------------------------------
-                % NEW: BLOCK BREAK EVERY 8 TRIALS
+                % ---------------------------------------------------------
+                % BLOCK BREAK EVERY 8 TRIALS
                 % ---------------------------------------------------------
                 % If trial number is a multiple of 8, and it's not the very last trial
                 if mod(t, 8) == 0 && t < size(trials, 1)
@@ -695,11 +737,11 @@ WaitSecs(0.5);
                     blockLetter = char(64 + blockNum);
                     
                     % Display break message using the letter
-                    breakMsg = sprintf('End of Block %c.\n\nPlease take a moment to rest.\n\nResearcher: Press SPACE to begin the next block.', blockLetter);
+                    breakMsg = sprintf('End of Block %c.\n\nPlease take a moment to rest.\n\nResearcher: Press SPACE to end block.', blockLetter);
                     DrawFormattedText(win, breakMsg, 'center', 'center', [0 255 0]); % Green text
                     Screen('Flip', win);
                     
-                    % Wait for spacebar to resume
+                    % Wait for spacebar to end block
                     wait_key('space');
                     
                     % Clear screen to black before next trial starts
@@ -715,23 +757,31 @@ WaitSecs(0.5);
                     if ~isempty(TL), TL.stopEvent(0, t, 'AbortClear'); end
                     
                     statusStr = 'Aborted_Mid_Trial';
-                newRow = table(t, {participantPosition}, {dirCode}, {typeCode}, {qCode}, targetDeg, targetDist, ...
-                    walkDistTorso, walkDistHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
-                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {statusStr}, ...
-                    'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent'...
-                    'WalkDistTorso','WalkDistHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
-                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'Status'});
+
+
+                    newRow = table(trueTrial, {participantPosition}, {dirCode}, {typeCode}, {qCode}, targetDeg, targetDist, ...
+                        walkDistTorso, walkDistHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
+                        encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {statusStr}, ...
+                        'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
+                        'WalkDistTorso','WalkDistHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
+                        'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'Status'});
                     
                     results = [results; newRow];
                     writetable(results, dataFile);
                     
-                    traceFilename = fullfile(traceFolder, sprintf('Trial_%02d_Attempt_%02d_Traces.mat', t, attemptNum));
-                save(traceFilename, 'PhysicallyWalkHeadTrace', 'TorsoPhysicallyWalkHeadTrace', ...
+                    traceFilename = fullfile(traceFolder, sprintf('Block_%02d_Trial_%02d_Attempt_%02d_Traces.mat', targetBlock ,trueTrial, attemptNum));
+
+                    save(traceFilename, 'OpenEyesHeadTrace', 'OpenEyesTorsoTrace', ...
+                    'PhysicallyWalkHeadTrace', 'TorsoPhysicallyWalkHeadTrace', ...
+                    'StationaryHeadTraceOne', 'StationaryTorsoTraceOne', ...
                     'EncodingRotateHeadTrace', 'EncodingRotateTorsoTrace', ...
+                    'StationaryHeadTraceTwo', 'StationaryTorsoTraceTwo', ...
                     'ResponseRotationHeadTrace', 'ResponseRotationTorsoTrace', ...
                     'ImagineWalkingHeadTrace', 'ImagineWalkingTorsoTrace', ...
+                    'StationaryHeadTraceThree', 'StationaryTorsoTraceThree', ...
                     'PassiveEncodeHeadTrace', 'PassiveEncodeTorsoTrace', ...
-                    'PassiveProdHeadTrace', 'PassiveProdTorsoTrace');
+                    'PassiveProdHeadTrace', 'PassiveProdTorsoTrace', ...
+                    'CloseEyesHeadTrace', 'CloseEyesTorsoTrace');
                     
                     attemptNum = attemptNum + 1;
                    
@@ -767,7 +817,11 @@ catch ME
         rethrow(ME); % Show the actual error if it wasn't a manual quit
     end
 
-    compileData(traceFolder);
+    if exist('traceFolder', 'var')
+        compileData(traceFolder, pID_num, targetBlock);
+    else
+        fprintf('Data file not found. Skipping compilation.\n');
+    end
 
     return;
 
@@ -784,7 +838,7 @@ PsychPortAudio('Close');
 Screen('CloseAll');
 disp('Experiment finished successfully. Data saved.');
 
-compileData(traceFolder);
+compileData(traceFolder, pID_num, targetBlock);
 
 
 end
@@ -801,7 +855,7 @@ end
     function play_sound_blocking(pa, wav)
         % Plays audio and pauses MATLAB until the audio finishes playing
         PsychPortAudio('FillBuffer', pa, wav);
-        PsychPortAudio('Start', pa, 1, 1, 1); 
+        PsychPortAudio('Start', pa, 1, 0, 1); 
         PsychPortAudio('Stop', pa, 1);        
     end
 
@@ -843,161 +897,145 @@ end
         end
     end
     end
-    function compileData(targetFolder)
+
+    function compileData(targetFolder, pID_num, targetBlock)
         disp('Compiling Master Table from Trace files...');
         
-        traceLabels = {'PhysicallyWalkHeadTrace', 'TorsoPhysicallyWalkHeadTrace', ...
-                       'EncodingRotateHeadTrace', 'EncodingRotateTorsoTrace', ...
-                       'ResponseRotationHeadTrace', 'ResponseRotationTorsoTrace', ...
-                       'ImagineWalkingHeadTrace', 'ImagineWalkingTorsoTrace'};
 
-% Find all .mat files in the target folder that match the specific naming convention
-matFiles = dir(fullfile(targetFolder, 'Trial_*_Attempt_*_Traces.mat'));
+        traceLabels = {'OpenEyesHeadTrace', 'OpenEyesTorsoTrace', ...
+                    'PhysicallyWalkHeadTrace', 'TorsoPhysicallyWalkHeadTrace', ...
+                    'StationaryHeadTraceOne', 'StationaryTorsoTraceOne', ...
+                    'EncodingRotateHeadTrace', 'EncodingRotateTorsoTrace', ...
+                    'StationaryHeadTraceTwo', 'StationaryTorsoTraceTwo', ...
+                    'ResponseRotationHeadTrace', 'ResponseRotationTorsoTrace', ...
+                    'ImagineWalkingHeadTrace', 'ImagineWalkingTorsoTrace', ...
+                    'StationaryHeadTraceThree', 'StationaryTorsoTraceThree', ...
+                    'PassiveEncodeHeadTrace', 'PassiveEncodeTorsoTrace', ...
+                    'PassiveProdHeadTrace', 'PassiveProdTorsoTrace', ...
+                    'CloseEyesHeadTrace', 'CloseEyesTorsoTrace'};
 
-% Safety check: Abort script if no files matching the pattern are found
-if isempty(matFiles), error('No files found.'); end
+        % Find all .mat files in the target folder that match the specific naming convention
+        matFiles = dir(fullfile(targetFolder, 'Block_*_Trial_*_Attempt_*_Traces.mat'));
+
+        % Safety check: Abort script if no files matching the pattern are found
+        if isempty(matFiles), error('No files found.'); end
  
-% Initialize empty arrays to store the extracted trial and attempt numbers
-trialList = []; 
-attemptList = [];
+        % Initialize empty arrays to store the extracted trial and attempt numbers
+        trialList = []; 
+        attemptList = [];
 
-% Loop through every discovered file to extract metadata from the filenames
-for i = 1:length(matFiles)
-    % Use regular expressions to pull the numbers following 'Trial_' and 'Attempt_'
-    tokens = regexp(matFiles(i).name, 'Trial_(\d+)_Attempt_(\d+)', 'tokens');
-    
-    % Convert the extracted string tokens into double-precision numbers and store them
-    trialList(i)   = str2double(tokens{1}{1}); % The Trial ID (e.g., Trial_12 -> 12)
-    attemptList(i) = str2double(tokens{1}{2}); % The Attempt ID (e.g., Attempt_3 -> 3)
-end
- 
-% =========================================================================
-% 2. Pre-Scan for Maximums
-% =========================================================================
-% We need the absolute maximum time-series length to preallocate the 3rd dimension of our 5D block
-maxTimeLen = 0; 
-
-% Iterate through all found files to inspect their contents
-for i = 1:length(matFiles)
-    % Load the data structure from the current .mat file
-    trialData = load(fullfile(matFiles(i).folder, matFiles(i).name));
-    
-    % Check each of our target traces to see if they exist in this specific file
-    for trIdx = 1:length(traceLabels)
-        if isfield(trialData, traceLabels{trIdx})
-            % Extract the trace structure (e.g., walkTraces)
-            S = trialData.(traceLabels{trIdx});
+        % Loop through every discovered file to extract metadata from the filenames
+        for i = 1:length(matFiles)
+            % Use regular expressions to pull the numbers following 'Trial_' and 'Attempt_'
+            tokens = regexp(matFiles(i).name, 'Block_\d+_Trial_(\d+)_Attempt_(\d+)', 'tokens');
             
-            % Ensure it is actually a structure before trying to read its fields
-            if isstruct(S)
-                fNames = fieldnames(S); % Get all field names (e.g., 'x', 'y', 'time')
-                
-                % Check the length of the data inside each field
-                for f = 1:length(fNames)
-                    % Update maxTimeLen if this field's length is greater than the current max
-                    maxTimeLen = max(maxTimeLen, length(S.(fNames{f})));
-                end
-            end
+            % Convert the extracted string tokens into double-precision numbers and store them
+            trialList(i)   = str2double(tokens{1}{1}); % The Trial ID (e.g., Trial_12 -> 12)
+            attemptList(i) = str2double(tokens{1}{2}); % The Attempt ID (e.g., Attempt_3 -> 3)
         end
-    end
-end
  
-% =========================================================================
-% 3. Preallocate the 5D Array [Trial x Attempt x Time x Trace x Channel]
-% =========================================================================
-% Dimension 1: Trial ID (Ensures the matrix has at least 64 rows, or more if trial IDs go higher)
-numTrials   = max(64, max(trialList)); 
+        % =========================================================================
+        % 2. Pre-Scan for Maximums
+        % =========================================================================
+        % We need the absolute maximum time-series length to preallocate the 3rd dimension of our 5D block
+        maxTimeLen = 0; 
 
-% Dimension 2: Attempt ID (The maximum attempt number across all trials)
-numAttempts = max(attemptList);        
-
-% Dimension 3: Time/Samples (Pre-scanned above) -> maxTimeLen
-
-% Dimension 4: Trace Type (The number of distinct variables we are looking for)
-numTraces   = length(traceLabels);     
-
-% Dimension 5: Data Channels (7 specific channels defined below)
-numChannels = 7;                       % 1:Time, 2:X, 3:Y, 4:Z, 5:Roll, 6:Pitch, 7:Yaw
- 
-% Create the massive 5D block, prefilled with NaNs (Not-a-Number) to handle missing data gracefully
-Master5D = NaN(numTrials, numAttempts, maxTimeLen, numTraces, numChannels);
- 
-% =========================================================================
-% 4. Fill the 5D Array
-% =========================================================================
-% Get a list of unique trials so we can process them one by one
-uniqueTrials = unique(trialList);
- 
-for tIdx = 1:length(uniqueTrials)
-    tID = uniqueTrials(tIdx); % The actual numeric ID of the current trial
-    
-    % Find all attempt numbers associated with this specific trial, sorted lowest to highest
-    attemptsForTrial = sort(attemptList(trialList == tID));
-    
-    % Loop through every attempt for this trial
-    for aIdx = 1:length(attemptsForTrial)
-        currAttempt = attemptsForTrial(aIdx); % The actual numeric ID of the current attempt
-        
-        % Locate the specific file index that matches both the current Trial ID and Attempt ID
-        fIdx = find(trialList == tID & attemptList == currAttempt, 1);
-        
-        % Load that specific file into memory
-        trialData = load(fullfile(matFiles(fIdx).folder, matFiles(fIdx).name));
- 
-        % Loop through all the possible trace names we defined at the top
-        for trIdx = 1:numTraces
-            varName = traceLabels{trIdx}; % e.g., 'walkTraces'
+        % Iterate through all found files to inspect their contents
+        for i = 1:length(matFiles)
+            % Load the data structure from the current .mat file
+            trialData = load(fullfile(matFiles(i).folder, matFiles(i).name));
             
-            % Check if this specific trace exists in the currently loaded file
-            if isfield(trialData, varName)
-                S = trialData.(varName); % Extract the trace data
-                
-                % Proceed only if the trace is structured appropriately
-                if isstruct(S)
-                    fNames = fieldnames(S); % Get the internal channel names (x, y, time, etc.)
+            % Check each of our target traces to see if they exist in this specific file
+            for trIdx = 1:length(traceLabels)
+                if isfield(trialData, traceLabels{trIdx})
+                    % Extract the trace structure (e.g., walkTraces)
+                    S = trialData.(traceLabels{trIdx});
                     
-                    % Loop through each internal channel
-                    for f = 1:length(fNames)
-                        fname = lower(fNames{f}); % Convert to lowercase to make matching case-insensitive
-                        dataVal = S.(fNames{f});  % Extract the actual numeric array
-                        dataVal = dataVal(:);     % Force the array into a column vector (N x 1)
-                        currLen = length(dataVal); % Number of time samples in this specific array
+                    % Ensure it is actually a structure before trying to read its fields
+                    if isstruct(S)
+                        fNames = fieldnames(S); % Get all field names (e.g., 'x', 'y', 'time')
                         
-                        % Map the string field name to our 5th Dimension (Channel Index 1 through 7)
-                        chanIdx = 0; % Default to 0 (unmapped)
-                        switch fname
-                            case 'time',  chanIdx = 1; % Channel 1 is Time
-                            case 'x',     chanIdx = 2; % Channel 2 is X-coordinate
-                            case 'y',     chanIdx = 3; % Channel 3 is Y-coordinate
-                            case 'z',     chanIdx = 4; % Channel 4 is Z-coordinate
-                            case 'roll',  chanIdx = 5; % Channel 5 is Roll orientation
-                            case 'pitch', chanIdx = 6; % Channel 6 is Pitch orientation
-                            case 'yaw',   chanIdx = 7; % Channel 7 is Yaw orientation
-                        end
-                        
-                        % If the field name matched one of our predefined channels, insert the data
-                        if chanIdx > 0
-                            % Insert into the massive matrix at the correct coordinates:
-                            % (Trial ID, Attempt ID, Time 1 to N, Trace Index, Channel Index)
-                            Master5D(tID, currAttempt, 1:currLen, trIdx, chanIdx) = dataVal;
+                        % Check the length of the data inside each field
+                        for f = 1:length(fNames)
+                            % Update maxTimeLen if this field's length is greater than the current max
+                            maxTimeLen = max(maxTimeLen, length(S.(fNames{f})));
                         end
                     end
                 end
             end
         end
-    end
-end
-end
  
-% Print a success message showing the final size of the generated array
-fprintf('5D Array successfully built. Dimensions: %d x %d x %d x %d x %d\n', size(Master5D));
+        % =========================================================================
+        % 3. Preallocate the 5D Array [Trial x Attempt x Time x Trace x Channel]
+        % =========================================================================
+        numTrials   = max(64, max(trialList)); 
+        numAttempts = max(attemptList);        
+        numTraces   = length(traceLabels);     
+        numChannels = 7;                       % 1:Time, 2:X, 3:Y, 4:Z, 5:Roll, 6:Pitch, 7:Yaw
+ 
+        % Create the massive 5D block, prefilled with NaNs
+        Master5D = NaN(numTrials, numAttempts, maxTimeLen, numTraces, numChannels);
+ 
+        % =========================================================================
+        % 4. Fill the 5D Array
+        % =========================================================================
+        uniqueTrials = unique(trialList);
+ 
+        for tIdx = 1:length(uniqueTrials)
+            tID = uniqueTrials(tIdx);
+            
+            attemptsForTrial = sort(attemptList(trialList == tID));
+            
+            for aIdx = 1:length(attemptsForTrial)
+                currAttempt = attemptsForTrial(aIdx);
+                
+                fIdx = find(trialList == tID & attemptList == currAttempt, 1);
+                
+                trialData = load(fullfile(matFiles(fIdx).folder, matFiles(fIdx).name));
+ 
+                for trIdx = 1:numTraces
+                    varName = traceLabels{trIdx};
+                    
+                    if isfield(trialData, varName)
+                        S = trialData.(varName);
+                        
+                        if isstruct(S)
+                            fNames = fieldnames(S);
+                            
+                            for f = 1:length(fNames)
+                                fname = lower(fNames{f});
+                                dataVal = S.(fNames{f});
+                                dataVal = dataVal(:);
+                                currLen = length(dataVal);
+                                
+                                chanIdx = 0;
+                                switch fname
+                                    case 'time',  chanIdx = 1;
+                                    case 'x',     chanIdx = 2;
+                                    case 'y',     chanIdx = 3;
+                                    case 'z',     chanIdx = 4;
+                                    case 'roll',  chanIdx = 5;
+                                    case 'pitch', chanIdx = 6;
+                                    case 'yaw',   chanIdx = 7;
+                                end
+                                
+                                if chanIdx > 0
+                                    Master5D(tID, currAttempt, 1:currLen, trIdx, chanIdx) = dataVal;
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
 
-outputFileName = 'Testing_Master_Data.mat';
+        % Moved fprintf and save OUTSIDE all loops — runs once after array is fully built
+        fprintf('5D Array successfully built. Dimensions: %d x %d x %d x %d x %d\n', size(Master5D));
 
-% Save the Master5D variable and metadata for reference
-% Using '-v7.3' because 5D arrays can easily exceed the 2GB limit for standard .mat files
-fprintf('Saving data to %s... ', outputFileName);
-save(outputFileName, 'Master5D', 'traceLabels', '-v7.3');
-fprintf('Done.\n');
+        outputFileName = sprintf('Participant_%d_Master5D_Block_%02d.mat', pID_num, targetBlock);
+        fprintf('Saving data to %s... ', outputFileName);
+        save(outputFileName, 'Master5D', 'traceLabels', '-v7.3');
+        fprintf('Done.\n');
 
-fprintf('5D Array successfully built and saved. Dimensions: %d x %d x %d x %d x %d\n', size(Master5D));
+        fprintf('5D Array successfully built and saved. Dimensions: %d x %d x %d x %d x %d\n', size(Master5D));
+    end

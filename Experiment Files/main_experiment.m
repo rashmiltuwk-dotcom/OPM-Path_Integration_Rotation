@@ -754,28 +754,7 @@ WaitSecs(0.5);
                 play_sound_blocking(pahandle, audioData.Return); 
                 trialAccepted = true; % Breaks the while loop, moves to next trial
                 
-                % ---------------------------------------------------------
-                % BLOCK BREAK EVERY 8 TRIALS
-                % ---------------------------------------------------------
-                % If trial number is a multiple of 8, and it's not the very last trial
-                if mod(t, 8) == 0 && t < size(trials, 1)
-                    blockNum = t / 8;
-                    
-                    % Convert block number to a letter (1=A, 2=B, 3=C, etc.)
-                    blockLetter = char(64 + blockNum);
-                    
-                    % Display break message using the letter
-                    breakMsg = sprintf('End of Block %c.\n\nPlease take a moment to rest.\n\nResearcher: Press SPACE to end block.', blockLetter);
-                    DrawFormattedText(win, breakMsg, 'center', 'center', [0 255 0]); % Green text
-                    Screen('Flip', win);
-                    
-                    % Wait for spacebar to end block
-                    wait_key('space');
-                    
-                    % Clear screen to black before next trial starts
-                    Screen('Flip', win);
-                    WaitSecs(0.5); 
-                end
+
                 
             catch ME
                 % --- THE MIDAIR ABORT SEQUENCE ---
@@ -856,7 +835,20 @@ WaitSecs(0.5);
             end % <-- END OF TRY-CATCH
             
         end % --- END OF WHILE LOOP ---
-    end % --- END OF 64 TRIALS ---
+
+                % ---------------------------------------------------------
+                % BLOCK BREAK EVERY 8 TRIALS
+                % ---------------------------------------------------------
+                if mod(t, 8) == 0   % fires when t == 8 (end of this block's 8 trials)
+                    blockLetter = char(64 + str2double(BlockNum));
+                    breakMsg = sprintf('End of Block %s.\n\nPlease take a moment to rest.\n\nResearcher: Press SPACE to continue.', blockLetter);
+                    DrawFormattedText(win, breakMsg, 'center', 'center', [0 255 0]);
+                    Screen('Flip', win);
+                    wait_key('space');
+                    Screen('Flip', win);
+                    WaitSecs(0.5);
+                end
+            end % --- END OF EIGHT TRIALS ---
 % ---------------------------------------------------------
 % STEP 2: CRASH RECOVERY (The Catch Block)
 % ---------------------------------------------------------
@@ -949,4 +941,3 @@ end
         end
     end
     end
-

@@ -708,7 +708,7 @@ WaitSecs(0.5);
                 writetable(results, dataFile);
                 
                 % Update the master data array
-                % Update the master data array
+                
                 MasterData(masterIdx).TrialNum   = trueTrial;
                 MasterData(masterIdx).Position   = participantPosition;
                 MasterData(masterIdx).Direction  = dirCode;

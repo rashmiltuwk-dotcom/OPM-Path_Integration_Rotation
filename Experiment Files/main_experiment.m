@@ -749,7 +749,7 @@ WaitSecs(0.5);
 
                 % SAVE THE MASTER FILE TO THE HARD DRIVE NOW
                 % (Using the safe filename you generated at the top of the script)
-                save(masterFile, 'MasterData', 'results', '-v7.3');
+                save(masterFile, 'MasterData', '-v7.3');
                 
                 play_sound_blocking(pahandle, audioData.Return); 
                 trialAccepted = true; % Breaks the while loop, moves to next trial
@@ -838,7 +838,7 @@ WaitSecs(0.5);
 
                 % SAVE THE MASTER FILE TO THE HARD DRIVE NOW
                 % (Using the safe filename you generated at the top of the script)
-                save(masterFile, 'MasterData', 'results', '-v7.3');
+                save(masterFile, 'MasterData', '-v7.3');
                     
                     attemptNum = attemptNum + 1;
                    

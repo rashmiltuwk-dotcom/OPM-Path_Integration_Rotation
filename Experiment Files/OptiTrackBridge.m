@@ -293,7 +293,7 @@ classdef OptiTrackBridge
         % =================================================================
         % WAIT FOR ORIGIN (WALKING)
         % =================================================================
-        function [distWalkedTorso, distWalkedHead, headTrace, torsoTrace] = WaitForOrigin(headID, torsoID, win, tolerance)
+        function [distWalkedTorso, distWalkedHead, headTrace, torsoTrace] = WaitForWalkEnd(headID, torsoID, win, tolerance)
             global OP_BRIDGE_STATE
 
             if nargin < 4, tolerance = 0.10; end

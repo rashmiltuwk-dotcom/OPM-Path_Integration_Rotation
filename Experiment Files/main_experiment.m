@@ -322,7 +322,7 @@ results = table();
             rank = ''; % Reset rank
             
             [OpenEyesHeadTrace, OpenEyesTorsoTrace, ...
-            PhysicallyWalkHeadTrace, TorsoPhysicallyWalkHeadTrace, ...
+            PhysicallyWalkHeadTrace, PhysicallyWalkTorsoTrace, ...
             StationaryHeadTraceOne, StationaryTorsoTraceOne, ...
             EncodingRotateHeadTrace, EncodingRotateTorsoTrace, ...
             StationaryHeadTraceTwo, StationaryTorsoTraceTwo, ...
@@ -416,7 +416,7 @@ WaitSecs(0.5);
                 
                 % 3. Track them until they hit the (0,0) coordinate
                 % UPDATED: Now capturing 'walkTraces' alongside distance
-                [walkDistTorso, walkDistHead, PhysicallyWalkHeadTrace, TorsoPhysicallyWalkHeadTrace] = OptiTrackBridge.WaitForOrigin(headID, torsoID, win, 0.5);
+                [walkDistTorso, walkDistHead, PhysicallyWalkHeadTrace, PhysicallyWalkTorsoTrace] = OptiTrackBridge.WaitForOrigin(headID, torsoID, win, 0.5);
                 
                 % 4. STOP THE TIMER: Record exactly how long it took
                 walkTime = GetSecs() - walkStartTime; 
@@ -723,7 +723,7 @@ WaitSecs(0.5);
                 tracePacket.OpenEyesHeadTrace = OpenEyesHeadTrace;
                 tracePacket.OpenEyesTorsoTrace = OpenEyesTorsoTrace;
                 tracePacket.PhysicallyWalkHeadTrace = PhysicallyWalkHeadTrace;
-                tracePacket.TorsoPhysicallyWalkHeadTrace = TorsoPhysicallyWalkHeadTrace;
+                tracePacket.PhysicallyWalkTorsoTrace = PhysicallyWalkTorsoTrace;
                 tracePacket.StationaryHeadTraceOne = StationaryHeadTraceOne;
                 tracePacket.StationaryTorsoTraceOne = StationaryTorsoTraceOne;
                 tracePacket.EncodingRotateHeadTrace = EncodingRotateHeadTrace;
@@ -792,7 +792,7 @@ WaitSecs(0.5);
                 tracePacket.OpenEyesHeadTrace = OpenEyesHeadTrace;
                 tracePacket.OpenEyesTorsoTrace = OpenEyesTorsoTrace;
                 tracePacket.PhysicallyWalkHeadTrace = PhysicallyWalkHeadTrace;
-                tracePacket.TorsoPhysicallyWalkHeadTrace = TorsoPhysicallyWalkHeadTrace;
+                tracePacket.PhysicallyWalkTorsoTrace = PhysicallyWalkTorsoTrace;
                 tracePacket.StationaryHeadTraceOne = StationaryHeadTraceOne;
                 tracePacket.StationaryTorsoTraceOne = StationaryTorsoTraceOne;
                 tracePacket.EncodingRotateHeadTrace = EncodingRotateHeadTrace;
@@ -824,7 +824,7 @@ WaitSecs(0.5);
                     
                     DrawFormattedText(win, 'TRIAL ABORTED.\n\nPlease return to the start.', 'center', 'center', [255 0 0]);
                     Screen('Flip', win);
-                    play_sound_blocking(pahandle, audioData.Return);
+                    play_sound_blocking(pahandle, audioData.Restart);
                     WaitSecs(2.0); 
                     
                     continue; 

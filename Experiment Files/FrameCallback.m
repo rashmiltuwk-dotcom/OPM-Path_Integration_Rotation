@@ -8,11 +8,7 @@ function FrameCallback(data)
 %
 % INPUT: data — a NatNet FrameOfMocapData struct containing all rigid bodies
 
-global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE TL_GLOBAL OP_MOTIVE_WAS_RECORDING
-
-if isempty(OP_RECORDING) || ~OP_RECORDING
-    return;
-end
+global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER TL_GLOBAL OP_MOTIVE_WAS_RECORDING
 
 % --- RECORDING SPAN DETECTION ---
 % Watches Motive's bIsRecording flag every frame and fires TriggerLogger
@@ -53,7 +49,6 @@ try
     if isempty(data) || data.nRigidBodies == 0
         return;
     end
-    
 
     % --- BUILD THE ROW ---
     row.time   = double(data.fTimestamp);
@@ -92,25 +87,51 @@ try
         end
     end
 
-    % --- APPEND TO BUFFER ---
-    idx = OP_DATA_BUFFER.idx;
-    if idx <= OP_DATA_BUFFER.maxSamples
-        OP_DATA_BUFFER.time(idx)   = row.time;
-        OP_DATA_BUFFER.hx(idx)     = row.hx;
-        OP_DATA_BUFFER.hy(idx)     = row.hy;
-        OP_DATA_BUFFER.hz(idx)     = row.hz;
-        OP_DATA_BUFFER.hroll(idx)  = row.hroll;
-        OP_DATA_BUFFER.hpitch(idx) = row.hpitch;
-        OP_DATA_BUFFER.hyaw(idx)   = row.hyaw;
-        OP_DATA_BUFFER.hErr(idx)   = row.hErr;
-        OP_DATA_BUFFER.tx(idx)     = row.tx;
-        OP_DATA_BUFFER.ty(idx)     = row.ty;
-        OP_DATA_BUFFER.tz(idx)     = row.tz;
-        OP_DATA_BUFFER.troll(idx)  = row.troll;
-        OP_DATA_BUFFER.tpitch(idx) = row.tpitch;
-        OP_DATA_BUFFER.tyaw(idx)   = row.tyaw;
-        OP_DATA_BUFFER.tErr(idx)   = row.tErr;
-        OP_DATA_BUFFER.idx         = idx + 1;
+    % --- APPEND TO TRIAL BUFFER ---
+    % Only writes during active trial recording phases (gated by OP_RECORDING)
+    if ~isempty(OP_RECORDING) && OP_RECORDING
+        idx = OP_DATA_BUFFER.idx;
+        if idx <= OP_DATA_BUFFER.maxSamples
+            OP_DATA_BUFFER.time(idx)   = row.time;
+            OP_DATA_BUFFER.hx(idx)     = row.hx;
+            OP_DATA_BUFFER.hy(idx)     = row.hy;
+            OP_DATA_BUFFER.hz(idx)     = row.hz;
+            OP_DATA_BUFFER.hroll(idx)  = row.hroll;
+            OP_DATA_BUFFER.hpitch(idx) = row.hpitch;
+            OP_DATA_BUFFER.hyaw(idx)   = row.hyaw;
+            OP_DATA_BUFFER.hErr(idx)   = row.hErr;
+            OP_DATA_BUFFER.tx(idx)     = row.tx;
+            OP_DATA_BUFFER.ty(idx)     = row.ty;
+            OP_DATA_BUFFER.tz(idx)     = row.tz;
+            OP_DATA_BUFFER.troll(idx)  = row.troll;
+            OP_DATA_BUFFER.tpitch(idx) = row.tpitch;
+            OP_DATA_BUFFER.tyaw(idx)   = row.tyaw;
+            OP_DATA_BUFFER.tErr(idx)   = row.tErr;
+            OP_DATA_BUFFER.idx         = idx + 1;
+        end
+    end
+
+    % --- APPEND TO CONTINUOUS BUFFER ---
+    % No gate — always writes from Connect to Disconnect regardless of
+    % trial state, capturing the full session including inter-trial gaps.
+    cidx = OP_CONTINUOUS_BUFFER.idx;
+    if cidx <= OP_CONTINUOUS_BUFFER.maxSamples
+        OP_CONTINUOUS_BUFFER.time(cidx)   = row.time;
+        OP_CONTINUOUS_BUFFER.hx(cidx)     = row.hx;
+        OP_CONTINUOUS_BUFFER.hy(cidx)     = row.hy;
+        OP_CONTINUOUS_BUFFER.hz(cidx)     = row.hz;
+        OP_CONTINUOUS_BUFFER.hroll(cidx)  = row.hroll;
+        OP_CONTINUOUS_BUFFER.hpitch(cidx) = row.hpitch;
+        OP_CONTINUOUS_BUFFER.hyaw(cidx)   = row.hyaw;
+        OP_CONTINUOUS_BUFFER.hErr(cidx)   = row.hErr;
+        OP_CONTINUOUS_BUFFER.tx(cidx)     = row.tx;
+        OP_CONTINUOUS_BUFFER.ty(cidx)     = row.ty;
+        OP_CONTINUOUS_BUFFER.tz(cidx)     = row.tz;
+        OP_CONTINUOUS_BUFFER.troll(cidx)  = row.troll;
+        OP_CONTINUOUS_BUFFER.tpitch(cidx) = row.tpitch;
+        OP_CONTINUOUS_BUFFER.tyaw(cidx)   = row.tyaw;
+        OP_CONTINUOUS_BUFFER.tErr(cidx)   = row.tErr;
+        OP_CONTINUOUS_BUFFER.idx          = cidx + 1;
     end
 
 catch

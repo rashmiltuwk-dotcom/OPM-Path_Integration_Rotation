@@ -173,21 +173,23 @@ classdef OptiTrackBridge
         % START RECORDING
         % =================================================================
         function StartRecording()
-            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING
+            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING OP_MOTIVE_WAS_RECORDING
 
+            % Reset the span flag so FrameCallback can detect a fresh rising edge
+            % from Motive's bIsRecording for this new recording epoch.
+            OP_MOTIVE_WAS_RECORDING = false;
             OP_DATA_BUFFER.idx = 1;
 
-            % --- Tell the system to wait for Motive's flag ---
-            OP_BRIDGE_STATE.RecordingStartTime = 0; 
+            OP_BRIDGE_STATE.RecordingStartTime = 0;
 
             if OP_BRIDGE_STATE.IsDummy
                 OP_RECORDING = true;
-                OP_BRIDGE_STATE.RecordingStartTime = GetSecs; % Dummy starts instantly
+                OP_BRIDGE_STATE.RecordingStartTime = GetSecs;
                 return;
             end
 
             OP_RECORDING = true;
-            OP_BRIDGE_STATE.NatNetClient.enable(1);  % enable slot 1
+            OP_BRIDGE_STATE.NatNetClient.enable(1);
         end
 
         % =================================================================
@@ -198,7 +200,15 @@ classdef OptiTrackBridge
         % Time is normalised to start at 0.
         % =================================================================
         function [headTrace, torsoTrace] = StopRecording()
-            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING
+            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING TL_GLOBAL OP_MOTIVE_WAS_RECORDING
+
+            % Safety net: if FrameCallback never saw Motive's bIsRecording go LOW
+            % (because the listener is about to be disabled), close the 255 span
+            % manually here before the port goes silent.
+            if ~isempty(TL_GLOBAL) && OP_MOTIVE_WAS_RECORDING
+                TL_GLOBAL.stopMotiveRecording();
+                OP_MOTIVE_WAS_RECORDING = false;
+            end
 
             OP_RECORDING = false;
 

@@ -12,6 +12,10 @@ classdef TriggerLogger < handle
         % [DATA BACKUP SETUP]
         logFileID       % The open ID handle for the CSV text file
         expStartTime    % The absolute baseline time (T=0) to calculate precise relative timestamps
+        baseValue = 0  % Holds the port's "resting" value between events.
+                   % 0 outside Motive recording (port goes silent between events).
+                   % 255 during Motive recording (all pins HIGH — marks the area
+                   % of interest as a continuous band in the MEG stream).
     end
     
     methods
@@ -86,22 +90,35 @@ classdef TriggerLogger < handle
         end
         
         function stopEvent(obj, triggerChannel, trialNum, eventName)
-            % ---------------------------------------------------------
-            % STOP EVENT: Drops the MEG pins to 0V and writes "OFF" to the CSV
-            % ---------------------------------------------------------
-            
-            
-            
-            % --- 1. Send physical TTL LOW ---
-            % MEG triggers require a "Rising Edge" (a jump from 0V to 5V) to register a mark.
-            % Therefore, we MUST turn the pins back off (send 0) before we can fire them again.
-            io64(obj.ioObj, obj.address, 0); 
-            
-            % --- 2. Write to CSV Log ---
-            % Note exactly when the pulse ended in our backup file.
+            % Restores the port to baseValue rather than hard 0.
+            % Outside recording: baseValue is 0, so behaviour is identical to before.
+            % During recording: baseValue is 255, so the span signal is kept HIGH
+            % between events instead of being wiped out after each one.
+            io64(obj.ioObj, obj.address, obj.baseValue);
             timestamp = GetSecs - obj.expStartTime;
-            fprintf(obj.logFileID, '%.4f,%d,%s,%d,0,OFF\n', ...
-                timestamp, trialNum, eventName, triggerChannel);
+            fprintf(obj.logFileID, '%.4f,%d,%s,%d,%d,OFF\n', ...
+                timestamp, trialNum, eventName, triggerChannel, obj.baseValue);
+        end
+        function startMotiveRecording(obj)
+            % Called by FrameCallback the moment Motive's bIsRecording flag goes HIGH.
+            % Sets baseValue to 255 so stopEvent restores the port to 255 between
+            % events, creating a continuous band in the MEG stream for the entire
+            % duration of the Motive recording.
+            obj.baseValue = 255;
+            io64(obj.ioObj, obj.address, 255);
+            timestamp = GetSecs - obj.expStartTime;
+            fprintf(obj.logFileID, '%.4f,0,MotiveRecordingSpan,ALL,255,SPAN_START\n', timestamp);
+        end
+
+        function stopMotiveRecording(obj)
+            % Called when Motive's bIsRecording flag goes LOW, or as a safety net
+            % from StopRecording() if FrameCallback missed the falling edge.
+            % Resets baseValue to 0 so the port returns to silence between events,
+            % and closes the 255 band in the MEG stream.
+            obj.baseValue = 0;
+            io64(obj.ioObj, obj.address, 0);
+            timestamp = GetSecs - obj.expStartTime;
+            fprintf(obj.logFileID, '%.4f,0,MotiveRecordingSpan,ALL,0,SPAN_STOP\n', timestamp);
         end
         
         function close(obj)

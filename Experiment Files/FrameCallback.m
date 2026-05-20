@@ -8,12 +8,45 @@ function FrameCallback(data)
 %
 % INPUT: data — a NatNet FrameOfMocapData struct containing all rigid bodies
 
-global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE
+global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE TL_GLOBAL OP_MOTIVE_WAS_RECORDING
 
-% Only record when a trial phase is active
 if isempty(OP_RECORDING) || ~OP_RECORDING
     return;
 end
+
+% --- RECORDING SPAN DETECTION ---
+% Watches Motive's bIsRecording flag every frame and fires TriggerLogger
+% on the exact frame the flag changes state.
+%
+% Rising edge (false → true): Motive just started recording.
+%   - Tells TriggerLogger to raise the port to 255, opening the span band
+%     in the MEG stream.
+%   - Anchors RecordingStartTime so OptiTrack event timestamps are relative
+%     to the same T=0 as the rest of the experiment.
+%
+% Falling edge (true → false): Motive stopped recording.
+%   - Tells TriggerLogger to drop the port back to 0, closing the span band.
+%   - StopRecording() contains a safety net that does the same thing in case
+%     this falling edge is never seen (e.g. listener disabled first).
+
+if data.bIsRecording && ~OP_MOTIVE_WAS_RECORDING
+    % Rising edge — Motive just started recording
+    OP_MOTIVE_WAS_RECORDING = true;
+    if ~isempty(TL_GLOBAL)
+        TL_GLOBAL.startMotiveRecording();
+    end
+    if OP_BRIDGE_STATE.RecordingStartTime == 0
+        OP_BRIDGE_STATE.RecordingStartTime = GetSecs;
+    end
+
+elseif ~data.bIsRecording && OP_MOTIVE_WAS_RECORDING
+    % Falling edge — Motive stopped recording
+    OP_MOTIVE_WAS_RECORDING = false;
+    if ~isempty(TL_GLOBAL)
+        TL_GLOBAL.stopMotiveRecording();
+    end
+end
+
 
 try
     % --- GUARD: skip if no rigid body data ---
@@ -21,10 +54,6 @@ try
         return;
     end
     
-    if data.bIsRecording && OP_BRIDGE_STATE.RecordingStartTime == 0
-        OP_BRIDGE_STATE.RecordingStartTime = GetSecs;
-        fprintf('>>> Motive Recording Detected. T=0 anchored.\n');
-    end
 
     % --- BUILD THE ROW ---
     row.time   = double(data.fTimestamp);

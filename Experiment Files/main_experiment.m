@@ -68,6 +68,9 @@ dataFile = sprintf('P%s_%s_%s_Results.csv', subjID, BlockNum, timeStr);
 % 2. The Master Data File
 masterFile = sprintf('P%s_%s_%s_MasterData.mat', subjID, BlockNum, timeStr);
 
+% 3. The Continuous Data File
+continuousFile = sprintf('P%s_%s_%s_Continuous.mat', subjID, BlockNum, timeStr);
+
 
 % Initialize the empty Master Array of Structures in memory
 MasterData = struct();
@@ -861,6 +864,7 @@ WaitSecs(0.5);
 catch ME
     % Ensures hardware is cleanly disconnected to prevent computer crashes
     if ~isempty(TL), TL.close(); end
+    OptiTrackBridge.SaveContinuous(continuousFile);
     OptiTrackBridge.Disconnect();
     PsychPortAudio('Close');
     Screen('CloseAll');
@@ -882,6 +886,7 @@ end
 % ---------------------------------------------------------
 % Standard: This runs when the experiment finishes successfully.
 if ~isempty(TL), TL.close(); end
+OptiTrackBridge.SaveContinuous(continuousFile);
 OptiTrackBridge.Disconnect();
 PsychPortAudio('Close');
 Screen('CloseAll');

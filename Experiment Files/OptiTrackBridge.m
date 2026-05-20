@@ -24,7 +24,6 @@ classdef OptiTrackBridge
         NatNetClient
         IsConnected = false;
         IsDummy     = false;
-        LogFileID   = -1;
     end
 
     properties (GetAccess = public, SetAccess = public)
@@ -37,7 +36,7 @@ classdef OptiTrackBridge
         % CONNECT
         % =================================================================
         function success = Connect(subjectID)
-            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING
+            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING OP_CONTINUOUS_BUFFER OP_EVENT_LOG
 
             clear global OP_BRIDGE_STATE;
             global OP_BRIDGE_STATE
@@ -45,10 +44,6 @@ classdef OptiTrackBridge
             OP_BRIDGE_STATE = OptiTrackBridge;
             OP_RECORDING    = false;
 
-            % --- Initialize Event CSV ---
-            logName = sprintf('Motive_Events_Subj%s_%s.csv', subjectID, datestr(now, 'yyyymmdd_HHMM'));
-            OP_BRIDGE_STATE.LogFileID = fopen(logName, 'a');
-            fprintf(OP_BRIDGE_STATE.LogFileID, 'RecordingTime,TrialNum,EventName,State\n');
 
             % --- Pre-allocate the buffer with NaN arrays ---
             % Writing into a pre-allocated array is near-instant.
@@ -71,6 +66,34 @@ classdef OptiTrackBridge
             OP_DATA_BUFFER.tpitch  = NaN(n, 1);
             OP_DATA_BUFFER.tyaw    = NaN(n, 1);
             OP_DATA_BUFFER.tErr    = NaN(n, 1);
+
+            % --- Pre-allocate continuous session buffer ---
+            % At 120Hz, 1 hour = 432,000 samples. 500,000 gives comfortable headroom.
+            % --- Pre-allocate continuous session buffer ---
+            nc = 500000;
+            OP_CONTINUOUS_BUFFER.idx        = 1;
+            OP_CONTINUOUS_BUFFER.maxSamples = nc;
+            OP_CONTINUOUS_BUFFER.time       = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.hx         = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.hy         = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.hz         = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.hroll      = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.hpitch     = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.hyaw       = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.hErr       = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.tx         = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.ty         = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.tz         = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.troll      = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.tpitch     = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.tyaw       = NaN(nc, 1);
+            OP_CONTINUOUS_BUFFER.tErr       = NaN(nc, 1);
+
+            % --- Initialise in-memory event log ---
+            OP_EVENT_LOG.time  = [];
+            OP_EVENT_LOG.trial = [];
+            OP_EVENT_LOG.event = {};
+            OP_EVENT_LOG.state = {};
 
             if OptiTrackBridge.FORCE_DUMMY_MODE
                 OP_BRIDGE_STATE.IsDummy = true;
@@ -103,7 +126,8 @@ classdef OptiTrackBridge
                 % Slot 1 → FrameCallback.m (must be on MATLAB path)
                 % Listener is OFF by default — StartRecording() enables it.
                 OP_BRIDGE_STATE.NatNetClient.addlistener(1, 'FrameCallback');
-                fprintf('FrameCallback listener registered (disabled until StartRecording).\n');
+                OP_BRIDGE_STATE.NatNetClient.enable(1);
+
 
                 success = true;
 
@@ -118,20 +142,15 @@ classdef OptiTrackBridge
         % DISCONNECT
         % =================================================================
         function Disconnect()
-            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING
+            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING OP_CONTINUOUS_BUFFER OP_EVENT_LOG
+
 
             if ~isempty(OP_BRIDGE_STATE)
                 
-                % --- Safely close the CSV file ---
-                if OP_BRIDGE_STATE.LogFileID ~= -1
-                    fclose(OP_BRIDGE_STATE.LogFileID);
-                    OP_BRIDGE_STATE.LogFileID = -1;
-                end
-
                 if ~OP_BRIDGE_STATE.IsDummy
                     try
                         % Disable all listeners before disconnecting
-                        OP_BRIDGE_STATE.NatNetClient.disable(0);
+                        OP_BRIDGE_STATE.NatNetClient.disable(1);
                         OP_BRIDGE_STATE.NatNetClient.disconnect;
                     catch
                     end
@@ -139,35 +158,47 @@ classdef OptiTrackBridge
             end
 
             OP_RECORDING = false;
-            clear global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING;
+            clear global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING OP_CONTINUOUS_BUFFER OP_EVENT_LOG
+;
         end
 
         % =================================================================
         % EVENT LOGGING
         % =================================================================
         function startEvent(trialNum, eventName)
-            global OP_BRIDGE_STATE
-            if isempty(OP_BRIDGE_STATE) || OP_BRIDGE_STATE.LogFileID == -1, return; end
-            
-            if OP_BRIDGE_STATE.RecordingStartTime > 0
-                t = GetSecs - OP_BRIDGE_STATE.RecordingStartTime;
-            else
-                t = 0; % Safety fallback if Motive hasn't started
-            end
-            fprintf(OP_BRIDGE_STATE.LogFileID, '%.4f,%d,%s,START\n', t, trialNum, eventName);
-        end
+            global OP_BRIDGE_STATE OP_EVENT_LOG
+            if isempty(OP_BRIDGE_STATE), return; end
 
-        function stopEvent(trialNum, eventName)
-            global OP_BRIDGE_STATE
-            if isempty(OP_BRIDGE_STATE) || OP_BRIDGE_STATE.LogFileID == -1, return; end
-            
             if OP_BRIDGE_STATE.RecordingStartTime > 0
                 t = GetSecs - OP_BRIDGE_STATE.RecordingStartTime;
             else
                 t = 0;
             end
-            fprintf(OP_BRIDGE_STATE.LogFileID, '%.4f,%d,%s,STOP\n', t, trialNum, eventName);
+
+            i = length(OP_EVENT_LOG.time) + 1;
+            OP_EVENT_LOG.time(i)  = t;
+            OP_EVENT_LOG.trial(i) = trialNum;
+            OP_EVENT_LOG.event{i} = eventName;
+            OP_EVENT_LOG.state{i} = 'START';
         end
+
+        function stopEvent(trialNum, eventName)
+            global OP_BRIDGE_STATE OP_EVENT_LOG
+            if isempty(OP_BRIDGE_STATE), return; end
+
+            if OP_BRIDGE_STATE.RecordingStartTime > 0
+                t = GetSecs - OP_BRIDGE_STATE.RecordingStartTime;
+            else
+                t = 0;
+            end
+
+            i = length(OP_EVENT_LOG.time) + 1;
+            OP_EVENT_LOG.time(i)  = t;
+            OP_EVENT_LOG.trial(i) = trialNum;
+            OP_EVENT_LOG.event{i} = eventName;
+            OP_EVENT_LOG.state{i} = 'STOP';
+        end
+
 
         % =================================================================
         % START RECORDING
@@ -189,7 +220,7 @@ classdef OptiTrackBridge
             end
 
             OP_RECORDING = true;
-            OP_BRIDGE_STATE.NatNetClient.enable(1);
+
         end
 
         % =================================================================
@@ -213,7 +244,7 @@ classdef OptiTrackBridge
             OP_RECORDING = false;
 
             if ~OP_BRIDGE_STATE.IsDummy
-                OP_BRIDGE_STATE.NatNetClient.disable(1);  % disable slot 1
+
             end
 
             % --- Extract valid samples only ---
@@ -563,6 +594,47 @@ classdef OptiTrackBridge
             end
 
             [headTrace, torsoTrace] = OptiTrackBridge.StopRecording();
+        end
+
+        % =================================================================
+        % Continuous Saving
+        % =================================================================
+
+        function SaveContinuous(filename)
+            global OP_CONTINUOUS_BUFFER OP_EVENT_LOG
+
+            n = OP_CONTINUOUS_BUFFER.idx - 1;
+
+            if n < 1
+                warning('Continuous buffer is empty. Nothing saved.');
+                return;
+            end
+
+            ContinuousTrace.time   = OP_CONTINUOUS_BUFFER.time(1:n);
+            ContinuousTrace.hx     = OP_CONTINUOUS_BUFFER.hx(1:n);
+            ContinuousTrace.hy     = OP_CONTINUOUS_BUFFER.hy(1:n);
+            ContinuousTrace.hz     = OP_CONTINUOUS_BUFFER.hz(1:n);
+            ContinuousTrace.hroll  = OP_CONTINUOUS_BUFFER.hroll(1:n);
+            ContinuousTrace.hpitch = OP_CONTINUOUS_BUFFER.hpitch(1:n);
+            ContinuousTrace.hyaw   = OP_CONTINUOUS_BUFFER.hyaw(1:n);
+            ContinuousTrace.hErr   = OP_CONTINUOUS_BUFFER.hErr(1:n);
+            ContinuousTrace.tx     = OP_CONTINUOUS_BUFFER.tx(1:n);
+            ContinuousTrace.ty     = OP_CONTINUOUS_BUFFER.ty(1:n);
+            ContinuousTrace.tz     = OP_CONTINUOUS_BUFFER.tz(1:n);
+            ContinuousTrace.troll  = OP_CONTINUOUS_BUFFER.troll(1:n);
+            ContinuousTrace.tpitch = OP_CONTINUOUS_BUFFER.tpitch(1:n);
+            ContinuousTrace.tyaw   = OP_CONTINUOUS_BUFFER.tyaw(1:n);
+            ContinuousTrace.tErr   = OP_CONTINUOUS_BUFFER.tErr(1:n);
+
+            ContinuousTrace.time = ContinuousTrace.time - ContinuousTrace.time(1);
+
+            EventLog = table(OP_EVENT_LOG.time', OP_EVENT_LOG.trial', ...
+                OP_EVENT_LOG.event', OP_EVENT_LOG.state', ...
+                'VariableNames', {'Time', 'Trial', 'Event', 'State'});
+
+            save(filename, 'ContinuousTrace', 'EventLog', '-v7.3');
+            fprintf('Continuous session data saved: %s  (%d frames, %.1f min)\n', ...
+                filename, n, ContinuousTrace.time(end) / 60);
         end
 
 

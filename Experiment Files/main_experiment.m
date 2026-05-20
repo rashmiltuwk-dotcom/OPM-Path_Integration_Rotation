@@ -79,16 +79,21 @@ masterIdx = 1;
 % '378' is the standard Hexadecimal address for the Parallel (LPT) port.
 % hex2dec converts this to decimal 888 so MATLAB drivers can "talk" to the pin.
 
+% Initialize the custom TriggerLogger class. 
+% This creates a digital record of every pulse sent to the MEG room.
 try
-    % Initialize the custom TriggerLogger class. 
-    % This creates a digital record of every pulse sent to the MEG room.
-    TL = TriggerLogger(subjID); 
+        TL = TriggerLogger(subjID);
 catch
-    % SAFETY: If the LPT cable isn't plugged in (e.g., testing at home),
-    % we set TL to empty so the script doesn't crash.
     warning('MEG Trigger hardware not detected. Switching to Dummy Mode.');
-    TL = []; 
+    TL = [];
 end
+
+% Always set the global reference so FrameCallback can reach TL
+% regardless of whether hardware is present or not.
+global TL_GLOBAL OP_MOTIVE_WAS_RECORDING
+TL_GLOBAL               = TL;
+OP_MOTIVE_WAS_RECORDING = false;
+
 % ---------------------------------------------------------
 
 % 2. SETUP UP AUDIO AND SCREEN
@@ -708,7 +713,7 @@ WaitSecs(0.5);
                 writetable(results, dataFile);
                 
                 % Update the master data array
-                
+                % Update the master data array
                 MasterData(masterIdx).TrialNum   = trueTrial;
                 MasterData(masterIdx).Position   = participantPosition;
                 MasterData(masterIdx).Direction  = dirCode;

@@ -1,7 +1,7 @@
 classdef TriggerLogger < handle
     % TRIGGERLOGGER: The Hardware Bridge for MEG Syncing
-    % Manages Channels 1-7 for MEG TTL (Transistor-Transistor Logic) pulses.
-    % It simultaneously fires a "Master Sync" pulse on Channel 8 (Pin 9 / Value 128)
+    % Manages Channels 1-6 for MEG TTL (Transistor-Transistor Logic) pulses.
+    % It simultaneously fires a "Master Sync" pulse on Channel 7 (Value 64)
     % for every event. It also maintains a CSV Log File as a failsafe backup.
     
     properties
@@ -13,9 +13,9 @@ classdef TriggerLogger < handle
         logFileID       % The open ID handle for the CSV text file
         expStartTime    % The absolute baseline time (T=0) to calculate precise relative timestamps
         baseValue = 0  % Holds the port's "resting" value between events.
-                   % 0 outside Motive recording (port goes silent between events).
-                   % 255 during Motive recording (all pins HIGH — marks the area
-                   % of interest as a continuous band in the MEG stream).
+                       % 0 outside Motive recording (port goes silent between events).
+                       % 128 during Motive recording (Channel 8 HIGH — marks the area
+                       % of interest as a continuous band in the MEG stream).
     end
     
     methods
@@ -28,6 +28,9 @@ classdef TriggerLogger < handle
             obj.ioObj = io64;           % Wake up the custom io64 driver
             status = io64(obj.ioObj);   % Check if the driver successfully loaded
             obj.address = portAddress;  % Store the port address
+            % NOTE: portAddress is passed in as hex2dec('378') = decimal 888 (standard LPT1).
+            % If triggers are not firing, check Device Manager → Ports (COM & LPT) for the
+            % correct address, and update the hex value passed into the constructor.
             
             % [SAFETY RESET] Immediately blast 0 Volts to all pins. 
             % This clears any "ghost" 5V signals left over from a previous crashed run,
@@ -49,7 +52,7 @@ classdef TriggerLogger < handle
             % measured relative to this exact millisecond.
             obj.expStartTime = GetSecs; 
             
-            disp(['TriggerLogger Initialized. Hardware Sync on Ch 8. Log saving to: ' logName]);
+            disp(['TriggerLogger Initialized. Event Ch 1-6 | Master Sync Ch 7 | Motive Span Ch 8. Log saving to:' logName]);
         end
         
         function startEvent(obj, triggerChannel, trialNum, eventName)
@@ -67,13 +70,11 @@ classdef TriggerLogger < handle
             bitValue = 2^(triggerChannel - 1); 
             
             % --- 2. The Master Sync Trick (Bitwise OR) ---
-            
-            
-            % Channel 8 represents the 8th binary bit, which has a decimal value of 128.
-            % 'bitor' mathematically forces the 8th bit to ALWAYS be on (1), 
+            % Channel 7 represents the 7th binary bit, which has a decimal value of 64.
+            % 'bitor' mathematically forces the 7th bit to ALWAYS be on (1), 
             % alongside whatever target channel you requested. 
-            % Example: If you want Ch 3 (Value 4), bitor(4, 128) sends 132 to the port.
-            outValue = bitor(bitValue, 128); 
+            % Example: If you want Ch 3 (Value 4), bitor(4, 64) sends 68 to the port.
+            outValue = bitor(bitor(bitValue, 64), obj.baseValue); 
             
             % --- 3. Send physical TTL HIGH ---
             % Push the calculated number to the port. The hardware translates this into 
@@ -92,7 +93,7 @@ classdef TriggerLogger < handle
         function stopEvent(obj, triggerChannel, trialNum, eventName)
             % Restores the port to baseValue rather than hard 0.
             % Outside recording: baseValue is 0, so behaviour is identical to before.
-            % During recording: baseValue is 255, so the span signal is kept HIGH
+            % During recording: baseValue is 128, so the span signal is kept HIGH
             % between events instead of being wiped out after each one.
             io64(obj.ioObj, obj.address, obj.baseValue);
             timestamp = GetSecs - obj.expStartTime;
@@ -101,20 +102,20 @@ classdef TriggerLogger < handle
         end
         function startMotiveRecording(obj)
             % Called by FrameCallback the moment Motive's bIsRecording flag goes HIGH.
-            % Sets baseValue to 255 so stopEvent restores the port to 255 between
+            % Sets baseValue to 128 so stopEvent restores the port to 128 between
             % events, creating a continuous band in the MEG stream for the entire
             % duration of the Motive recording.
-            obj.baseValue = 255;
-            io64(obj.ioObj, obj.address, 255);
+            obj.baseValue = 128;
+            io64(obj.ioObj, obj.address, 128);
             timestamp = GetSecs - obj.expStartTime;
-            fprintf(obj.logFileID, '%.4f,0,MotiveRecordingSpan,ALL,255,SPAN_START\n', timestamp);
+            fprintf(obj.logFileID, '%.4f,0,MotiveRecordingSpan,ALL,128,SPAN_START\n', timestamp);
         end
 
         function stopMotiveRecording(obj)
             % Called when Motive's bIsRecording flag goes LOW, or as a safety net
             % from StopRecording() if FrameCallback missed the falling edge.
             % Resets baseValue to 0 so the port returns to silence between events,
-            % and closes the 255 band in the MEG stream.
+            % and closes the 128 band in the MEG stream.
             obj.baseValue = 0;
             io64(obj.ioObj, obj.address, 0);
             timestamp = GetSecs - obj.expStartTime;

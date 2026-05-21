@@ -1,4 +1,3 @@
-%test
 function FrameCallback(data)
 % FRAMECALLBACK  Called by the natnet listener every time Motive sends a frame.
 % This function runs at 120Hz in the background, completely independent of
@@ -16,7 +15,7 @@ global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER TL_GLOBA
 % on the exact frame the flag changes state.
 %
 % Rising edge (false → true): Motive just started recording.
-%   - Tells TriggerLogger to raise the port to 255, opening the span band
+%   - Tells TriggerLogger to raise the port to 128, opening the span band
 %     in the MEG stream.
 %   - Anchors RecordingStartTime so OptiTrack event timestamps are relative
 %     to the same T=0 as the rest of the experiment.

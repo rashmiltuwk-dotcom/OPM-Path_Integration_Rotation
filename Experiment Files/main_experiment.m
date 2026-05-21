@@ -69,7 +69,7 @@ dataFile = sprintf('P%s_%s_%s_Results.csv', subjID, BlockNum, timeStr);
 masterFile = sprintf('P%s_%s_%s_MasterData.mat', subjID, BlockNum, timeStr);
 
 % 3. The Continuous Data File
-continuousFile = sprintf('P%s_%s_%s_Continuous.mat', subjID, BlockNum, timeStr);
+continuousFile = sprintf('P%s_%s_Continuous.mat', subjID, timeStr);
 
 
 % Initialize the empty Master Array of Structures in memory
@@ -533,7 +533,7 @@ WaitSecs(0.5);
                 elseif strcmpi(strtrim(dirCode), 'R')
                     wav = audioData.RotateR;
                 else
-
+                     error('Error in Script: Invalid Direction Code!');
                 end
 
                 play_sound_blocking(pahandle, wav);
@@ -660,14 +660,14 @@ WaitSecs(0.5);
                 % EVENT 5: OPEN EYES
                 % ---------------------------------------------------------
                 % [Trigger] Code 1: Instruction to open eyes
-                if ~isempty(TL), TL.startEvent(7, t, 'OpenEyes'); end
+                if ~isempty(TL), TL.startEvent(1, t, 'OpenEyes'); end
                 OptiTrackBridge.startEvent(t, 'OpenEyes');
                 % [Audio] "Close your eyes" (Blocking: wait for sound to finish)
                 play_sound(pahandle, audioData.OpenE);
                 
                 [OpenEyesHeadTrace, OpenEyesTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, 1.089);
                 
-                if ~isempty(TL), TL.stopEvent(7, t, 'OpenEyes'); end
+                if ~isempty(TL), TL.stopEvent(1, t, 'OpenEyes'); end
                 OptiTrackBridge.stopEvent(t, 'OpenEyes');
                 
                 DrawFormattedText(win, 'Participant currently ranking...', 'center', 'center', [0 255 255]); % Cyan text to stand out

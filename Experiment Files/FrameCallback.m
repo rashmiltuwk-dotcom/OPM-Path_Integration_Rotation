@@ -1,3 +1,4 @@
+%test
 function FrameCallback(data)
 % FRAMECALLBACK  Called by the natnet listener every time Motive sends a frame.
 % This function runs at 120Hz in the background, completely independent of

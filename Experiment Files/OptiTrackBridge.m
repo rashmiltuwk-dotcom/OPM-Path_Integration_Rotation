@@ -70,7 +70,7 @@ classdef OptiTrackBridge
             % --- Pre-allocate continuous session buffer ---
             % At 120Hz, 1 hour = 432,000 samples. 500,000 gives comfortable headroom.
             % --- Pre-allocate continuous session buffer ---
-            nc = 500000;
+            nc = 100000;
             OP_CONTINUOUS_BUFFER.idx        = 1;
             OP_CONTINUOUS_BUFFER.maxSamples = nc;
             OP_CONTINUOUS_BUFFER.time       = NaN(nc, 1);
@@ -204,18 +204,17 @@ classdef OptiTrackBridge
         % START RECORDING
         % =================================================================
         function StartRecording()
-            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING OP_MOTIVE_WAS_RECORDING
+            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING 
 
-            % Reset the span flag so FrameCallback can detect a fresh rising edge
-            % from Motive's bIsRecording for this new recording epoch.
-            OP_MOTIVE_WAS_RECORDING = false;
+            % Reset the internal array index so we capture a fresh movement trace
             OP_DATA_BUFFER.idx = 1;
-
-            OP_BRIDGE_STATE.RecordingStartTime = 0;
 
             if OP_BRIDGE_STATE.IsDummy
                 OP_RECORDING = true;
-                OP_BRIDGE_STATE.RecordingStartTime = GetSecs;
+                % Only set a fake start time if we are in Dummy Mode
+                if OP_BRIDGE_STATE.RecordingStartTime == 0
+                    OP_BRIDGE_STATE.RecordingStartTime = GetSecs;
+                end
                 return;
             end
 
@@ -231,15 +230,8 @@ classdef OptiTrackBridge
         % Time is normalised to start at 0.
         % =================================================================
         function [headTrace, torsoTrace] = StopRecording()
-            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING TL_GLOBAL OP_MOTIVE_WAS_RECORDING
+            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING TL_GLOBAL   
 
-            % Safety net: if FrameCallback never saw Motive's bIsRecording go LOW
-            % (because the listener is about to be disabled), close the 255 span
-            % manually here before the port goes silent.
-            if ~isempty(TL_GLOBAL) && OP_MOTIVE_WAS_RECORDING
-                TL_GLOBAL.stopMotiveRecording();
-                OP_MOTIVE_WAS_RECORDING = false;
-            end
 
             OP_RECORDING = false;
 

@@ -27,7 +27,7 @@ classdef OptiTrackBridge
     end
 
     properties (GetAccess = public, SetAccess = public)
-        RecordingStartTime = 0; 
+        MotiveT0 = 0; 
     end
 
     methods (Static)
@@ -166,11 +166,12 @@ classdef OptiTrackBridge
         % EVENT LOGGING
         % =================================================================
         function startEvent(trialNum, eventName)
-            global OP_BRIDGE_STATE OP_EVENT_LOG
+            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_EVENT_LOG
             if isempty(OP_BRIDGE_STATE), return; end
 
-            if OP_BRIDGE_STATE.RecordingStartTime > 0
-                t = GetSecs - OP_BRIDGE_STATE.RecordingStartTime;
+            idx = OP_DATA_BUFFER.idx - 1;
+            if idx >= 1 && OP_BRIDGE_STATE.MotiveT0 > 0
+                t = OP_DATA_BUFFER.time(idx) - OP_BRIDGE_STATE.MotiveT0;
             else
                 t = 0;
             end
@@ -183,11 +184,12 @@ classdef OptiTrackBridge
         end
 
         function stopEvent(trialNum, eventName)
-            global OP_BRIDGE_STATE OP_EVENT_LOG
+            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_EVENT_LOG
             if isempty(OP_BRIDGE_STATE), return; end
 
-            if OP_BRIDGE_STATE.RecordingStartTime > 0
-                t = GetSecs - OP_BRIDGE_STATE.RecordingStartTime;
+            idx = OP_DATA_BUFFER.idx - 1;
+            if idx >= 1 && OP_BRIDGE_STATE.MotiveT0 > 0
+                t = OP_DATA_BUFFER.time(idx) - OP_BRIDGE_STATE.MotiveT0;
             else
                 t = 0;
             end
@@ -204,17 +206,13 @@ classdef OptiTrackBridge
         % START RECORDING
         % =================================================================
         function StartRecording()
-            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING 
+            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING OP_CONTINUOUS_BUFFER OP_EVENT_LOG
 
             % Reset the internal array index so we capture a fresh movement trace
             OP_DATA_BUFFER.idx = 1;
 
             if OP_BRIDGE_STATE.IsDummy
                 OP_RECORDING = true;
-                % Only set a fake start time if we are in Dummy Mode
-                if OP_BRIDGE_STATE.RecordingStartTime == 0
-                    OP_BRIDGE_STATE.RecordingStartTime = GetSecs;
-                end
                 return;
             end
 
@@ -252,7 +250,11 @@ classdef OptiTrackBridge
             t = OP_DATA_BUFFER.time(1:n);
 
             % Normalise time so trace always starts at 0
-            t = t - t(1);
+            if OP_BRIDGE_STATE.MotiveT0 > 0
+                t = t - OP_BRIDGE_STATE.MotiveT0;
+            else
+                t = t - t(1);   % fallback: Motive never started recording
+            end
 
             headTrace.time  = t;
             headTrace.x     = OP_DATA_BUFFER.hx(1:n);
@@ -593,7 +595,7 @@ classdef OptiTrackBridge
         % =================================================================
 
         function SaveContinuous(filename)
-            global OP_CONTINUOUS_BUFFER OP_EVENT_LOG
+            global OP_CONTINUOUS_BUFFER OP_EVENT_LOG OP_BRIDGE_STATE
 
             n = OP_CONTINUOUS_BUFFER.idx - 1;
 
@@ -618,7 +620,11 @@ classdef OptiTrackBridge
             ContinuousTrace.tyaw   = OP_CONTINUOUS_BUFFER.tyaw(1:n);
             ContinuousTrace.tErr   = OP_CONTINUOUS_BUFFER.tErr(1:n);
 
-            ContinuousTrace.time = ContinuousTrace.time - ContinuousTrace.time(1);
+            if OP_BRIDGE_STATE.MotiveT0 > 0
+                ContinuousTrace.time = ContinuousTrace.time - OP_BRIDGE_STATE.MotiveT0;
+            else
+                ContinuousTrace.time = ContinuousTrace.time - ContinuousTrace.time(1);
+            end
 
             EventLog = table(OP_EVENT_LOG.time', OP_EVENT_LOG.trial', ...
                 OP_EVENT_LOG.event', OP_EVENT_LOG.state', ...

@@ -28,11 +28,9 @@ global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER TL_GLOBA
 if data.bIsRecording && ~OP_MOTIVE_WAS_RECORDING
     % Rising edge — Motive just started recording
     OP_MOTIVE_WAS_RECORDING = true;
+    OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
     if ~isempty(TL_GLOBAL)
         TL_GLOBAL.startMotiveRecording();
-    end
-    if OP_BRIDGE_STATE.RecordingStartTime == 0
-        OP_BRIDGE_STATE.RecordingStartTime = GetSecs;
     end
 
 elseif ~data.bIsRecording && OP_MOTIVE_WAS_RECORDING

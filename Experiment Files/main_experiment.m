@@ -681,24 +681,26 @@ WaitSecs(0.5);
                 % ---------------------------------------------------------
                 % 1. Start with the raw simple math
                 rawEncodeHead = actualHead - startHead;
-                prodTurnAmount   = actHead - actualHead;
-
                 rawEncodeTorso = actualTorso - startTorso;
-                prodTorsoTurn   = actTorso - actualTorso;
 
-                % 2. Fix the boundary crossing based on OptiTrack's layout
-                if strcmp(dirCode, 'L')
+                rawProdHead = actHead - actualHead;
+                rawProdTorso = actTorso - actualTorso;
+
+                % 2. ENCODING FIX: Keep your existing left/right logic 
+            if strcmp(dirCode, 'L')
                 % OptiTrack: LEFT turns must be POSITIVE
-                    if rawEncodeHead < 0, encodeTurnAmount = rawEncodeHead + 360; else, encodeTurnAmount = rawEncodeHead; end
-    
-                    if rawEncodeTorso < 0, encodeTorsoTurn = rawEncodeTorso + 360; else, encodeTorsoTurn = rawEncodeTorso; end
+                if rawEncodeHead < 0, encodeTurnAmount = rawEncodeHead + 360; else, encodeTurnAmount = rawEncodeHead; end
+                if rawEncodeTorso < 0, encodeTorsoTurn = rawEncodeTorso + 360; else, encodeTorsoTurn = rawEncodeTorso; end
 
-                elseif strcmp(dirCode, 'R')
+            elseif strcmp(dirCode, 'R')
                 % OptiTrack: RIGHT turns must be NEGATIVE
-                    if rawEncodeHead > 0, encodeTurnAmount = rawEncodeHead - 360; else, encodeTurnAmount = rawEncodeHead; end
-    
-                    if rawEncodeTorso > 0, encodeTorsoTurn = rawEncodeTorso - 360; else, encodeTorsoTurn = rawEncodeTorso; end
-                end
+                if rawEncodeHead > 0, encodeTurnAmount = rawEncodeHead - 360; else, encodeTurnAmount = rawEncodeHead; end
+                if rawEncodeTorso > 0, encodeTorsoTurn = rawEncodeTorso - 360; else, encodeTorsoTurn = rawEncodeTorso; end
+            end
+
+                % 3. PRODUCTION FIX: Use objective math (Handles any direction safely)
+                prodTurnAmount = mod(rawProdHead + 180, 360) - 180;
+                prodTorsoTurn  = mod(rawProdTorso + 180, 360) - 180;
                 % ---------------------------------------------------------
                 % END OF TRIAL: AUTO-SAVE DATA
                 % ---------------------------------------------------------

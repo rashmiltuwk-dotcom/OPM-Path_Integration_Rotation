@@ -686,7 +686,7 @@ WaitSecs(0.5);
                 rawProdHead = actHead - actualHead;
                 rawProdTorso = actTorso - actualTorso;
 
-                % 2. ENCODING FIX: Keep your existing left/right logic 
+                % 2. ENCODING (mod function does the same thing, this is for better understanding of the goal of the function)
             if strcmp(dirCode, 'L')
                 % OptiTrack: LEFT turns must be POSITIVE
                 if rawEncodeHead < 0, encodeTurnAmount = rawEncodeHead + 360; else, encodeTurnAmount = rawEncodeHead; end

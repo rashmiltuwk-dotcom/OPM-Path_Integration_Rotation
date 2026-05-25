@@ -3,6 +3,7 @@
 %% ============================================================
 
 %% --- FILTERS (set to 'All' to include everything) ----------
+filterTrial    = 1 : 64;   % Enter a specific number (e.g., 15) or range (e.g., 15:20)
 filterDir      = 'All';   % 'L'    | 'R'    | 'All'
 filterQuadrant = 'All';   % 'Q1'   | 'Q2'   | 'Q3'   | 'Q4'   | 'All'
 filterDist     = 'All';   % 'D1'   | 'D2'   | 'D3'   | 'D4'   | 'All'
@@ -21,6 +22,7 @@ targetDistFilter = resolve_filter(filterDist,     distanceMap);
 mask = true(1, numel(accepted));
 for i = 1:numel(accepted)
     a = accepted(i);
+    if isnumeric(filterTrial) && ~ismember(a.TrialNum, filterTrial), mask(i) = false; end
     if ~strcmp(filterDir,  'All') && ~strcmp(a.Direction, filterDir),  mask(i) = false; end
     if ~strcmp(filterType, 'All') && ~strcmp(a.TaskType,  filterType), mask(i) = false; end
     if ~strcmp(filterPos,  'All') && ~strcmp(a.Position,  filterPos),  mask(i) = false; end
@@ -95,10 +97,17 @@ function spd = compute_mean_yaw_speed(trace)
     if isempty(trace) || ~isfield(trace, 'yaw') || ~isfield(trace, 'time') || numel(trace.yaw) < 2
         spd = NaN; return;
     end
-    dt = diff(trace.time(:));
+    
+    % 1. Calculate total degrees rotated safely handling zig-zags
     dy = diff(trace.yaw(:));
-    dt(dt <= 0) = NaN;
-    spd = mean(abs(dy ./ dt), 'omitnan');
+    total_rotation = sum(abs(dy)); 
+    
+    % 2. Calculate total time securely avoiding cumulative float errors
+    dur = trace.time(end) - trace.time(1);
+    
+    % 3. Calculate true average speed
+    if dur <= 0, spd = NaN; return; end
+    spd = total_rotation / dur;
 end
 
 function print_row(label, vals)

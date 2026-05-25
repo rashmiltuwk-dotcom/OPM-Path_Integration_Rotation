@@ -1,7 +1,7 @@
 %% ============================================================
 %  VIEW TRIAL DATA FROM MasterData STRUCT ARRAY
 %  Shows only the final ACCEPTED attempt for a given trial.
-% IMPORTANT: LOAD IN ARRAY BEFORE RUNNING SCRIPT.
+%  IMPORTANT: LOAD IN ARRAY BEFORE RUNNING SCRIPT.
 %
 %
 %  --- COLUMN DEFINITIONS & SOURCES ---
@@ -71,8 +71,8 @@ headTrace  = entry.Traces.(headEvent);
 torsoTrace = entry.Traces.(torsoEvent);
 
 % 3. Build [samples x 8] matrices using your custom build_matrix function
-h_view  = build_matrix(headTrace, entry.Direction);
-to_view = build_matrix(torsoTrace, entry.Direction);
+h_view  = build_matrix(headTrace);
+to_view = build_matrix(torsoTrace);
 
 % 4. Open in variable viewer
 openvar('h_view');

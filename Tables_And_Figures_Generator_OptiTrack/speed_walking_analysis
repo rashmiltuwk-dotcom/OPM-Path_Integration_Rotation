@@ -10,9 +10,6 @@ filterDist     = 'All';   % 'D1'   | 'D2'   | 'D3'   | 'D4'   | 'All'
 filterType     = 'All';   % 'I'    | 'P'    | 'All'
 filterPos      = 'All';   % 'LPos' | 'RPos' | 'All'
 
-%% --- EVENT SELECTION (Walking Phase Only) ------------------
-headEvent  = 'PhysicallyWalkHeadTrace';
-torsoEvent = 'PhysicallyWalkTorsoTrace';
 
 %% --- LOOKUP TABLES -----------------------------------------
 quadrantMap = containers.Map({'Q1','Q2','Q3','Q4'}, [60, 120, 240, 300]);
@@ -46,10 +43,10 @@ for i = 1:N
     metrics(i).TargetDist = tr.TargetDist;
 
     % Dynamic field referencing to compute both Peak and Mean
-    metrics(i).PeakWalkSpeedHead  = compute_peak_walk_speed(tr.Traces.(headEvent));
-    metrics(i).PeakWalkSpeedTorso = compute_peak_walk_speed(tr.Traces.(torsoEvent));
-    metrics(i).MeanWalkSpeedHead  = compute_mean_walk_speed(tr.Traces.(headEvent));
-    metrics(i).MeanWalkSpeedTorso = compute_mean_walk_speed(tr.Traces.(torsoEvent));
+    metrics(i).Walk_PeakSpeedHead  = compute_peak_walk_speed(tr.Traces.PhysicallyWalkHeadTrace);
+    metrics(i).Walk_PeakSpeedTorso = compute_peak_walk_speed(tr.Traces.PhysicallyWalkTorsoTrace);
+    metrics(i).Walk_MeanSpeedHead  = compute_mean_walk_speed(tr.Traces.PhysicallyWalkHeadTrace);
+    metrics(i).Walk_MeanSpeedTorso = compute_mean_walk_speed(tr.Traces.PhysicallyWalkTorsoTrace);
 end
 
 %% --- STEP 3: OUTPUT ----------------------------------------

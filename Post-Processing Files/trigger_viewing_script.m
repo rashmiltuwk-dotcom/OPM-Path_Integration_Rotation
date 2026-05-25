@@ -13,9 +13,9 @@ S.data = 'log-run-003_array1.lvm';
 D1 = spm_opm_create(S); % External function (SPM12): Reads OPM data and creates an SPM M/EEG object.
  
 figure() % MATLAB built-in function: Opens a new blank figure window.
-channels = [6,7,9,8,10,2,3];
-labels = {'Close Eyes', 'Stationary', 'Physical Walk', ...
-          'Encoding Rot', 'Response Rot', 'Imagine Walk', 'Open Eyes'};
+channels = [6,7,9,8,10,2,3,4];
+labels = {'Eyes Instruction', 'Stationary', 'Physical Walk', 'Encoding Rot', ...
+          'Imagine Walk', 'Response Rot', 'Master Sync', 'Opti Track ON/OFF'};
           
 colors = lines(length(channels)); % MATLAB built-in functions (lines, length): 'length' gets array size, 'lines' generates a colormap matrix.
 

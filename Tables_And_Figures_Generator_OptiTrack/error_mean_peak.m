@@ -1,5 +1,5 @@
 %% ============================================================
-%  ANALYSIS 4: RIGID BODY SOLVER ERROR
+%  RIGID BODY SOLVER ERROR
 %% ============================================================
 
 %% --- FILTERS (set to 'All' to include everything) ----------

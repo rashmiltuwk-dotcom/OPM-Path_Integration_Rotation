@@ -1,5 +1,5 @@
 %% ============================================================
-%  COMPLETE ANALYSIS: ANOVA, POST-HOC, AND T-TESTS
+%  COMPLETE ANALYSIS: ANOVA, POST-HOC, AND T-TESTS (TORSO & HEAD)
 %% ============================================================
 
 %% --- STEP 1: LOAD & CALCULATE ERRORS ---
@@ -7,67 +7,67 @@ accepted = MasterData(strcmp({MasterData.Status}, 'Accepted'));
 N = numel(accepted);
 if N == 0, error('No accepted trials in MasterData.'); end
 
-enc_err  = NaN(N,1);
-prod_err = NaN(N,1);
-modality = cell(N,1);
-enc_targ = NaN(N,1);
-res_targ = NaN(N,1);
+% Initialize storage
+enc_err_t = NaN(N,1); enc_err_h = NaN(N,1);
+prod_err_t = NaN(N,1); prod_err_h = NaN(N,1);
+modality = cell(N,1); enc_targ = NaN(N,1); res_targ = NaN(N,1);
 
 for i = 1:N
     tr = accepted(i);
     modality{i} = tr.TaskType;
     enc_targ(i) = tr.TargetDeg;
 
-    % Encoding: Absolute Error
-    yawEnc  = tr.Traces.EncodingRotateTorsoTrace.yaw;
-    rawEnc  = mod(yawEnc(end) - yawEnc(1) + 180, 360) - 180;
-    enc_err(i) = abs(abs(rawEnc) - tr.TargetDeg);
+    % Encoding: Absolute Error (Torso & Head)
+    yEncT = tr.Traces.EncodingRotateTorsoTrace.yaw;
+    yEncH = tr.Traces.EncodingRotateHeadTrace.yaw;
+    enc_err_t(i) = abs(abs(mod(yEncT(end) - yEncT(1) + 180, 360) - 180) - tr.TargetDeg);
+    enc_err_h(i) = abs(abs(mod(yEncH(end) - yEncH(1) + 180, 360) - 180) - tr.TargetDeg);
 
-    % Production: Absolute Error
+    % Production: Absolute Error (Torso & Head)
     if strcmp(tr.TaskType, 'P')
-        yawProd = tr.Traces.ResponseRotationTorsoTrace.yaw;
-        rawProd = mod(yawProd(end) - yawProd(1) + 180, 360) - 180;
         if ismember(tr.TargetDeg, [60, 240]), rTarget = 120; else, rTarget = 60; end
         res_targ(i) = rTarget;
-        prod_err(i) = abs(abs(rawProd) - rTarget);
+        yProdT = tr.Traces.ResponseRotationTorsoTrace.yaw;
+        yProdH = tr.Traces.ResponseRotationHeadTrace.yaw;
+        prod_err_t(i) = abs(abs(mod(yProdT(end) - yProdT(1) + 180, 360) - 180) - rTarget);
+        prod_err_h(i) = abs(abs(mod(yProdH(end) - yProdH(1) + 180, 360) - 180) - rTarget);
     end
 end
 
 %% --- STEP 2: BUILD VECTORS ---
 is_phys = strcmp(modality, 'P');
-P_err   = prod_err(is_phys & ~isnan(prod_err));
-P_et    = enc_targ(is_phys & ~isnan(prod_err));
-P_rt    = res_targ(is_phys & ~isnan(prod_err));
-E_err   = enc_err(~isnan(enc_err));
-E_et    = enc_targ(~isnan(enc_err));
+E_et = enc_targ(~isnan(enc_err_t));
+P_et = enc_targ(is_phys & ~isnan(prod_err_t));
+P_rt = res_targ(is_phys & ~isnan(prod_err_t));
 
 %% --- STEP 3: ENCODING ANALYSIS ---
-fprintf('\n--- ENCODING: ANOVA (4 Quadrants) ---\n');
-[~, tbl_ea, stats_ea] = anova1(E_err, E_et, 'off');
-print_anova1(tbl_ea);
-if tbl_ea{2,6} < 0.05
-    [c,~,~,gn] = multcompare(stats_ea, 'Display','off');
-    print_multcomp(c, gn);
-end
-print_group_stats(E_err, E_et, [60, 120, 240, 300]);
-
-fprintf('\n--- ENCODING: T-TEST (60/120 vs 240/300) ---\n');
-run_ttest2(E_err(ismember(E_et, [60, 120])), E_err(ismember(E_et, [240, 300])), '60/120 vs 240/300');
+fprintf('\n--- ENCODING: TORSO ---\n');
+run_anova_t(enc_err_t(~isnan(enc_err_t)), E_et, [60, 120, 240, 300]);
+fprintf('\n--- ENCODING: HEAD ---\n');
+run_anova_t(enc_err_h(~isnan(enc_err_h)), E_et, [60, 120, 240, 300]);
 
 %% --- STEP 4: PRODUCTION ANALYSIS ---
-fprintf('\n--- PRODUCTION: ANOVA (4 Quadrants) ---\n');
-[~, tbl_pa, stats_pa] = anova1(P_err, P_et, 'off');
-print_anova1(tbl_pa);
-if tbl_pa{2,6} < 0.05
-    [c,~,~,gn] = multcompare(stats_pa, 'Display','off');
-    print_multcomp(c, gn);
-end
-print_group_stats(P_err, P_et, [60, 120, 240, 300]);
+fprintf('\n--- PRODUCTION: TORSO ---\n');
+run_anova_t(prod_err_t(is_phys & ~isnan(prod_err_t)), P_et, [60, 120, 240, 300]);
+fprintf('\n--- PRODUCTION: HEAD ---\n');
+run_anova_t(prod_err_h(is_phys & ~isnan(prod_err_h)), P_et, [60, 120, 240, 300]);
 
-fprintf('\n--- PRODUCTION: T-TEST (60 vs 120 Response Target) ---\n');
-run_ttest2(P_err(P_rt==60), P_err(P_rt==120), '60 vs 120');
+% T-Tests for Response Targets
+fprintf('\n--- T-TESTS: PRODUCTION (60 vs 120) ---\n');
+run_ttest2(prod_err_t(P_rt==60), prod_err_t(P_rt==120), 'Torso: 60 vs 120');
+run_ttest2(prod_err_h(P_rt==60), prod_err_h(P_rt==120), 'Head: 60 vs 120');
 
 %% --- LOCAL FUNCTIONS ---
+function run_anova_t(data, groups, list)
+    [~, tbl, stats] = anova1(data, groups, 'off');
+    print_anova1(tbl);
+    if tbl{2,6} < 0.05
+        [c,~,~,gn] = multcompare(stats, 'Display','off');
+        print_multcomp(c, gn);
+    end
+    print_group_stats(data, groups, list);
+end
+
 function print_group_stats(data, groups, list)
     fprintf('  %-10s  %-6s  %-10s\n', 'Group', 'N', 'Mean ± SD');
     for g = list
@@ -84,7 +84,7 @@ end
 
 function print_anova1(tbl)
     F = tbl{2,5}; p = tbl{2,6}; eta2p = tbl{2,2} / (tbl{2,2} + tbl{3,2});
-    fprintf('  F(%d,%d) = %.3f   p = %.4f   η²p = %.3f\n', tbl{2,3}, tbl{3,3}, F, p, eta2p);
+    fprintf('  F(%d,%d) = %.3f    p = %.4f    η²p = %.3f\n', tbl{2,3}, tbl{3,3}, F, p, eta2p);
 end
 
 function print_multcomp(c, gn)

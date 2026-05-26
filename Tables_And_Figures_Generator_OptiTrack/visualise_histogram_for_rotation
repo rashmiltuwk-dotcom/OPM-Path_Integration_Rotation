@@ -71,6 +71,10 @@ for e = 1:length(events)
 end
 
 %% --- LOCAL HELPER FUNCTION ---------------------------------
+function val = resolve_filter(code, map)
+    if strcmp(code, 'All'), val = NaN; else, val = map(code); end
+end
+
 function yData = get_yaw_data(trials, traceName)
     yData = [];
     for i = 1:numel(trials)

@@ -1,4 +1,3 @@
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   DISCUSSION FOR EPOCHING SCRIPT   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -8,15 +7,14 @@
 % can then be used as input to epoching." So we would have to make our manual trl matrix rather than utilising the
 % spm_opm_epoch_trigger function. https://www.fil.ion.ucl.ac.uk/spm/docs/manual/meeg/eeg_preprocessing/
 
-
-% Custom trial function logic is also supported by FieldTrip (toolbox embedded in SPM12), with the function 
+% Custom trial function logic is also supported by FieldTrip (toolbox embedded in SPM12), with the function
 % ft_definetrial(). https://www.fieldtriptoolbox.org/example/preproc/trialfun/
 
 % We need to make sure that the structuring of the trial complies with the FieldTrip format.
 % Which is: one row per trial and three columns representing the sample numbers from the start of the continuous
 % recording for onset, offset, and pre-stimulus baseline period.
 
-% The T8 logic complies with alignmnent logic of kinematic and OPM data; where the formula is 
+% The T8 logic complies with alignment logic of kinematic and OPM data; where the formula is
 % motive_onset = onset - t_zero
 % This allows data to be accurately aligned with OptiTrack data in later analysis steps.
 % t_zero is taken from the trigger's first onset value (shown : t_zero = t_zero(1); % Take the first rising edge only)
@@ -25,14 +23,15 @@
 % for k = 1:length(onsets)
 %     all_events = [all_events; onsets(k), c];
 
-
-% the fourth, fifth and sixth columns give the motive onset, motive epoch start and motive epoch end respectively
+% The fourth, fifth and sixth columns of motive_info give the motive onset, motive epoch start and
+% motive epoch end respectively. motive_info is saved separately to preserve the standard 3-column
+% trl matrix required by SPM/FieldTrip. motive_info row N corresponds exactly to trl row N.
+% The alignment file is named after the epoched file it belongs to so the two are unambiguously linked.
 
 % For ensuring the data collected isn't that of the trial that was redone, we apply the following logic:
-% If a participant aborted early (e.g. started Open Eyes (First Trigger (T2)) and didn't complete task
-% steps enough to get to Close Eyes (First Trigger (T2))), the required channels won't be found between the
-% bookends. Hence, the entire trial is deleted.
-
+% If a participant aborted early (e.g. pressed Open Eyes (T2) before completing all task steps),
+% the required channels won't all be found between the bookends.
+% Hence, the entire trial block is deleted.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -77,20 +76,23 @@ t_zero = t_zero(1);
 fprintf('Motive T=0 at OPM sample %d (%.3f s into file).\n', t_zero, t_zero / fs);
 
 
-%% 3. Epoch & Baseline Step
+%% 2. Manual Trigger Detection, Epoching & Baseline Correction
+% This section replicates and extends what spm_opm_epoch_trigger does
+% internally, exposing the timeline so aborted trials can be removed
+% before SPM cuts the data.
 disp('Running manual trigger detection, epoching, and baseline correction...');
 
 S                 = [];
 S.D               = D1;
-S.timewin         = [-200 3000];
-S.bc              = 1;
+S.timewin         = [-200 3000];      % Cut from -200ms to +3000ms
+S.bc              = 1;                % 1 = Yes, apply baseline correction automatically
 % T8  excluded — handled above as the Motive anchor, not a stimulus.
 % T9  excluded — backup master sync only.
 % T10 excluded — backup master sync only.
 % T2  = Close Eyes / Open Eyes bookend channel.
 % T3, T4, T5, T6, T7 = task stimulus channels fired during each trial.
-S.triggerChannels = {'T2', 'T3', 'T4', 'T5', 'T6', 'T7'};
-S.condLabels      = {'EyesInstruction', 'Stationary', 'PhysicallyWalk', 'EncodingRotate', 'ResponseRotate', 'ImagineWalk'};
+S.triggerChannels = {'T2',              'T3',          'T4',            'T5',              'T6',             'T7'        };
+S.condLabels      = {'EyesInstruction', 'Stationary',  'PhysicallyWalk','EncodingRotate',  'ResponseRotate', 'ImagineWalk'};
 S.thresh          = THRESH;
 
 % [spm_opm_epoch_trigger] resolved channel names to row indices internally
@@ -102,13 +104,14 @@ trig_data = D1(chan_idx, :, 1);
 all_events = []; % [sample_number, channel_id]
 
 for c = 1:length(S.triggerChannels)
-    is_high = trig_data(c, :) > S.thresh;
-    onsets  = find(diff(is_high) == 1) + 1;
+    is_high = trig_data(c, :) > S.thresh;          % [spm_opm_epoch_trigger] threshold crossing
+    onsets  = find(diff(is_high) == 1) + 1;         % [spm_opm_epoch_trigger] rising edge detection
     for k = 1:length(onsets)
         all_events = [all_events; onsets(k), c];
     end
 end
 
+% Sort all events into a true chronological timeline
 [~, sort_idx] = sort(all_events(:, 1));
 all_events    = all_events(sort_idx, :);
 
@@ -135,7 +138,11 @@ end
 %
 % Between those two T2 presses, every task channel must have fired
 % at least once for the trial to be considered complete:
-%   T3 (ID 2), T4 (ID 3), T5 (ID 4), T6 (ID 5), T7 (ID 6)
+%   T3=Stationary    (ID 2)
+%   T4=PhysicallyWalk (ID 3)
+%   T5=EncodingRotate (ID 4)
+%   T6=ResponseRotate (ID 5)
+%   T7=ImagineWalk    (ID 6)
 %
 % required_channels is stated explicitly here rather than inferred from
 % valid_events — T8, T9, T10 were never scanned so they do not appear
@@ -145,9 +152,9 @@ end
 % task steps), one or more required channels will be absent between the
 % bookends. The entire block is deleted in that case.
 % -------------------------------------------------------------------------
-valid_events = all_events;
-ch1_id            = 1;              % T2 = bookend channel (ID 1 in triggerChannels)
-required_channels = [2, 3, 4, 5, 6, 7]; % T3, T4, T5, T6, T7 must all fire inside a block
+valid_events      = all_events;
+ch1_id            = 1;           % T2 = bookend (ID 1 in triggerChannels list)
+required_channels = [2, 3, 4, 5, 6]; % T3, T4, T5, T6, T7 must all fire inside a block
 
 % Find every row in the timeline where T2 was pressed
 ch1_indices = find(valid_events(:, 2) == ch1_id);
@@ -166,16 +173,15 @@ ch1_indices = find(valid_events(:, 2) == ch1_id);
 % corrupt the row indices of pairs we have not yet visited
 for i = length(ch1_indices)-1 : -2 : 1
 
-    start_idx = ch1_indices(i);    % row of Close Eyes (first T2)
-    end_idx   = ch1_indices(i+1); % row of Open Eyes  (second T2)
+    start_idx    = ch1_indices(i);    % row of Close Eyes (first T2)
+    end_idx      = ch1_indices(i+1);  % row of Open Eyes  (second T2)
 
     % Pull out only the channel IDs that fired BETWEEN the two bookends
     % (start_idx+1 and end_idx-1 exclude the bookends themselves)
     block_events = valid_events(start_idx+1 : end_idx-1, 2);
 
-    % Check whether every required channel appears at least once.
-    % ismember returns true for each required channel found in block_events.
-    % If any required channel is missing, all() returns false.
+    % ismember checks each required channel appeared at least once.
+    % all() returns false if any required channel is missing.
     if ~all(ismember(required_channels, block_events))
         % At least one task channel did not fire — trial was aborted.
         % Delete everything from Close Eyes to Open Eyes inclusive.
@@ -188,7 +194,7 @@ end
 % -------------------------------------------------------------------------
 % 3C. BUILD trl MATRIX AND MOTIVE ALIGNMENT
 %
-% trl is kept as a standard 3-column matrix as SPM requires:
+% trl is kept as a standard 3-column matrix as SPM/FieldTrip requires:
 %   col 1: OPM epoch start sample
 %   col 2: OPM epoch end sample
 %   col 3: offset (where t=0 sits inside the epoch)
@@ -228,18 +234,20 @@ for i = 1:size(valid_events, 1)
     motive_info(end+1, :) = [motive_onset, motive_epoch_start, motive_epoch_end];
 end
 
-% Save Motive alignment to a separate file.
-% motive_info row N maps directly to trl row N.
-save('motive_alignment.mat', 'motive_info', 't_zero', 'conditionlabels');
-
 % [spm_opm_epoch_trigger] called spm_eeg_epochs internally.
 % We call it directly with our standard 3-column trl matrix.
 S.trl             = trl;
 S.conditionlabels = conditionlabels;
 epoch_bc_D        = spm_eeg_epochs(S);
 
+% Save Motive alignment named after the epoched file so the two are
+% unambiguously linked on disk. motive_info row N maps to trl row N.
+[fpath, fname_stem, ~] = fileparts(epoch_bc_D.fname);
+save(fullfile(fpath, [fname_stem '_motive_alignment.mat']), ...
+     'motive_info', 't_zero', 'conditionlabels');
 
-%% 4. Finish
+
+%% 3. Finish
 disp('SUCCESS! Preprocessing complete.');
 disp(['Final epoched and baseline-corrected file saved as: ', epoch_bc_D.fname]);
-fprintf('Motive alignment saved to motive_alignment.mat for %d trials.\n', size(trl, 1));
+fprintf('Motive alignment saved to %s\n', fullfile(fpath, [fname_stem '_motive_alignment.mat']));

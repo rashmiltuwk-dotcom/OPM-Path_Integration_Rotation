@@ -84,6 +84,12 @@ masterIdx = 1;
 
 % Initialize the custom TriggerLogger class. 
 % This creates a digital record of every pulse sent to the MEG room.
+
+% If this code does not work, try uncommenting the line below and commenting out the try-catch block
+% try
+%        TL = TriggerLogger(hex2dec('378'), subjID);
+% catch
+
 try
         TL = TriggerLogger(subjID);
 catch
@@ -93,9 +99,8 @@ end
 
 % Always set the global reference so FrameCallback can reach TL
 % regardless of whether hardware is present or not.
-global TL_GLOBAL OP_MOTIVE_WAS_RECORDING
+global TL_GLOBAL
 TL_GLOBAL               = TL;
-OP_MOTIVE_WAS_RECORDING = false;
 
 % ---------------------------------------------------------
 
@@ -660,14 +665,14 @@ WaitSecs(0.5);
                 % EVENT 5: OPEN EYES
                 % ---------------------------------------------------------
                 % [Trigger] Code 1: Instruction to open eyes
-                if ~isempty(TL), TL.startEvent(1, t, 'OpenEyes'); end
+                if ~isempty(TL), TL.startEvent(7, t, 'OpenEyes'); end
                 OptiTrackBridge.startEvent(t, 'OpenEyes');
                 % [Audio] "Close your eyes" (Blocking: wait for sound to finish)
                 play_sound(pahandle, audioData.OpenE);
                 
                 [OpenEyesHeadTrace, OpenEyesTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, 1.089);
                 
-                if ~isempty(TL), TL.stopEvent(1, t, 'OpenEyes'); end
+                if ~isempty(TL), TL.stopEvent(7, t, 'OpenEyes'); end
                 OptiTrackBridge.stopEvent(t, 'OpenEyes');
                 
                 DrawFormattedText(win, 'Participant currently ranking...', 'center', 'center', [0 255 255]); % Cyan text to stand out
@@ -681,26 +686,24 @@ WaitSecs(0.5);
                 % ---------------------------------------------------------
                 % 1. Start with the raw simple math
                 rawEncodeHead = actualHead - startHead;
+                prodTurnAmount   = actHead - actualHead;
+
                 rawEncodeTorso = actualTorso - startTorso;
+                prodTorsoTurn   = actTorso - actualTorso;
 
-                rawProdHead = actHead - actualHead;
-                rawProdTorso = actTorso - actualTorso;
-
-                % 2. ENCODING (mod function does the same thing, this is for better understanding of the goal of the function)
-            if strcmp(dirCode, 'L')
+                % 2. Fix the boundary crossing based on OptiTrack's layout
+                if strcmp(dirCode, 'L')
                 % OptiTrack: LEFT turns must be POSITIVE
-                if rawEncodeHead < 0, encodeTurnAmount = rawEncodeHead + 360; else, encodeTurnAmount = rawEncodeHead; end
-                if rawEncodeTorso < 0, encodeTorsoTurn = rawEncodeTorso + 360; else, encodeTorsoTurn = rawEncodeTorso; end
+                    if rawEncodeHead < 0, encodeTurnAmount = rawEncodeHead + 360; else, encodeTurnAmount = rawEncodeHead; end
+    
+                    if rawEncodeTorso < 0, encodeTorsoTurn = rawEncodeTorso + 360; else, encodeTorsoTurn = rawEncodeTorso; end
 
-            elseif strcmp(dirCode, 'R')
+                elseif strcmp(dirCode, 'R')
                 % OptiTrack: RIGHT turns must be NEGATIVE
-                if rawEncodeHead > 0, encodeTurnAmount = rawEncodeHead - 360; else, encodeTurnAmount = rawEncodeHead; end
-                if rawEncodeTorso > 0, encodeTorsoTurn = rawEncodeTorso - 360; else, encodeTorsoTurn = rawEncodeTorso; end
-            end
-
-                % 3. PRODUCTION FIX: Use objective math (Handles any direction safely)
-                prodTurnAmount = mod(rawProdHead + 180, 360) - 180;
-                prodTorsoTurn  = mod(rawProdTorso + 180, 360) - 180;
+                    if rawEncodeHead > 0, encodeTurnAmount = rawEncodeHead - 360; else, encodeTurnAmount = rawEncodeHead; end
+    
+                    if rawEncodeTorso > 0, encodeTorsoTurn = rawEncodeTorso - 360; else, encodeTorsoTurn = rawEncodeTorso; end
+                end
                 % ---------------------------------------------------------
                 % END OF TRIAL: AUTO-SAVE DATA
                 % ---------------------------------------------------------

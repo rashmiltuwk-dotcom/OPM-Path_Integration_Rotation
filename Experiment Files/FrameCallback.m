@@ -8,39 +8,12 @@ function FrameCallback(data)
 %
 % INPUT: data — a NatNet FrameOfMocapData struct containing all rigid bodies
 
-global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER TL_GLOBAL OP_MOTIVE_WAS_RECORDING
+global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER TL_GLOBAL
 
-% --- RECORDING SPAN DETECTION ---
-% Watches Motive's bIsRecording flag every frame and fires TriggerLogger
-% on the exact frame the flag changes state.
-%
-% Rising edge (false → true): Motive just started recording.
-%   - Tells TriggerLogger to raise the port to 128, opening the span band
-%     in the MEG stream.
-%   - Anchors RecordingStartTime so OptiTrack event timestamps are relative
-%     to the same T=0 as the rest of the experiment.
-%
-% Falling edge (true → false): Motive stopped recording.
-%   - Tells TriggerLogger to drop the port back to 0, closing the span band.
-%   - StopRecording() contains a safety net that does the same thing in case
-%     this falling edge is never seen (e.g. listener disabled first).
 
-if data.bIsRecording && ~OP_MOTIVE_WAS_RECORDING
-    % Rising edge — Motive just started recording
-    OP_MOTIVE_WAS_RECORDING = true;
+if OP_BRIDGE_STATE.MotiveT0 == 0
     OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
-    if ~isempty(TL_GLOBAL)
-        TL_GLOBAL.startMotiveRecording();
-    end
-
-elseif ~data.bIsRecording && OP_MOTIVE_WAS_RECORDING
-    % Falling edge — Motive stopped recording
-    OP_MOTIVE_WAS_RECORDING = false;
-    if ~isempty(TL_GLOBAL)
-        TL_GLOBAL.stopMotiveRecording();
-    end
 end
-
 
 try
     % --- GUARD: skip if no rigid body data ---

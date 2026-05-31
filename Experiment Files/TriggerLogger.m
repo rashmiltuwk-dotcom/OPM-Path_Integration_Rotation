@@ -1,8 +1,9 @@
 classdef TriggerLogger < handle
     % TRIGGERLOGGER: The Hardware Bridge for MEG Syncing
-    % Manages Channels 1-6 for MEG TTL (Transistor-Transistor Logic) pulses.
-    % It simultaneously fires a "Master Sync" pulse on Channel 7 (Value 64)
-    % for every event. It also maintains a CSV Log File as a failsafe backup.
+    % Manages Channels 1-7 for MEG TTL (Transistor-Transistor Logic) pulses.
+    % Simultaneously fires a "Master Sync" pulse on Channel 8 (Value 128)
+    % for every event. Maintains a CSV Log File as a failsafe backup.
+
     
     properties
         % [HARDWARE SETUP]
@@ -12,10 +13,6 @@ classdef TriggerLogger < handle
         % [DATA BACKUP SETUP]
         logFileID       % The open ID handle for the CSV text file
         expStartTime    % The absolute baseline time (T=0) to calculate precise relative timestamps
-        baseValue = 0  % Holds the port's "resting" value between events.
-                       % 0 outside Motive recording (port goes silent between events).
-                       % 128 during Motive recording (Channel 8 HIGH — marks the area
-                       % of interest as a continuous band in the MEG stream).
     end
     
     methods
@@ -52,7 +49,7 @@ classdef TriggerLogger < handle
             % measured relative to this exact millisecond.
             obj.expStartTime = GetSecs; 
             
-            disp(['TriggerLogger Initialized. Event Ch 1-6 | Master Sync Ch 7 | Motive Span Ch 8. Log saving to:' logName]);
+            disp(['TriggerLogger Initialized. Channels 1-7 for events | Ch 8 Master Sync. Log saving to: ' logName]);
         end
         
         function startEvent(obj, triggerChannel, trialNum, eventName)
@@ -60,21 +57,19 @@ classdef TriggerLogger < handle
             % START EVENT: Sends 5V to the MEG and writes "ON" to the CSV
             % ---------------------------------------------------------
             
-            
-            
             % --- 1. The Binary Conversion Math ---
             % Parallel ports use an 8-bit binary system. You can't just send the number '3' 
             % to trigger Channel 3. You must convert the channel number into its binary place value.
             % Formula: 2^(Channel - 1). 
-            % Examples: Ch 1 = 1, Ch 2 = 2, Ch 3 = 4, Ch 4 = 8, Ch 5 = 16, etc.
+            % Examples: Ch 1 = 1, Ch 2 = 2, Ch 3 = 4, Ch 4 = 8, Ch 5 = 16, Ch 6 = 32, Ch 7 = 64
             bitValue = 2^(triggerChannel - 1); 
             
-            % --- 2. The Master Sync Trick (Bitwise OR) ---
-            % Channel 7 represents the 7th binary bit, which has a decimal value of 64.
-            % 'bitor' mathematically forces the 7th bit to ALWAYS be on (1), 
+            % --- 2. The Master Sync Pulse ---
+            % Channel 8 (Value 128) fires on every event to create a sync pulse in the MEG.
+            % 'bitor' mathematically forces the 8th bit to ALWAYS be on (1), 
             % alongside whatever target channel you requested. 
-            % Example: If you want Ch 3 (Value 4), bitor(4, 64) sends 68 to the port.
-            outValue = bitor(bitor(bitValue, 64), obj.baseValue); 
+            % Example: If you want Ch 3 (Value 4), bitor(4, 128) sends 132 to the port.
+            outValue = bitor(bitValue, 128); 
             
             % --- 3. Send physical TTL HIGH ---
             % Push the calculated number to the port. The hardware translates this into 
@@ -91,37 +86,22 @@ classdef TriggerLogger < handle
         end
         
         function stopEvent(obj, triggerChannel, trialNum, eventName)
-            % Restores the port to baseValue rather than hard 0.
-            % Outside recording: baseValue is 0, so behaviour is identical to before.
-            % During recording: baseValue is 128, so the span signal is kept HIGH
-            % between events instead of being wiped out after each one.
-            io64(obj.ioObj, obj.address, obj.baseValue);
+            % ---------------------------------------------------------
+            % STOP EVENT: Drops the MEG pins to 0V and writes "OFF" to the CSV
+            % ---------------------------------------------------------
+            
+            % --- 1. Send physical TTL LOW ---
+            % MEG triggers require a "Rising Edge" (a jump from 0V to 5V) to register a mark.
+            % Therefore, we MUST turn the pins back off (send 0) before we can fire them again.
+            io64(obj.ioObj, obj.address, 0); 
+            
+            % --- 2. Write to CSV Log ---
+            % Note exactly when the pulse ended in our backup file.
             timestamp = GetSecs - obj.expStartTime;
-            fprintf(obj.logFileID, '%.4f,%d,%s,%d,%d,OFF\n', ...
-                timestamp, trialNum, eventName, triggerChannel, obj.baseValue);
-        end
-        function startMotiveRecording(obj)
-            % Called by FrameCallback the moment Motive's bIsRecording flag goes HIGH.
-            % Sets baseValue to 128 so stopEvent restores the port to 128 between
-            % events, creating a continuous band in the MEG stream for the entire
-            % duration of the Motive recording.
-            obj.baseValue = 128;
-            io64(obj.ioObj, obj.address, 128);
-            timestamp = GetSecs - obj.expStartTime;
-            fprintf(obj.logFileID, '%.4f,0,MotiveRecordingSpan,ALL,128,SPAN_START\n', timestamp);
+            fprintf(obj.logFileID, '%.4f,%d,%s,%d,0,OFF\n', ...
+                timestamp, trialNum, eventName, triggerChannel);
         end
 
-        function stopMotiveRecording(obj)
-            % Called when Motive's bIsRecording flag goes LOW, or as a safety net
-            % from StopRecording() if FrameCallback missed the falling edge.
-            % Resets baseValue to 0 so the port returns to silence between events,
-            % and closes the 128 band in the MEG stream.
-            obj.baseValue = 0;
-            io64(obj.ioObj, obj.address, 0);
-            timestamp = GetSecs - obj.expStartTime;
-            fprintf(obj.logFileID, '%.4f,0,MotiveRecordingSpan,ALL,0,SPAN_STOP\n', timestamp);
-        end
-        
         function close(obj)
             % ---------------------------------------------------------
             % CLEANUP: Runs safely at the end of the experiment or during a crash

@@ -89,7 +89,7 @@ dataFile = sprintf('P%s_%s_%s_Results.csv', subjID, blockNum, timeStr);
 masterFile = sprintf('P%s_%s_%s_MasterData.mat', subjID, blockNum, timeStr);
 
 % 3. The Continuous Data File
-continuousFile = sprintf('P%s_%s_Continuous.mat', subjID, timeStr);
+continuousFile = sprintf('P%s_%s_%s_Continuous.mat', subjID, blockNum, timeStr);
 
 
 % Initialize the empty Master Array of Structures in memory

@@ -124,7 +124,7 @@ classdef OptiTrackBridge
 
                 % --- Wire up the 120Hz callback ---
                 % Slot 1 → FrameCallback.m (must be on MATLAB path)
-                % Listener is OFF by default — StartRecording() enables it.
+                % Listener is enabled immediately to begin capturing frames.
                 OP_BRIDGE_STATE.NatNetClient.addlistener(1, 'FrameCallback');
                 OP_BRIDGE_STATE.NatNetClient.enable(1);
 
@@ -322,7 +322,7 @@ classdef OptiTrackBridge
         % =================================================================
         function trace = EmptyTrace()
             trace.time  = 0; trace.x = 0; trace.y = 0; trace.z = 0;
-            trace.roll  = 0; trace.pitch = 0; trace.yaw = 0;
+            trace.roll  = 0; trace.pitch = 0; trace.yaw = 0; trace.error = 0;
         end
 
         % =================================================================

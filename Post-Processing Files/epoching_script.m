@@ -14,7 +14,7 @@
 % Which is: one row per trial and three columns representing the sample numbers from the start of the continuous
 % recording for onset, offset, and pre-stimulus baseline period.
 
-% The T8 logic complies with alignment logic of kinematic and OPM data; where the formula is
+% The motive span onset logic complies with alignment logic of kinematic and OPM data; where the formula is
 % motive_onset = onset - t_zero
 % This allows data to be accurately aligned with OptiTrack data in later analysis steps.
 % t_zero is taken from the trigger's first onset value (shown : t_zero = t_zero(1); % Take the first rising edge only)
@@ -29,7 +29,7 @@
 % The alignment file is named after the epoched file it belongs to so the two are unambiguously linked.
 
 % For ensuring the data collected isn't that of the trial that was redone, we apply the following logic:
-% If a participant aborted early (e.g. pressed Open Eyes (T2) before completing all task steps),
+% If a participant aborted early (e.g. pressed Close Eyes (T2) before completing all task steps and getting to Open Eyes (T8)),
 % the required channels won't all be found between the bookends.
 % Hence, the entire trial block is deleted.
 
@@ -57,23 +57,23 @@ D1            = spm_opm_create(S_create);
 fs            = D1.fsample;
 
 
-%% 2. Establish T=0 from Motive Span (T8)
-% T8 goes HIGH the moment Motive starts recording. Its rising edge is the
+%% 2. Establish T=0 from Motive Span (A1)
+% A1 goes HIGH the moment Motive starts recording. Its rising edge is the
 % single shared event between the two hardware clocks — it is the only
 % sample number that means the same thing in both the OPM file and the
 % Motive .csv file (row 1 of Motive = t_zero in OPM samples).
-disp('Detecting Motive span onset (T8)...');
+disp('Detecting Motive span onset (CHECK VIEW SCRIPT TO IDENTIFY CORRECT CHANNEL)...');
 
 THRESH     = 0.05;
-trig8_data = D1(D1.indchannel('T8'), :, 1);
-t_zero     = find(diff(trig8_data > THRESH) == 1) + 1;
+trigMotive_data = D1(D1.indchannel('A1'), :, 1);
+t_zero     = find(diff(trigMotive_data > THRESH) == 1) + 1;
 
 if isempty(t_zero)
-    error('No T8 rising edge detected. Motive was not recording.');
+    error('No Motive rising edge detected. Motive was not recording.');
 end
 
 t_zero = t_zero(1);
-fprintf('Motive T=0 at OPM sample %d (%.3f s into file).\n', t_zero, t_zero / fs);
+fprintf('Motive T=0 (mocap recording onset) at OPM sample %d (%.3f s into file).\n', t_zero, t_zero / fs);
 
 
 %% 2. Manual Trigger Detection, Epoching & Baseline Correction
@@ -86,13 +86,15 @@ S                 = [];
 S.D               = D1;
 S.timewin         = [-200 3000];      % Cut from -200ms to +3000ms
 S.bc              = 1;                % 1 = Yes, apply baseline correction automatically
-% T8  excluded — handled above as the Motive anchor, not a stimulus.
-% T9  excluded — backup master sync only.
-% T10 excluded — backup master sync only.
-% T2  = Close Eyes / Open Eyes bookend channel.
-% T3, T4, T5, T6, T7 = task stimulus channels fired during each trial.
-S.triggerChannels = {'T2',              'T3',          'T4',            'T5',              'T6',             'T7'        };
-S.condLabels      = {'EyesInstruction', 'Stationary',  'PhysicallyWalk','EncodingRotate',  'ResponseRotate', 'ImagineWalk'};
+% T2  = Close Eyes (bookend START, ID 1)
+% T3  = Stationary (ID 2)
+% T4  = PhysicallyWalk (ID 3)
+% T5  = EncodingRotate (ID 4)
+% T6  = ResponseRotate (ID 5)
+% T7  = ImagineWalk (ID 6)
+% T8  = Open Eyes (bookend END, ID 7)
+S.triggerChannels = {'T2',              'T3',          'T4',            'T5',              'T6',             'T7',          'T8'};
+S.condLabels      = {'CloseEyes', 'Stationary',  'PhysicallyWalk','EncodingRotate',  'ResponseRotate', 'ImagineWalk', 'OpenEyes'};
 S.thresh          = THRESH;
 
 % [spm_opm_epoch_trigger] resolved channel names to row indices internally
@@ -130,63 +132,43 @@ end
 
 
 % -------------------------------------------------------------------------
-% 3B. CLEANUP — T2 BOOKEND METHOD
+% 3B. CLEANUP — CLOSE EYES / OPEN EYES BOOKEND METHOD
 %
-% T2 (channel ID 1) is pressed TWICE per trial:
-%   First press  = Close Eyes = block START
-%   Second press = Open Eyes  = block END
+% T2 (channel ID 1) = Close Eyes = block START
+% T8 (channel ID 7) = Open Eyes  = block END
 %
-% Between those two T2 presses, every task channel must have fired
-% at least once for the trial to be considered complete:
-%   T3=Stationary    (ID 2)
-%   T4=PhysicallyWalk (ID 3)
-%   T5=EncodingRotate (ID 4)
-%   T6=ResponseRotate (ID 5)
-%   T7=ImagineWalk    (ID 6)
-%
-% required_channels is stated explicitly here rather than inferred from
-% valid_events — T8, T9, T10 were never scanned so they do not appear
-% in valid_events and cannot be used to derive the required set.
-%
-% If a participant aborted early (pressed Open Eyes before completing all
-% task steps), one or more required channels will be absent between the
-% bookends. The entire block is deleted in that case.
+% A complete trial requires: Close Eyes → [task events] → Open Eyes
+% Any incomplete block (Close Eyes without matching Open Eyes) is deleted entirely.
 % -------------------------------------------------------------------------
-valid_events      = all_events;
-ch1_id            = 1;           % T2 = bookend (ID 1 in triggerChannels list)
-required_channels = [2, 3, 4, 5, 6]; % T3, T4, T5, T6, T7 must all fire inside a block
+valid_events = all_events;
+closeEyes_id = 1;  % T2
+openEyes_id  = 7;  % T8
 
-% Find every row in the timeline where T2 was pressed
-ch1_indices = find(valid_events(:, 2) == ch1_id);
+% Find all Close Eyes
+closeEyes_indices = find(valid_events(:, 2) == closeEyes_id);
 
-% Guard: if T2 was pressed an odd number of times the final block was
-% never closed (recording ended before Open Eyes). Drop it entirely.
-if mod(length(ch1_indices), 2) ~= 0
-    valid_events(ch1_indices(end):end, :) = [];
-    disp('WARNING: Dropped incomplete final block (odd number of T2 presses).');
-end
-
-% Recompute after the guard so indices reflect the trimmed valid_events
-ch1_indices = find(valid_events(:, 2) == ch1_id);
-
-% Loop backwards through T2 pairs so that deleting a block does not
-% corrupt the row indices of pairs we have not yet visited
-for i = length(ch1_indices)-1 : -2 : 1
-
-    start_idx    = ch1_indices(i);    % row of Close Eyes (first T2)
-    end_idx      = ch1_indices(i+1);  % row of Open Eyes  (second T2)
-
-    % Pull out only the channel IDs that fired BETWEEN the two bookends
-    % (start_idx+1 and end_idx-1 exclude the bookends themselves)
-    block_events = valid_events(start_idx+1 : end_idx-1, 2);
-
-    % ismember checks each required channel appeared at least once.
-    % all() returns false if any required channel is missing.
-    if ~all(ismember(required_channels, block_events))
-        % At least one task channel did not fire — trial was aborted.
-        % Delete everything from Close Eyes to Open Eyes inclusive.
-        valid_events(start_idx:end_idx, :) = [];
-        disp('Deleted an incomplete/aborted trial block.');
+% Loop backwards to avoid index corruption when deleting rows
+for i = length(closeEyes_indices) : -1 : 1
+    close_eyes_idx = closeEyes_indices(i);
+    
+    % Find the next Open Eyes after this Close Eyes
+    open_eyes_after = find(valid_events(close_eyes_idx+1:end, 2) == openEyes_id, 1);
+    
+    if isempty(open_eyes_after)
+        % No matching Open Eyes — delete the entire block
+        % Block ends at: next Close Eyes (if exists) or end of valid_events
+        next_close_eyes = find(valid_events(close_eyes_idx+1:end, 2) == closeEyes_id, 1);
+        
+        if isempty(next_close_eyes)
+            % No next Close Eyes — delete from here to end
+            delete_end_idx = size(valid_events, 1);
+        else
+            % Delete up to (but not including) the next Close Eyes
+            delete_end_idx = close_eyes_idx + next_close_eyes - 1;
+        end
+        
+        valid_events(close_eyes_idx:delete_end_idx, :) = [];
+        disp('Deleted incomplete trial block (Close Eyes without matching Open Eyes).');
     end
 end
 

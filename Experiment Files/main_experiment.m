@@ -100,7 +100,7 @@ end
 % Always set the global reference so FrameCallback can reach TL
 % regardless of whether hardware is present or not.
 global TL_GLOBAL
-TL_GLOBAL               = TL;
+TL_GLOBAL = TL;
 
 % ---------------------------------------------------------
 
@@ -389,11 +389,11 @@ WaitSecs(0.5);
                 % ---------------------------------------------------------
                 % EVENT 1: CLOSE EYES
                 % ---------------------------------------------------------
-                % [Trigger] Code 1: Instruction to close eyes
+                % [Trigger] Code: Instruction to close eyes
                 if ~isempty(TL), TL.startEvent(1, t, 'CloseEyes'); end
                 OptiTrackBridge.startEvent(t, 'CloseEyes');
                 
-                % [Audio] "Close your eyes" (Blocking: wait for sound to finish)
+                % [Audio] "Close eyes" CloseE audio is ~1.13 seconds; track for that exact duration, using the non-blocking play_sound
                 play_sound(pahandle, audioData.CloseE);
 
                 [CloseEyesHeadTrace, CloseEyesTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, 1.13);
@@ -429,7 +429,7 @@ WaitSecs(0.5);
                 
                 % 3. Track them until they hit the (0,0) coordinate
                 % UPDATED: Now capturing 'walkTraces' alongside distance
-                [walkDistTorso, walkDistHead, PhysicallyWalkHeadTrace, PhysicallyWalkTorsoTrace] = OptiTrackBridge.WaitForWalkEnd(headID, torsoID, win, 0.5);
+                [walkDistTorso, walkDistHead, PhysicallyWalkHeadTrace, PhysicallyWalkTorsoTrace] = OptiTrackBridge.WaitForWalkEnd(headID, torsoID, win);
                 
                 % 4. STOP THE TIMER: Record exactly how long it took
                 walkTime = GetSecs() - walkStartTime; 
@@ -446,9 +446,7 @@ WaitSecs(0.5);
                 % ENSURE CONTINUOUS STATIONARY PERIOD AT (0,0,0)
                 % ---------------------------------------------------------
                 
-                % ... (Your Stationary Loop code follows here) ...
 
-                % --- REINSTATED ORIGINAL LOGIC (CLEANED) ---
                 centerThreshold = 0.35;  
                 requiredTime = 0.5;      
                 isWarningOnScreen = false; 
@@ -664,10 +662,10 @@ WaitSecs(0.5);
                 % ---------------------------------------------------------
                 % EVENT 5: OPEN EYES
                 % ---------------------------------------------------------
-                % [Trigger] Code 1: Instruction to open eyes
+                % [Trigger] Code: Instruction to open eyes
                 if ~isempty(TL), TL.startEvent(7, t, 'OpenEyes'); end
                 OptiTrackBridge.startEvent(t, 'OpenEyes');
-                % [Audio] "Close your eyes" (Blocking: wait for sound to finish)
+                % [Audio] "Open eyes" OpenE audio is ~1.089 seconds; track for that exact duration, using the non-blocking play_sound
                 play_sound(pahandle, audioData.OpenE);
                 
                 [OpenEyesHeadTrace, OpenEyesTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, 1.089);

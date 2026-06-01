@@ -8,7 +8,7 @@ function FrameCallback(data)
 %
 % INPUT: data — a NatNet FrameOfMocapData struct containing all rigid bodies
 
-global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER TL_GLOBAL
+global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER 
 
 
 if OP_BRIDGE_STATE.MotiveT0 == 0

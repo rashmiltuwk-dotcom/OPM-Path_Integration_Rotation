@@ -1,6 +1,6 @@
 # OPM-Path_Integration_Rotation
 This repo includes the post/pre-processing script, visuals scripts and experiment files for the path integration rotation task.
-Please note that you need to ensure that eventhandlers and quaternions are present alongisde the attached Experiment FIles
+Please note that you need to ensure that eventhandlers and quaternions are present alongisde the attached Experiment Files
 
 REASONING BEHIND EXPERIMENT CRASHING COULD ALSO INCLUDE THE FOLLOWING:
 
@@ -10,4 +10,6 @@ REASONING BEHIND EXPERIMENT CRASHING COULD ALSO INCLUDE THE FOLLOWING:
 
 
 
-The post-processing is currently a working progress.
+The post-processing script present is for epoching lvm files, in addition to process the mat traces file.
+
+Please note that motive have relevant tak files to analyse as well.

@@ -102,6 +102,35 @@ classdef TriggerLogger < handle
                 timestamp, trialNum, eventName, triggerChannel);
         end
 
+        function resetAllTriggers(obj, trialNum)
+        % ---------------------------------------------------------
+        % RESET ALL TRIGGERS: Fires all channels 1-7 together, then drops to 0
+        % Creates a clear "abort marker" pulse visible in the MEG data
+        % ---------------------------------------------------------
+    
+        % All channels 1-7 = binary 01111111 = decimal 127
+        allChannels = 127;
+    
+        % Add Master Sync (Channel 8)
+        outValue = bitor(allChannels, 128);  % = 255 (binary 11111111)
+    
+        % Fire all channels HIGH
+        io64(obj.ioObj, obj.address, outValue);
+    
+        % Log it
+        timestamp = GetSecs - obj.expStartTime;
+        fprintf(obj.logFileID, '%.4f,%d,%s,ALL,255,ON\n', ...
+            timestamp, trialNum, 'AbortReset');
+    
+        % Brief hold so hardware registers the pulse
+        WaitSecs(0.05);
+    
+        % Drop all channels to LOW
+        io64(obj.ioObj, obj.address, 0);
+        fprintf(obj.logFileID, '%.4f,%d,%s,ALL,0,OFF\n', ...
+            GetSecs - obj.expStartTime, trialNum, 'AbortReset');
+        end
+
         function close(obj)
             % ---------------------------------------------------------
             % CLEANUP: Runs safely at the end of the experiment or during a crash

@@ -228,7 +228,7 @@ classdef OptiTrackBridge
         % Time is normalised to start at 0.
         % =================================================================
         function [headTrace, torsoTrace] = StopRecording()
-            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING TL_GLOBAL   
+            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING  
 
 
             OP_RECORDING = false;

@@ -14,8 +14,8 @@ D1 = spm_opm_create(S); % External function (SPM12): Reads OPM data and creates 
  
 figure() % MATLAB built-in function: Opens a new blank figure window.
 channels = [6,7,9,8,10,2,3,4];
-labels = {'Eyes Instruction', 'Stationary', 'Physical Walk', 'Encoding Rot', ...
-          'Imagine Walk', 'Response Rot', 'Master Sync', 'Opti Track ON/OFF'};
+labels = {'Close Eyes', 'Stationary', 'Physical Walk', 'Encoding Rot', ...
+          'Imagine Walk', 'Response Rot', 'Open Eyes', 'Master Sync'};
           
 colors = lines(length(channels)); % MATLAB built-in functions (lines, length): 'length' gets array size, 'lines' generates a colormap matrix.
 

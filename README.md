@@ -9,7 +9,6 @@ REASONING BEHIND EXPERIMENT CRASHING COULD ALSO INCLUDE THE FOLLOWING:
 3) Wrong format for block or subject entered.
 
 
-
 The post-processing script present is for epoching lvm files, in addition to process the mat traces file.
 
-Please note that motive have relevant tak files to analyse as well.
+Please note that motive have relevant tak files to analyse as well. Previous studies that make use of Opti Track have utilised these for interpolation.

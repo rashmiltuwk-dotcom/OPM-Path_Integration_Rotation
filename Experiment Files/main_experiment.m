@@ -48,6 +48,26 @@ if isempty(answer), return; end % Safety exit
 subjID  = answer{1};
 BlockNum = answer{2};
 
+% ===================== VALIDATION BLOCK ===================
+% Validate Participant ID
+if isempty(strtrim(subjID))
+    error('ERROR: Participant ID cannot be empty.');
+end
+if ~isstrprop(subjID(1), 'digit')
+    error('ERROR: Participant ID must start with a number (e.g., "001").');
+end
+
+% Validate Block Number
+blockNum = str2double(BlockNum);
+if isnan(blockNum)
+    error('ERROR: Block Number must be a number (e.g., "1").');
+end
+if blockNum < 1 || blockNum > 8
+    error('ERROR: Block Number must be between 1 and 8. You entered: %s', BlockNum);
+end
+% ==============================================================
+
+
 % {{{{ OPTITRACK CONNECT }}}
 connected = OptiTrackBridge.Connect(subjID); % [OptiTrack] Initialize connection to the cameras
 
@@ -63,10 +83,10 @@ timeStr = datestr(now, 'yyyy-mm-dd_HHMMSS');
 
 % 1. The Summary File (The "Manager" Spreadsheet)
 % Format: P001_2026-03-04_120000_Results.csv
-dataFile = sprintf('P%s_%s_%s_Results.csv', subjID, BlockNum, timeStr);
+dataFile = sprintf('P%s_%s_%s_Results.csv', subjID, blockNum, timeStr);
 
 % 2. The Master Data File
-masterFile = sprintf('P%s_%s_%s_MasterData.mat', subjID, BlockNum, timeStr);
+masterFile = sprintf('P%s_%s_%s_MasterData.mat', subjID, blockNum, timeStr);
 
 % 3. The Continuous Data File
 continuousFile = sprintf('P%s_%s_Continuous.mat', subjID, timeStr);
@@ -282,14 +302,8 @@ raw_schedule = [
     allChunks{mySeq(15)}; allChunks{mySeq(16)}
 ];
 
-% Standard: Assign to trials variable
-% Convert the BlockNum from the string input dialog to a number
-targetBlock = str2double(BlockNum);
 
-% Safety check: Ensure the block entered is valid
-if isnan(targetBlock) || targetBlock < 1 || targetBlock > 8
-    error('Invalid Block Number. Please enter a number between 1 and 8 in the setup dialog.');
-end
+targetBlock = blockNum;
 
 % Calculate the exact row indices for this block
 % (e.g., Block 1 = rows 1:8, Block 2 = rows 9:16, etc.)
@@ -851,7 +865,7 @@ WaitSecs(0.5);
                 % BLOCK BREAK EVERY 8 TRIALS
                 % ---------------------------------------------------------
                 if mod(t, 8) == 0   % fires when t == 8 (end of this block's 8 trials)
-                    blockLetter = char(64 + str2double(BlockNum));
+                    blockLetter = char(64 + blockNum);
                     breakMsg = sprintf('End of Block %s.\n\nPlease take a moment to rest.\n\nResearcher: Press SPACE to continue.', blockLetter);
                     DrawFormattedText(win, breakMsg, 'center', 'center', [0 255 0]);
                     Screen('Flip', win);

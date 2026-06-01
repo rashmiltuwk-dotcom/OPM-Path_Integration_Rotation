@@ -97,10 +97,7 @@ catch
     TL = [];
 end
 
-% Always set the global reference so FrameCallback can reach TL
-% regardless of whether hardware is present or not.
-global TL_GLOBAL
-TL_GLOBAL = TL;
+
 
 % ---------------------------------------------------------
 
@@ -582,9 +579,9 @@ WaitSecs(0.5);
                 OptiTrackBridge.startEvent(t, 'RotationProduction');
                 % 1. Play the Instruction (Imagine or Physical)
                 if strcmp(typeCode, 'I')
-                    play_sound(pahandle, audioData.ImagineRo);
+                    play_sound_blocking(pahandle, audioData.ImagineRo);
                 else
-                    play_sound(pahandle, audioData.PhysicalRo);
+                    play_sound_blocking(pahandle, audioData.PhysicalRo);
                 end
                 
                 % 2. START THE HIGH-RES CLOCK
@@ -626,7 +623,7 @@ WaitSecs(0.5);
                 if ~isempty(TL), TL.startEvent(6, t, 'ImagineWalk'); end
                 OptiTrackBridge.startEvent(t, 'ImagineWalk');
                 % 1. Play the "Imagine Walking" audio
-                play_sound(pahandle, audioData.ImagineW);
+                play_sound_blocking(pahandle, audioData.ImagineW);
                 
                 % 2. THE START CLICK
                 % We grab the time the moment the participant is told to start imagining.
@@ -682,14 +679,17 @@ WaitSecs(0.5);
                 % ---------------------------------------------------------
                 % END OF TRIAL: RESEARCHER REDO CHECK
                 % ---------------------------------------------------------
-                % 1. Start with the raw simple math
+                % 1. Compute raw differences
                 rawEncodeHead = actualHead - startHead;
-                prodTurnAmount   = actHead - actualHead;
-
                 rawEncodeTorso = actualTorso - startTorso;
-                prodTorsoTurn   = actTorso - actualTorso;
+                prodTurnAmount = actHead - actualHead;
+                prodTorsoTurn = actTorso - actualTorso;
 
-                % 2. Fix the boundary crossing based on OptiTrack's layout
+                % 2. Apply shortest-path correction to production (no direction constraint)
+                prodTurnAmount = mod(prodTurnAmount + 180, 360) - 180;
+                prodTorsoTurn = mod(prodTorsoTurn + 180, 360) - 180;
+
+                % 3. Fix the boundary crossing for encoding based on OptiTrack's layout
                 if strcmp(dirCode, 'L')
                 % OptiTrack: LEFT turns must be POSITIVE
                     if rawEncodeHead < 0, encodeTurnAmount = rawEncodeHead + 360; else, encodeTurnAmount = rawEncodeHead; end
@@ -772,7 +772,7 @@ WaitSecs(0.5);
                 if strcmp(ME.message, 'Redo_Trial')
                     
                     PsychPortAudio('Stop', pahandle); 
-                    if ~isempty(TL), TL.stopEvent(0, t, 'AbortClear'); end
+                    if ~isempty(TL), TL.resetAllTriggers(t); end
                     
                     statusStr = 'Aborted_Mid_Trial';
 

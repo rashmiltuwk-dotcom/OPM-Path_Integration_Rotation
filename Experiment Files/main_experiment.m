@@ -83,13 +83,13 @@ timeStr = datestr(now, 'yyyy-mm-dd_HHMMSS');
 
 % 1. The Summary File (The "Manager" Spreadsheet)
 % Format: P001_2026-03-04_120000_Results.csv
-dataFile = sprintf('P%s_%s_%s_Results.csv', subjID, blockNum, timeStr);
+dataFile = sprintf('P%s_%d_%s_Results.csv', subjID, blockNum, timeStr);
 
 % 2. The Master Data File
-masterFile = sprintf('P%s_%s_%s_MasterData.mat', subjID, blockNum, timeStr);
+masterFile = sprintf('P%s_%d_%s_MasterData.mat', subjID, blockNum, timeStr);
 
 % 3. The Continuous Data File
-continuousFile = sprintf('P%s_%s_%s_Continuous.mat', subjID, blockNum, timeStr);
+continuousFile = sprintf('P%s_%d_%s_Continuous.mat', subjID, blockNum, timeStr);
 
 
 % Initialize the empty Master Array of Structures in memory

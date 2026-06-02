@@ -70,7 +70,7 @@ classdef OptiTrackBridge
             % --- Pre-allocate continuous session buffer ---
             % At 120Hz, 1 hour = 432,000 samples. 500,000 gives comfortable headroom.
             % --- Pre-allocate continuous session buffer ---
-            nc = 100000;
+            nc = 500000;
             OP_CONTINUOUS_BUFFER.idx        = 1;
             OP_CONTINUOUS_BUFFER.maxSamples = nc;
             OP_CONTINUOUS_BUFFER.time       = NaN(nc, 1);

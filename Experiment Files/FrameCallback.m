@@ -10,10 +10,12 @@ function FrameCallback(data)
 
 global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER 
 
+    if data.bRecording && OP_BRIDGE_STATE.MotiveT0 == 0
+        OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
+        fprintf('>>> Motive Recording Detected. T=0 anchored.\n');
+    end
 
-if OP_BRIDGE_STATE.MotiveT0 == 0
-    OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
-end
+% If error occur try bIsRecording instead of bRecording
 
 try
     % --- GUARD: skip if no rigid body data ---

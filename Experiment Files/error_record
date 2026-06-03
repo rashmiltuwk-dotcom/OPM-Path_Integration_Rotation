@@ -1,38 +1,5031 @@
-function FrameCallback(varargin)
-    % DIAGNOSTIC: Log every callback to understand natnet signature
-    persistent call_count;
-    if isempty(call_count)
-        call_count = 0;
-    end
-    call_count = call_count + 1;
-    
-    fprintf('\n=== FrameCallback call #%d ===\n', call_count);
-    fprintf('nargin = %d\n', nargin);
-    
-    for i = 1:nargin
-        arg = varargin{i};
-        fprintf('  Arg %d: class=%s, size=', i, class(arg));
-        if isstruct(arg)
-            fprintf('[struct with fields: %s]\n', strjoin(fieldnames(arg), ', '));
-        elseif isobject(arg)
-            fprintf('[object]\n');
-        else
-            try
-                sz = size(arg);
-                fprintf('%s\n', mat2str(sz));
-            catch
-                fprintf('[unknown]\n');
-            end
-        end
-    end
-    
-    if call_count <= 3
-        fprintf('(showing first 3 calls only)\n');
-    elseif call_count == 4
-        fprintf('(suppressing further output)\n');
-    end
-    
-    if call_count > 3
-        return;  % Stop processing after diagnostic calls
-    end
-end
+
+=== FrameCallback call #91 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #92 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #93 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #94 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #95 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #96 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #97 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #98 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #99 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #100 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #101 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #102 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #103 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #104 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #105 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #106 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #107 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #108 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #109 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #110 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #111 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #112 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #113 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #114 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #115 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #116 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #117 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #118 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #119 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #120 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #121 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #122 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #123 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #124 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #125 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #126 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #127 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #128 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #129 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #130 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #131 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #132 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #133 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #134 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #135 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #136 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #137 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #138 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #139 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #140 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #141 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #142 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #143 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #144 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #145 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #146 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #147 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #148 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #149 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #150 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #151 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #152 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #153 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #154 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #155 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #156 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #157 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #158 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #159 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #160 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #161 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #162 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #163 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #164 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #165 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #166 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #167 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #168 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #169 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #170 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #171 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #172 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #173 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #174 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #175 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #176 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #177 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #178 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #179 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #180 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #181 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #182 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #183 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #184 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #185 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #186 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #187 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #188 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #189 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #190 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #191 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #192 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #193 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #194 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #195 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #196 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #197 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #198 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #199 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #200 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #201 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #202 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #203 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #204 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #205 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #206 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #207 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #208 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #209 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #210 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #211 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #212 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #213 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #214 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #215 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #216 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #217 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #218 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #219 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #220 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #221 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #222 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #223 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #224 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #225 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #226 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #227 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #228 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #229 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #230 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #231 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #232 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #233 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #234 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #235 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #236 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #237 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #238 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #239 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #240 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #241 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #242 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #243 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #244 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #245 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #246 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #247 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #248 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #249 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #250 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #251 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #252 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #253 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #254 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #255 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #256 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #257 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #258 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #259 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #260 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #261 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #262 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #263 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #264 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #265 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #266 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #267 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #268 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #269 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #270 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #271 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #272 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #273 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #274 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #275 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #276 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #277 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #278 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #279 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #280 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #281 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #282 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #283 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #284 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #285 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #286 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #287 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #288 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #289 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #290 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #291 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #292 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #293 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #294 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #295 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #296 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #297 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #298 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #299 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #300 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #301 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #302 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #303 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #304 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #305 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #306 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #307 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #308 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #309 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #310 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #311 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #312 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #313 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #314 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #315 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #316 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #317 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #318 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #319 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #320 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #321 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #322 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #323 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #324 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #325 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #326 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #327 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #328 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #329 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #330 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #331 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #332 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #333 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #334 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #335 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #336 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #337 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #338 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #339 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #340 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #341 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #342 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #343 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #344 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #345 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #346 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #347 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #348 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #349 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #350 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #351 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #352 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #353 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #354 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #355 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #356 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #357 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #358 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #359 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #360 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #361 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #362 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #363 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #364 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #365 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #366 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #367 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #368 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #369 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #370 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #371 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #372 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #373 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #374 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #375 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #376 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #377 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #378 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #379 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #380 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #381 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #382 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #383 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #384 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #385 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #386 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #387 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #388 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #389 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #390 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #391 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #392 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #393 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #394 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #395 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #396 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #397 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #398 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #399 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #400 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #401 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #402 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #403 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #404 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #405 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #406 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #407 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #408 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #409 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #410 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #411 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #412 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #413 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #414 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #415 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #416 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #417 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #418 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #419 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #420 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #421 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #422 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #423 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #424 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #425 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #426 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #427 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #428 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #429 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #430 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #431 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #432 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #433 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #434 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #435 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #436 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #437 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #438 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #439 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #440 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #441 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #442 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #443 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #444 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #445 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #446 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #447 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #448 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #449 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #450 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #451 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #452 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #453 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #454 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #455 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #456 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #457 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #458 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #459 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #460 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #461 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #462 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #463 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #464 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #465 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #466 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #467 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #468 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #469 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #470 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #471 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #472 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #473 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #474 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #475 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #476 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #477 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #478 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #479 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #480 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #481 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #482 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #483 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #484 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #485 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #486 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #487 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #488 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #489 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #490 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #491 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #492 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #493 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #494 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #495 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #496 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #497 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #498 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #499 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #500 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #501 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #502 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #503 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #504 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #505 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #506 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #507 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #508 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #509 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #510 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #511 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #512 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #513 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #514 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #515 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #516 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #517 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #518 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #519 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #520 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #521 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #522 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #523 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #524 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #525 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #526 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #527 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #528 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #529 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #530 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #531 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #532 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #533 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #534 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #535 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #536 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #537 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #538 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #539 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #540 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #541 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #542 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #543 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #544 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #545 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #546 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #547 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #548 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #549 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #550 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #551 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #552 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #553 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #554 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #555 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #556 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #557 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #558 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #559 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #560 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #561 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #562 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #563 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #564 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #565 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #566 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #567 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #568 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #569 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #570 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #571 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #572 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #573 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #574 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #575 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #576 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #577 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #578 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #579 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #580 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #581 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #582 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #583 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #584 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #585 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #586 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #587 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #588 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #589 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #590 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #591 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #592 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #593 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #594 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #595 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #596 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #597 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #598 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #599 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #600 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #601 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #602 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #603 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #604 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #605 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #606 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #607 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #608 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #609 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #610 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #611 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #612 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #613 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #614 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #615 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #616 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #617 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #618 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #619 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #620 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #621 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #622 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #623 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #624 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #625 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #626 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #627 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #628 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #629 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #630 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #631 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #632 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #633 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #634 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #635 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #636 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #637 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #638 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #639 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #640 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #641 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #642 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #643 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #644 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #645 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #646 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #647 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #648 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #649 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #650 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #651 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #652 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #653 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #654 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #655 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #656 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #657 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #658 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #659 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #660 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #661 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #662 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #663 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #664 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #665 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #666 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #667 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #668 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #669 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #670 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #671 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #672 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #673 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #674 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #675 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #676 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #677 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #678 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #679 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #680 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #681 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #682 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #683 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #684 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #685 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #686 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #687 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #688 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #689 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #690 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #691 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #692 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #693 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #694 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #695 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #696 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #697 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #698 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #699 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #700 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #701 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #702 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #703 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #704 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #705 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #706 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #707 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #708 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #709 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #710 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #711 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #712 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #713 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #714 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #715 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #716 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #717 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #718 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #719 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #720 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #721 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #722 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #723 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #724 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #725 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #726 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #727 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #728 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #729 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #730 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #731 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #732 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #733 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #734 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #735 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #736 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #737 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #738 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #739 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #740 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #741 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #742 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #743 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #744 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #745 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #746 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #747 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #748 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #749 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #750 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #751 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #752 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #753 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #754 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #755 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #756 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #757 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #758 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #759 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #760 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #761 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #762 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #763 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #764 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #765 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #766 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #767 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #768 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #769 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #770 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #771 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #772 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #773 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #774 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #775 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #776 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #777 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #778 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #779 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #780 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #781 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #782 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #783 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #784 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #785 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #786 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #787 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #788 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #789 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #790 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #791 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #792 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #793 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #794 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #795 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #796 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #797 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #798 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #799 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #800 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #801 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #802 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #803 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #804 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #805 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #806 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #807 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #808 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #809 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #810 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #811 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #812 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #813 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #814 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #815 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #816 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #817 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #818 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #819 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #820 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #821 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #822 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #823 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #824 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #825 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #826 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #827 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #828 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #829 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #830 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #831 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #832 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #833 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #834 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #835 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #836 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #837 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #838 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #839 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #840 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #841 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #842 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #843 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #844 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #845 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #846 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #847 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #848 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #849 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #850 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #851 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #852 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #853 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #854 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #855 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #856 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #857 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #858 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #859 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #860 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #861 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #862 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #863 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #864 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #865 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #866 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #867 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #868 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #869 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #870 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #871 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #872 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #873 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #874 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #875 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #876 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #877 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #878 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #879 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #880 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #881 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #882 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #883 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #884 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #885 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #886 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #887 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #888 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #889 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #890 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #891 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #892 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #893 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #894 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #895 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #896 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #897 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #898 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #899 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #900 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #901 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #902 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #903 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #904 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #905 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #906 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #907 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #908 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #909 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #910 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #911 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #912 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #913 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #914 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #915 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #916 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #917 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #918 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #919 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #920 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #921 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #922 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #923 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #924 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #925 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #926 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #927 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #928 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #929 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #930 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #931 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #932 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #933 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #934 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #935 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #936 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #937 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #938 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #939 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #940 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #941 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #942 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #943 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #944 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #945 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #946 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #947 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #948 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #949 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #950 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #951 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #952 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #953 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #954 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #955 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #956 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #957 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #958 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #959 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #960 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #961 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #962 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #963 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #964 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #965 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #966 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #967 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #968 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #969 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #970 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #971 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #972 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #973 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #974 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #975 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #976 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #977 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #978 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #979 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #980 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #981 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #982 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #983 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #984 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #985 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #986 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #987 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #988 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #989 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #990 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #991 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #992 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #993 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #994 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #995 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #996 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #997 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #998 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #999 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1000 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1001 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1002 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1003 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1004 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1005 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1006 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1007 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1008 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1009 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1010 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1011 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1012 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1013 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1014 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1015 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1016 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1017 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1018 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1019 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1020 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1021 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1022 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1023 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1024 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1025 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1026 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1027 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1028 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1029 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1030 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1031 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1032 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1033 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1034 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1035 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1036 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1037 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1038 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1039 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1040 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1041 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1042 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1043 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1044 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1045 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1046 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1047 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1048 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1049 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1050 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1051 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1052 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1053 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1054 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1055 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1056 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1057 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1058 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1059 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1060 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1061 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1062 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1063 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1064 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1065 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1066 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1067 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1068 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1069 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1070 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1071 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1072 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1073 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1074 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1075 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1076 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1077 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1078 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1079 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1080 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1081 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1082 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1083 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1084 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1085 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1086 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1087 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1088 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1089 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1090 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1091 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1092 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1093 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1094 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1095 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+
+=== FrameCallback call #1096 ===
+nargin = 2
+  Arg 1: class=NatNetML.NatNetClientML, size=[object]
+  Arg 2: class=NatNetML.NatNetEventArgs, size=[object]
+>> 

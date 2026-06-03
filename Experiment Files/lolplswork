@@ -1,9 +1,5 @@
-function play_sound_blocking(pa, wav)
-    % Plays audio and pauses MATLAB until the audio finishes playing
-    PsychPortAudio('FillBuffer', pa, wav);
-    PsychPortAudio('Start', pa, 1, 0, 1);
-    
-    % Calculate duration based on audio samples and sample rate
-    duration = size(wav, 2) / 48000;  % wav is 2 x samples (stereo), 48kHz
-    WaitSecs(duration);
+if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
+    DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers or move to visible area', 'center', 'center', [255 0 0]);
+    Screen('Flip', win);
+    continue; 
 end

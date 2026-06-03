@@ -18,7 +18,15 @@ classdef OptiTrackBridge
         EXPECTED_FREQUENCY = 120;
     end
 
+    properties (GetAccess = private, SetAccess = private)
+        NatNetClient
+        IsConnected = false;
+        IsDummy = false;
+    end
 
+    properties (GetAccess = public, SetAccess = public)
+        MotiveT0 = 0; 
+    end
 
     methods (Static)
 
@@ -26,43 +34,18 @@ classdef OptiTrackBridge
         % CONNECT
         % =================================================================
         function success = Connect(subjectID)
-            global OP_BRIDGE_STATE OP_EVENT_LOG OP_CONTINUOUS_BUFFER
+            global OP_BRIDGE_STATE OP_EVENT_LOG
 
-            % Clear and reinitialize globals
-            clear global OP_BRIDGE_STATE OP_EVENT_LOG OP_CONTINUOUS_BUFFER
-            global OP_BRIDGE_STATE OP_EVENT_LOG OP_CONTINUOUS_BUFFER
+            clear global OP_BRIDGE_STATE OP_EVENT_LOG;
+            global OP_BRIDGE_STATE OP_EVENT_LOG
 
-            % Initialize state struct (NOT the class)
-            OP_BRIDGE_STATE.NatNetClient = [];
-            OP_BRIDGE_STATE.IsConnected = false;
-            OP_BRIDGE_STATE.IsDummy = false;
-            OP_BRIDGE_STATE.MotiveT0 = 0;
+            OP_BRIDGE_STATE = OptiTrackBridge;
             
             % Initialize event log
             OP_EVENT_LOG.time  = [];
             OP_EVENT_LOG.trial = [];
             OP_EVENT_LOG.event = {};
             OP_EVENT_LOG.state = {};
-            
-            % Pre-allocate continuous buffer (500k samples at 120Hz = ~1.16 hours)
-            nc = 500000;
-            OP_CONTINUOUS_BUFFER.idx        = 1;
-            OP_CONTINUOUS_BUFFER.maxSamples = nc;
-            OP_CONTINUOUS_BUFFER.time       = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hx         = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hy         = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hz         = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hroll      = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hpitch     = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hyaw       = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hErr       = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tx         = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.ty         = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tz         = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.troll      = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tpitch     = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tyaw       = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tErr       = NaN(nc, 1);
 
             if OptiTrackBridge.FORCE_DUMMY_MODE
                 OP_BRIDGE_STATE.IsDummy = true;
@@ -99,50 +82,34 @@ classdef OptiTrackBridge
         end
         
         function Disconnect()
-            global OP_BRIDGE_STATE OP_EVENT_LOG OP_CONTINUOUS_BUFFER
+            global OP_BRIDGE_STATE OP_EVENT_LOG
             if ~isempty(OP_BRIDGE_STATE) && ~OP_BRIDGE_STATE.IsDummy
                 try 
                     OP_BRIDGE_STATE.NatNetClient.disconnect;
                 catch
                 end
             end
-            clear global OP_BRIDGE_STATE OP_EVENT_LOG OP_CONTINUOUS_BUFFER;
+            clear global OP_BRIDGE_STATE OP_EVENT_LOG;
         end
 
         % =================================================================
-        % EVENT LOGGING (times anchored to MotiveT0)
+        % EVENT LOGGING (uses GetSecs for timing)
         % =================================================================
         function startEvent(trialNum, eventName)
-            global OP_BRIDGE_STATE OP_EVENT_LOG OP_CONTINUOUS_BUFFER
-            
-            % Get current Motive time (already normalized in continuous buffer)
-            cidx = OP_CONTINUOUS_BUFFER.idx - 1;
-            if cidx >= 1 && OP_BRIDGE_STATE.MotiveT0 > 0
-                motiveTime = OP_CONTINUOUS_BUFFER.time(cidx);
-            else
-                motiveTime = 0;
-            end
+            global OP_EVENT_LOG
             
             i = length(OP_EVENT_LOG.time) + 1;
-            OP_EVENT_LOG.time(i)  = motiveTime;
+            OP_EVENT_LOG.time(i)  = GetSecs();
             OP_EVENT_LOG.trial(i) = trialNum;
             OP_EVENT_LOG.event{i} = eventName;
             OP_EVENT_LOG.state{i} = 'START';
         end
 
         function stopEvent(trialNum, eventName)
-            global OP_BRIDGE_STATE OP_EVENT_LOG OP_CONTINUOUS_BUFFER
-            
-            % Get current Motive time (already normalized in continuous buffer)
-            cidx = OP_CONTINUOUS_BUFFER.idx - 1;
-            if cidx >= 1 && OP_BRIDGE_STATE.MotiveT0 > 0
-                motiveTime = OP_CONTINUOUS_BUFFER.time(cidx);
-            else
-                motiveTime = 0;
-            end
+            global OP_EVENT_LOG
             
             i = length(OP_EVENT_LOG.time) + 1;
-            OP_EVENT_LOG.time(i)  = motiveTime;
+            OP_EVENT_LOG.time(i)  = GetSecs();
             OP_EVENT_LOG.trial(i) = trialNum;
             OP_EVENT_LOG.event{i} = eventName;
             OP_EVENT_LOG.state{i} = 'STOP';
@@ -227,6 +194,10 @@ classdef OptiTrackBridge
                 return;
             end
 
+            startTime = GetSecs();
+            startTorsoPos = OptiTrackBridge.GetPosition(torsoID); 
+            startHeadPos = OptiTrackBridge.GetPosition(headID);
+            
             white = WhiteIndex(win);
             Screen('TextSize', win, 40);
 
@@ -245,26 +216,19 @@ classdef OptiTrackBridge
             tpitchData = nan(maxSamples, 1);
             tyawData = nan(maxSamples, 1);
             idx = 1;
-            
-            startMotive = NaN; % Will anchor on first valid frame
 
             while true
                 [kd, ~, kc] = KbCheck;
                 if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                 if kd && kc(KbName('r')), error('Redo_Trial'); end 
 
-                [currHeadPos, currHeadEuler, currTorsoPos, currTorsoEuler] = OptiTrackBridge.PollFrameAndLog();
+                [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
+                [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
 
-                % Skip frame if out of FOV (NaN) - this is normal, not an error
                 if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
+                    DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers', 'center', 'center', [255 0 0]);
+                    Screen('Flip', win);
                     continue; 
-                end
-                
-                % Anchor to first valid Motive frame
-                if isnan(startMotive)
-                    startMotive = OP_BRIDGE_STATE.MotiveT0;
-                    startTorsoPos = currTorsoPos;
-                    startHeadPos = currHeadPos;
                 end
                 
                 zTarget = -0.25;
@@ -272,16 +236,7 @@ classdef OptiTrackBridge
                 inSemiCircle = (distToCenter < tolerance) && (currTorsoPos(3) >= zTarget);
                 
                 if idx <= maxSamples
-                    % Time is normalized to first Motive frame of THIS recording
-                    motiveTime = OP_BRIDGE_STATE.MotiveT0;
-                    if idx == 1
-                        % Record the Motive timestamp of first sample
-                        tData(idx) = 0;
-                    else
-                        % This requires us to track motive time per-frame
-                        % For now, use elapsed MATLAB time from first frame
-                        tData(idx) = tData(idx-1) + (1/60);  % Approx 60Hz spacing
-                    end
+                    tData(idx) = GetSecs() - startTime; 
                     hxData(idx) = currHeadPos(1);            
                     hyData(idx) = currHeadPos(2);
                     hzData(idx) = currHeadPos(3);
@@ -691,37 +646,21 @@ classdef OptiTrackBridge
         % SAVE CONTINUOUS (saves ContinuousTrace and EventLog as .mat)
         % ---------------------------------------------------------
         function SaveContinuous(filename)
-            global OP_EVENT_LOG OP_CONTINUOUS_BUFFER
+            global OP_EVENT_LOG
             
-            n = OP_CONTINUOUS_BUFFER.idx - 1;
+            % Create dummy ContinuousTrace for compatibility
+            ContinuousTrace.time = [];
+            ContinuousTrace.hx = []; ContinuousTrace.hy = []; ContinuousTrace.hz = [];
+            ContinuousTrace.tx = []; ContinuousTrace.ty = []; ContinuousTrace.tz = [];
+            ContinuousTrace.hroll = []; ContinuousTrace.hpitch = []; ContinuousTrace.hyaw = [];
+            ContinuousTrace.troll = []; ContinuousTrace.tpitch = []; ContinuousTrace.tyaw = [];
+            ContinuousTrace.hErr = []; ContinuousTrace.tErr = [];
             
-            % Create ContinuousTrace from buffer
-            if n > 0
-                ContinuousTrace.time   = OP_CONTINUOUS_BUFFER.time(1:n);
-                ContinuousTrace.hx     = OP_CONTINUOUS_BUFFER.hx(1:n);
-                ContinuousTrace.hy     = OP_CONTINUOUS_BUFFER.hy(1:n);
-                ContinuousTrace.hz     = OP_CONTINUOUS_BUFFER.hz(1:n);
-                ContinuousTrace.hroll  = OP_CONTINUOUS_BUFFER.hroll(1:n);
-                ContinuousTrace.hpitch = OP_CONTINUOUS_BUFFER.hpitch(1:n);
-                ContinuousTrace.hyaw   = OP_CONTINUOUS_BUFFER.hyaw(1:n);
-                ContinuousTrace.hErr   = OP_CONTINUOUS_BUFFER.hErr(1:n);
-                ContinuousTrace.tx     = OP_CONTINUOUS_BUFFER.tx(1:n);
-                ContinuousTrace.ty     = OP_CONTINUOUS_BUFFER.ty(1:n);
-                ContinuousTrace.tz     = OP_CONTINUOUS_BUFFER.tz(1:n);
-                ContinuousTrace.troll  = OP_CONTINUOUS_BUFFER.troll(1:n);
-                ContinuousTrace.tpitch = OP_CONTINUOUS_BUFFER.tpitch(1:n);
-                ContinuousTrace.tyaw   = OP_CONTINUOUS_BUFFER.tyaw(1:n);
-                ContinuousTrace.tErr   = OP_CONTINUOUS_BUFFER.tErr(1:n);
-            else
-                ContinuousTrace.time = []; ContinuousTrace.hx = []; ContinuousTrace.hy = []; ContinuousTrace.hz = [];
-                ContinuousTrace.hroll = []; ContinuousTrace.hpitch = []; ContinuousTrace.hyaw = []; ContinuousTrace.hErr = [];
-                ContinuousTrace.tx = []; ContinuousTrace.ty = []; ContinuousTrace.tz = [];
-                ContinuousTrace.troll = []; ContinuousTrace.tpitch = []; ContinuousTrace.tyaw = []; ContinuousTrace.tErr = [];
-            end
-            
-            % Create EventLog table (times already relative to MotiveT0)
+            % Create EventLog table
             if ~isempty(OP_EVENT_LOG.time)
-                EventLog = table(OP_EVENT_LOG.time', OP_EVENT_LOG.trial', ...
+                % Normalize times to start at first event
+                times = OP_EVENT_LOG.time - OP_EVENT_LOG.time(1);
+                EventLog = table(times', OP_EVENT_LOG.trial', ...
                     OP_EVENT_LOG.event', OP_EVENT_LOG.state', ...
                     'VariableNames', {'Time', 'Trial', 'Event', 'State'});
             else
@@ -730,59 +669,9 @@ classdef OptiTrackBridge
             end
 
             save(filename, 'ContinuousTrace', 'EventLog', '-v7.3');
-            if n > 0
-                fprintf('Session data saved: %s (%d continuous frames, %.1f min)\n', filename, n, ContinuousTrace.time(end) / 60);
-            else
-                fprintf('Session data saved: %s (no continuous frames captured)\n', filename);
-            end
+            fprintf('Session data saved: %s\n', filename);
         end
 
-        % ---------------------------------------------------------
-        % INTERNAL HELPER: Poll frame (returns data only, no buffer writes)
-        % ---------------------------------------------------------
-        function [pos_h, euler_h, pos_t, euler_t] = PollFrameAndLog()
-            global OP_BRIDGE_STATE
-            
-            pos_h = [NaN NaN NaN]; euler_h = [NaN NaN NaN];
-            pos_t = [NaN NaN NaN]; euler_t = [NaN NaN NaN];
-            
-            if OP_BRIDGE_STATE.IsDummy, return; end
-            
-            try
-                data = OP_BRIDGE_STATE.NatNetClient.getFrame();
-                if isempty(data), return; end
-                if isempty(data.RigidBody), return; end
-                
-                % Anchor MotiveT0 on first frame
-                if OP_BRIDGE_STATE.MotiveT0 == 0
-                    OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
-                    if data.bRecording
-                        fprintf('>>> Motive Recording started. T=0 anchored.\n');
-                    else
-                        fprintf('>>> Script started (Motive not recording). T=0 anchored.\n');
-                    end
-                end
-                
-                motiveTime = double(data.fTimestamp) - OP_BRIDGE_STATE.MotiveT0;
-                
-                % Extract head and torso
-                for i = 1:data.RigidBody.Length
-                    rb = data.RigidBody(i);
-                    [r, p, y] = OptiTrackBridge.QuatToEuler(rb.qw, rb.qx, rb.qy, rb.qz);
-                    
-                    if rb.ID == OptiTrackBridge.HEAD_ID
-                        pos_h = [double(rb.x), double(rb.y), double(rb.z)];
-                        euler_h = [r, p, y];
-                    elseif rb.ID == OptiTrackBridge.TORSO_ID
-                        pos_t = [double(rb.x), double(rb.y), double(rb.z)];
-                        euler_t = [r, p, y];
-                    end
-                end
-                
-            catch
-            end
-        end
-        
         % ---------------------------------------------------------
         % DATA EXTRACTION HELPERS
         % ---------------------------------------------------------

@@ -1,76 +1,26 @@
-%% Test startRecord() directly
-clear all; close all;
 
-fprintf('\n===== TEST: natnetclient.startRecord() =====\n\n');
+===== TEST: natnetclient.startRecord() =====
 
-% Step 1: Create natnetclient
-fprintf('Step 1: Creating natnetclient...\n');
-try
-    natnetclient = natnet;
-    fprintf('  OK: natnetclient created\n');
-catch ME
-    fprintf('  ERROR creating natnetclient: %s\n', ME.message);
-    return;
-end
+Step 1: Creating natnetclient...
+  OK: natnetclient created
+Step 2: Setting IPs...
+  HostIP: 128.40.164.130
+  ClientIP: 128.40.164.174
+Step 3: Connecting...
+  IsConnected: 1
+  OK: Connected
 
-% Step 2: Set IPs
-fprintf('Step 2: Setting IPs...\n');
-natnetclient.HostIP = '128.40.164.130';
-natnetclient.ClientIP = '128.40.164.174';
-natnetclient.ConnectionType = 'Multicast';
-fprintf('  HostIP: %s\n', natnetclient.HostIP);
-fprintf('  ClientIP: %s\n', natnetclient.ClientIP);
+Step 4: Calling startRecord()...
+  About to call natnetclient.startRecord()...
+  OK: startRecord() completed
 
-% Step 3: Connect
-fprintf('Step 3: Connecting...\n');
-try
-    natnetclient.connect;
-    fprintf('  IsConnected: %d\n', natnetclient.IsConnected);
-    if natnetclient.IsConnected == 0
-        fprintf('  WARNING: Not connected. Continuing anyway to test startRecord()...\n');
-    else
-        fprintf('  OK: Connected\n');
-    end
-catch ME
-    fprintf('  ERROR connecting: %s\n', ME.message);
-    return;
-end
+Step 5: Calling stopRecord()...
+  About to call natnetclient.stopRecord()...
+  OK: stopRecord() completed
 
-% Step 4: Test startRecord()
-fprintf('\nStep 4: Calling startRecord()...\n');
-try
-    fprintf('  About to call natnetclient.startRecord()...\n');
-    natnetclient.startRecord();
-    fprintf('  OK: startRecord() completed\n');
-catch ME
-    fprintf('  ERROR in startRecord():\n');
-    fprintf('    Message: %s\n', ME.message);
-    fprintf('    Identifier: %s\n', ME.identifier);
-    fprintf('    Stack:\n');
-    for i = 1:length(ME.stack)
-        fprintf('      %s (line %d)\n', ME.stack(i).name, ME.stack(i).line);
-    end
-    return;
-end
+Step 6: Disconnecting...
+  OK: Disconnected
 
-% Step 5: Test stopRecord()
-fprintf('\nStep 5: Calling stopRecord()...\n');
-try
-    fprintf('  About to call natnetclient.stopRecord()...\n');
-    natnetclient.stopRecord();
-    fprintf('  OK: stopRecord() completed\n');
-catch ME
-    fprintf('  ERROR in stopRecord():\n');
-    fprintf('    Message: %s\n', ME.message);
-end
+===== TEST COMPLETE =====
 
-% Step 6: Disconnect
-fprintf('\nStep 6: Disconnecting...\n');
-try
-    natnetclient.disconnect;
-    fprintf('  OK: Disconnected\n');
-catch ME
-    fprintf('  ERROR disconnecting: %s\n', ME.message);
-end
-
-fprintf('\n===== TEST COMPLETE =====\n\n');
+>> 

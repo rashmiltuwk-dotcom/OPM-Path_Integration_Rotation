@@ -1,9 +1,27 @@
-Warning: Error occurred while executing the listener callback for event OnFrameReady2 defined for class
-NatNetML.NatNetClientML:
-Error using FrameCallback (line 19)
-No appropriate method, property, or field 'fTimestamp' for class 'NatNetML.NatNetEventArgs'.
-
-Error in natnet 
-eventData fields:
-    'client'
-    'data'
+function FrameCallback(source, eventData)
+    data = eventData.data;
+    
+    global OP_BRIDGE_STATE;
+    
+    persistent frameCount;
+    if isempty(frameCount), frameCount = 0; end
+    frameCount = frameCount + 1;
+    
+    % Print every 120 frames (~1 second at 120Hz)
+    if mod(frameCount, 120) == 0
+        fprintf('\n=== FRAME %d ===\n', frameCount);
+        fprintf('nRigidBodies: %d\n', data.nRigidBodies);
+        
+        if data.nRigidBodies > 0
+            for i = 1:data.nRigidBodies
+                rb = data.RigidBodies(i);
+                fprintf('  RigidBody ID=%d: MeanError=%.8f, x=%.4f, y=%.4f, z=%.4f\n', ...
+                    rb.ID, rb.MeanError, rb.x, rb.y, rb.z);
+            end
+        end
+        
+        fprintf('fTimestamp: %.4f\n', data.fTimestamp);
+        fprintf('bRecording: %d\n', data.bRecording);
+    end
+    
+end

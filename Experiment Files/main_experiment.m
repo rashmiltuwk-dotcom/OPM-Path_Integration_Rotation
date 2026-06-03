@@ -134,7 +134,7 @@ sca;
 headID = 1;
 torsoID = 2;
 
-
+Screen('Preference', 'SkipSyncTests', 1);
 Screen('Preference', 'VisualDebugLevel', 1); % Reduces internal PTB chatter
 
 % --- SCREEN SELECTION ---

@@ -1,75 +1,15 @@
-=== OPTITRACK DIAGNOSTIC TEST (POLLING) ===
-
-Connecting to Motive at 128.40.164.130...
-? Connected successfully
-
-Polling for data (5 seconds)...
-  ... 30 frames received
-  ... 60 frames received
-  ... 90 frames received
-  ... 120 frames received
-  ... 150 frames received
-  ... 180 frames received
-  ... 210 frames received
-  ... 240 frames received
-  ... 270 frames received
-  ... 300 frames received
-  ... 330 frames received
-  ... 360 frames received
-  ... 390 frames received
-  ... 420 frames received
-  ... 450 frames received
-  ... 480 frames received
-  ... 510 frames received
-  ... 540 frames received
-  ... 570 frames received
-  ... 600 frames received
-  ... 630 frames received
-  ... 660 frames received
-  ... 690 frames received
-  ... 720 frames received
-  ... 750 frames received
-  ... 780 frames received
-  ... 810 frames received
-  ... 840 frames received
-  ... 870 frames received
-  ... 900 frames received
-  ... 930 frames received
-  ... 960 frames received
-  ... 990 frames received
-  ... 1020 frames received
-  ... 1050 frames received
-  ... 1080 frames received
-  ... 1110 frames received
-  ... 1140 frames received
-  ... 1170 frames received
-  ... 1200 frames received
-  ... 1230 frames received
-  ... 1260 frames received
-  ... 1290 frames received
-  ... 1320 frames received
-  ... 1350 frames received
-  ... 1380 frames received
-  ... 1410 frames received
-  ... 1440 frames received
-  ... 1470 frames received
-  ... 1500 frames received
-  ... 1530 frames received
-  ... 1560 frames received
-  ... 1590 frames received
-  ... 1620 frames received
-  ... 1650 frames received
-  ... 1680 frames received
-  ... 1710 frames received
-  ... 1740 frames received
-  ... 1770 frames received
-  ... 1800 frames received
-  ... 1830 frames received
-  ... 1860 frames received
-
-=== SUMMARY ===
-Total frames captured: 1880
-
-Sample frame 1:
-ERROR: Reference to non-existent field 'fTimestamp'.
->> 
+function FrameCallback(source, eventData)
+    data = eventData.data;
+    
+    if isempty(data) || data.nRigidBodies == 0
+        fprintf('.');
+        return;
+    end
+    
+    for i = 1:data.nRigidBodies
+        rb = data.RigidBodies(i);
+        fprintf('[ID=%d Err=%.6f] ', rb.ID, rb.MeanError);
+    end
+    fprintf('\n');
+    
+end

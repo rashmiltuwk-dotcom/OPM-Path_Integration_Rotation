@@ -87,7 +87,7 @@ classdef OptiTrackBridge
         end
 
         % =================================================================
-        % EVENT LOGGING (uses Motive timestamps)
+        % EVENT LOGGING
         % =================================================================
         function startEvent(trialNum, eventName)
             global OP_EVENT_LOG OP_BRIDGE_STATE
@@ -110,19 +110,35 @@ classdef OptiTrackBridge
         end
 
         % =================================================================
-        % DUMMY START/STOP RECORDING (compatibility)
+        % RECORDING CONTROL
         % =================================================================
         function StartRecording()
+            % Dummy stub: polling is always active
+        end
+
+        function StartMotiveRecording()
+            % Optional: Call natnetclient.startRecord() to save to Motive
             global OP_BRIDGE_STATE
-            % Call Motive to start recording
             if ~OP_BRIDGE_STATE.IsDummy
                 try
-                    recordingStartGetSecs = GetSecs();
+                    t = GetSecs();
                     OP_BRIDGE_STATE.NatNetClient.startRecord();
-                    fprintf('>>> natnetclient.startRecord() called at GetSecs()=%.6f\n', recordingStartGetSecs);
-                    fprintf('>>> Recording started. All subsequent times use GetSecs() - %.6f\n', recordingStartGetSecs);
+                    fprintf('>>> Motive recording started at GetSecs()=%.6f\n', t);
                 catch ME
-                    fprintf('>>> Error in startRecord(): %s\n', ME.message);
+                    fprintf('>>> Error in Motive startRecord(): %s\n', ME.message);
+                end
+            end
+        end
+
+        function StopMotiveRecording()
+            % Optional: Call natnetclient.stopRecord()
+            global OP_BRIDGE_STATE
+            if ~OP_BRIDGE_STATE.IsDummy
+                try
+                    OP_BRIDGE_STATE.NatNetClient.stopRecord();
+                    fprintf('>>> Motive recording stopped\n');
+                catch ME
+                    fprintf('>>> Error in Motive stopRecord(): %s\n', ME.message);
                 end
             end
         end

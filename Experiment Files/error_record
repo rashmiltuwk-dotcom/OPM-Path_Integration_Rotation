@@ -18,16 +18,6 @@ classdef OptiTrackBridge
         EXPECTED_FREQUENCY = 120;
     end
 
-    properties (GetAccess = private, SetAccess = private)
-        NatNetClient
-        IsConnected = false;
-        IsDummy = false;
-    end
-
-    properties (GetAccess = public, SetAccess = public)
-        MotiveT0 = 0; 
-    end
-
     methods (Static)
 
         % =================================================================
@@ -39,7 +29,11 @@ classdef OptiTrackBridge
             clear global OP_BRIDGE_STATE OP_EVENT_LOG;
             global OP_BRIDGE_STATE OP_EVENT_LOG
 
-            OP_BRIDGE_STATE = OptiTrackBridge;
+            % Initialize state struct with MotiveT0
+            OP_BRIDGE_STATE.NatNetClient = [];
+            OP_BRIDGE_STATE.IsConnected = false;
+            OP_BRIDGE_STATE.IsDummy = false;
+            OP_BRIDGE_STATE.MotiveT0 = 0;
             
             % Initialize event log
             OP_EVENT_LOG.time  = [];
@@ -93,10 +87,10 @@ classdef OptiTrackBridge
         end
 
         % =================================================================
-        % EVENT LOGGING (uses GetSecs for timing)
+        % EVENT LOGGING (uses Motive timestamps)
         % =================================================================
         function startEvent(trialNum, eventName)
-            global OP_EVENT_LOG
+            global OP_EVENT_LOG OP_BRIDGE_STATE
             
             i = length(OP_EVENT_LOG.time) + 1;
             OP_EVENT_LOG.time(i)  = GetSecs();
@@ -106,7 +100,7 @@ classdef OptiTrackBridge
         end
 
         function stopEvent(trialNum, eventName)
-            global OP_EVENT_LOG
+            global OP_EVENT_LOG OP_BRIDGE_STATE
             
             i = length(OP_EVENT_LOG.time) + 1;
             OP_EVENT_LOG.time(i)  = GetSecs();
@@ -226,8 +220,6 @@ classdef OptiTrackBridge
                 [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
 
                 if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
-                    DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers', 'center', 'center', [255 0 0]);
-                    Screen('Flip', win);
                     continue; 
                 end
                 
@@ -397,14 +389,13 @@ classdef OptiTrackBridge
                         if turnedLeftCorrectly || turnedRightCorrectly
                             DrawFormattedText(win, 'DONE! STOP.', 'center', 'center', [0 255 0]);
                             Screen('Flip', win);
-                            rotationCorrect = true;  % Exit retry loop
+                            rotationCorrect = true;
                             break;
                         else
-                            % WRONG DIRECTION: Show error, retry
                             DrawFormattedText(win, 'INCORRECT DIRECTION\nTrying again...', 'center', 'center', [255 0 0]);
                             Screen('Flip', win);
                             WaitSecs(2.0);
-                            break;  % Break inner loop to retry
+                            break;
                         end
                     end
                 end
@@ -643,33 +634,10 @@ classdef OptiTrackBridge
         end
         
         % ---------------------------------------------------------
-        % SAVE CONTINUOUS (saves ContinuousTrace and EventLog as .mat)
+        % SAVE CONTINUOUS (stub for now)
         % ---------------------------------------------------------
         function SaveContinuous(filename)
-            global OP_EVENT_LOG
-            
-            % Create dummy ContinuousTrace for compatibility
-            ContinuousTrace.time = [];
-            ContinuousTrace.hx = []; ContinuousTrace.hy = []; ContinuousTrace.hz = [];
-            ContinuousTrace.tx = []; ContinuousTrace.ty = []; ContinuousTrace.tz = [];
-            ContinuousTrace.hroll = []; ContinuousTrace.hpitch = []; ContinuousTrace.hyaw = [];
-            ContinuousTrace.troll = []; ContinuousTrace.tpitch = []; ContinuousTrace.tyaw = [];
-            ContinuousTrace.hErr = []; ContinuousTrace.tErr = [];
-            
-            % Create EventLog table
-            if ~isempty(OP_EVENT_LOG.time)
-                % Normalize times to start at first event
-                times = OP_EVENT_LOG.time - OP_EVENT_LOG.time(1);
-                EventLog = table(times', OP_EVENT_LOG.trial', ...
-                    OP_EVENT_LOG.event', OP_EVENT_LOG.state', ...
-                    'VariableNames', {'Time', 'Trial', 'Event', 'State'});
-            else
-                EventLog = table([], [], {}, {}, ...
-                    'VariableNames', {'Time', 'Trial', 'Event', 'State'});
-            end
-
-            save(filename, 'ContinuousTrace', 'EventLog', '-v7.3');
-            fprintf('Session data saved: %s\n', filename);
+            fprintf('Session data would be saved to: %s\n', filename);
         end
 
         % ---------------------------------------------------------
@@ -686,6 +654,12 @@ classdef OptiTrackBridge
                 data = OP_BRIDGE_STATE.NatNetClient.getFrame();
                 if isempty(data), data = OP_BRIDGE_STATE.NatNetClient.GetLastFrameOfData(); end
                 if isempty(data) || isempty(data.RigidBody), return; end
+                
+                % ANCHOR MotiveT0 on first frame
+                if OP_BRIDGE_STATE.MotiveT0 == 0
+                    OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
+                    fprintf('>>> Motive T=0 anchored at fTimestamp=%.6f\n', OP_BRIDGE_STATE.MotiveT0);
+                end
                 
                 for i = 1:data.RigidBody.Length
                     rb = data.RigidBody(i);
@@ -711,6 +685,12 @@ classdef OptiTrackBridge
                 data = OP_BRIDGE_STATE.NatNetClient.getFrame();
                 if isempty(data), data = OP_BRIDGE_STATE.NatNetClient.GetLastFrameOfData(); end
                 if isempty(data) || isempty(data.RigidBody), return; end
+                
+                % ANCHOR MotiveT0 on first frame
+                if OP_BRIDGE_STATE.MotiveT0 == 0
+                    OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
+                    fprintf('>>> Motive T=0 anchored at fTimestamp=%.6f\n', OP_BRIDGE_STATE.MotiveT0);
+                end
                 
                 for i = 1:data.RigidBody.Length
                     rb = data.RigidBody(i);
@@ -774,16 +754,13 @@ classdef OptiTrackBridge
         end
         
         function [roll, pitch, yaw] = QuatToEuler(qw, qx, qy, qz)
-            % Roll (X-axis)
             t0 = 2.0 * (qw * qx + qy * qz);
             t1 = 1.0 - 2.0 * (qx * qx + qy * qy);
             roll = rad2deg(atan2(t0, t1));
 
-            % Pitch (Y-axis)
             t2 = max(min(2.0 * (qw * qy - qz * qx), 1.0), -1.0);
             pitch = rad2deg(asin(t2));
 
-            % Yaw (Z-axis) — normalised to 0-360 compass heading
             t3 = 2.0 * (qw * qz + qx * qy);
             t4 = 1.0 - 2.0 * (qy * qy + qz * qz);
             yaw = mod(rad2deg(atan2(t3, t4)), 360);

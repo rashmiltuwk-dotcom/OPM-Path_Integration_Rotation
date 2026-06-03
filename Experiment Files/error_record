@@ -1,98 +1,13 @@
-function DiagnosticNatNetTest
-% STANDALONE DIAGNOSTIC
-% Connects to Motive, captures 5 seconds of raw data, prints all rigid bodies
-% Does NOT depend on FrameCallback.m or the experiment code
+>> DiagnosticNatNetTest
+=== OPTITRACK DIAGNOSTIC TEST ===
 
-clear all;
-fprintf('=== OPTITRACK DIAGNOSTIC TEST ===\n\n');
+Connecting to Motive at 128.40.164.130...
+? Connected successfully
 
-% Setup globals to catch frames
-global DIAG_FRAMES DIAG_CLIENT;
-DIAG_FRAMES = [];
-DIAG_CLIENT = [];
+Adding listener (will capture frames for 5 seconds)...
 
-try
-    % --- CONNECT ---
-    fprintf('Connecting to Motive at 128.40.164.130...\n');
-    DIAG_CLIENT = natnet;
-    DIAG_CLIENT.HostIP = '128.40.164.130';
-    DIAG_CLIENT.ClientIP = '128.40.164.174';
-    DIAG_CLIENT.ConnectionType = 'Multicast';
-    DIAG_CLIENT.connect;
-    
-    if DIAG_CLIENT.IsConnected == 0
-        error('Failed to connect to Motive');
-    end
-    fprintf('✓ Connected successfully\n\n');
-    
-    % --- ADD LISTENER ---
-    fprintf('Adding listener (will capture frames for 5 seconds)...\n');
-    DIAG_CLIENT.addlistener(1, @DiagnosticCallback);
-    DIAG_CLIENT.enable(1);
-    
-    % --- CAPTURE FOR 5 SECONDS ---
-    pause(5);
-    
-    % --- DISABLE & DISCONNECT ---
-    DIAG_CLIENT.disable(1);
-    DIAG_CLIENT.disconnect;
-    
-    % --- SUMMARY ---
-    fprintf('\n\n=== SUMMARY ===\n');
-    fprintf('Total frames captured: %d\n', length(DIAG_FRAMES));
-    
-    if length(DIAG_FRAMES) > 0
-        fprintf('Sample frame 1:\n');
-        PrintFrame(DIAG_FRAMES(1));
-        
-        fprintf('\nSample frame (middle):\n');
-        mid = floor(length(DIAG_FRAMES) / 2);
-        PrintFrame(DIAG_FRAMES(mid));
-        
-        fprintf('\nSample frame (last):\n');
-        PrintFrame(DIAG_FRAMES(end));
-    else
-        fprintf('ERROR: No frames captured!\n');
-    end
-    
-catch ME
-    fprintf('ERROR: %s\n', ME.message);
-    try
-        DIAG_CLIENT.disconnect;
-    catch
-    end
-end
 
-end
-
-% =========================================================================
-function DiagnosticCallback(source, eventData)
-    data = eventData.data;
-    global DIAG_FRAMES;
-    
-    DIAG_FRAMES = [DIAG_FRAMES, data];
-    
-    % Print live feedback every 30 frames
-    if mod(length(DIAG_FRAMES), 30) == 0
-        fprintf('  ... %d frames received\n', length(DIAG_FRAMES));
-    end
-end
-
-% =========================================================================
-function PrintFrame(data)
-    fprintf('  Timestamp: %.4f\n', data.fTimestamp);
-    fprintf('  Recording: %d\n', data.bRecording);
-    fprintf('  nRigidBodies: %d\n', data.nRigidBodies);
-    
-    if data.nRigidBodies > 0
-        for i = 1:data.nRigidBodies
-            rb = data.RigidBodies(i);
-            fprintf('    RigidBody ID=%d:\n', rb.ID);
-            fprintf('      Position: [%.4f, %.4f, %.4f]\n', rb.x, rb.y, rb.z);
-            fprintf('      MeanError: %.8f\n', rb.MeanError);
-            fprintf('      Quaternion: [%.6f, %.6f, %.6f, %.6f]\n', rb.qw, rb.qx, rb.qy, rb.qz);
-        end
-    else
-        fprintf('    (No rigid bodies in this frame)\n');
-    end
-end
+=== SUMMARY ===
+Total frames captured: 0
+ERROR: No frames captured!
+>> 

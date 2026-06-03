@@ -10,10 +10,14 @@ function FrameCallback(data)
 
 global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER 
 
-    if data.bRecording && OP_BRIDGE_STATE.MotiveT0 == 0
-        OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
-        fprintf('>>> Motive Recording Detected. T=0 anchored.\n');
+    if OP_BRIDGE_STATE.MotiveT0 == 0
+    OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
+    if data.bRecording
+        fprintf('>>> Motive Recording started. T=0 anchored.\n');
+    else
+        fprintf('>>> Script started (Motive not recording). T=0 anchored.\n');
     end
+end
 
 % If error occur try bIsRecording instead of bRecording
 
@@ -24,7 +28,7 @@ try
     end
 
     % --- BUILD THE ROW ---
-    row.time   = double(data.fTimestamp);
+    row.time   = double(data.fTimestamp) - OP_BRIDGE_STATE.MotiveT0;
 
     row.hx     = NaN; row.hy = NaN; row.hz = NaN;
     row.hroll  = NaN; row.hpitch = NaN; row.hyaw = NaN;

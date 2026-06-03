@@ -116,14 +116,27 @@ classdef OptiTrackBridge
             global OP_BRIDGE_STATE
             % Call Motive to start recording
             if ~OP_BRIDGE_STATE.IsDummy
+                fprintf('>>> StartRecording() called\n');
+                fprintf('>>> NatNetClient type: %s\n', class(OP_BRIDGE_STATE.NatNetClient));
+                fprintf('>>> NatNetClient IsConnected: %d\n', OP_BRIDGE_STATE.NatNetClient.IsConnected);
                 try
+                    fprintf('>>> About to call startRecord()...\n');
                     recordingStartGetSecs = GetSecs();
                     OP_BRIDGE_STATE.NatNetClient.startRecord();
                     fprintf('>>> natnetclient.startRecord() called at GetSecs()=%.6f\n', recordingStartGetSecs);
                     fprintf('>>> Recording started. All subsequent times use GetSecs() - %.6f\n', recordingStartGetSecs);
                 catch ME
-                    fprintf('>>> Error in startRecord(): %s\n', ME.message);
+                    fprintf('>>> ERROR in startRecord():\n');
+                    fprintf('>>> Message: %s\n', ME.message);
+                    fprintf('>>> Identifier: %s\n', ME.identifier);
+                    fprintf('>>> Stack:\n');
+                    for i = 1:length(ME.stack)
+                        fprintf('>>>   %s (line %d)\n', ME.stack(i).name, ME.stack(i).line);
+                    end
+                    rethrow(ME);
                 end
+            else
+                fprintf('>>> DUMMY MODE: StartRecording() skipped\n');
             end
         end
 

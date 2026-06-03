@@ -1,583 +1,128 @@
-classdef OptiTrackBridge
-    % OPTITRACKBRIDGE - CALLBACK VERSION (120Hz background capture)
-    % Fixed: Removed hanging validation loop, proper wrong-direction retry
+function FrameCallback(source, eventData)
+    data = eventData.data;
+    % FRAMECALLBACK - Fixed for OptiTrackBridge callback mode
+    % Called by natnet listener at 120Hz
+    % Writes to both trial buffer (OP_DATA_BUFFER) and continuous buffer
+    
+    global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER 
 
-    properties (Constant)
-        FORCE_DUMMY_MODE = false;
-        HOST_IP   = '128.40.164.130';
-        CLIENT_IP = '128.40.164.174';
-        HEAD_ID  = 1;
-        TORSO_ID = 2;
-        MAX_SAMPLES = 10000;
+    % Anchor MotiveT0 on first frame
+    if OP_BRIDGE_STATE.MotiveT0 == 0
+        OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
+        fprintf('>>> T=0 anchored to Motive timestamp: %.4f\n', OP_BRIDGE_STATE.MotiveT0);
     end
 
-    properties (GetAccess = private, SetAccess = private)
-        NatNetClient
-        IsConnected = false;
-        IsDummy     = false;
+    try
+        % Guard: no rigid body data
+        if isempty(data) || data.nRigidBodies == 0
+            return;
+        end
+
+        % Build the row
+        row.time   = double(data.fTimestamp);
+        row.hx     = NaN; row.hy = NaN; row.hz = NaN;
+        row.hroll  = NaN; row.hpitch = NaN; row.hyaw = NaN;
+        row.hErr   = NaN;
+        row.tx     = NaN; row.ty = NaN; row.tz = NaN;
+        row.troll  = NaN; row.tpitch = NaN; row.tyaw = NaN;
+        row.tErr   = NaN;
+
+        % Extract head and torso rigid bodies
+        for i = 1:data.nRigidBodies
+            rb = data.RigidBodies(i);
+
+            [r, p, y] = QuatToEuler(rb.qw, rb.qx, rb.qy, rb.qz);
+
+            if rb.ID == OptiTrackBridge.HEAD_ID
+                % Always record error
+                row.hErr = double(rb.MeanError);
+                % Always record position (let GetOpti() decide validity)
+                row.hx = double(rb.x);
+                row.hy = double(rb.y);
+                row.hz = double(rb.z);
+                row.hroll = r;
+                row.hpitch = p;
+                row.hyaw = y;
+                
+            elseif rb.ID == OptiTrackBridge.TORSO_ID
+                % Always record error
+                row.tErr = double(rb.MeanError);
+                % Always record position
+                row.tx = double(rb.x);
+                row.ty = double(rb.y);
+                row.tz = double(rb.z);
+                row.troll = r;
+                row.tpitch = p;
+                row.tyaw = y;
+            end
+        end
+
+        % Write to TRIAL BUFFER (gated by OP_RECORDING)
+        if ~isempty(OP_RECORDING) && OP_RECORDING
+            idx = OP_DATA_BUFFER.idx;
+            if idx <= OP_DATA_BUFFER.maxSamples
+                OP_DATA_BUFFER.time(idx)   = row.time;
+                OP_DATA_BUFFER.hx(idx)     = row.hx;
+                OP_DATA_BUFFER.hy(idx)     = row.hy;
+                OP_DATA_BUFFER.hz(idx)     = row.hz;
+                OP_DATA_BUFFER.hroll(idx)  = row.hroll;
+                OP_DATA_BUFFER.hpitch(idx) = row.hpitch;
+                OP_DATA_BUFFER.hyaw(idx)   = row.hyaw;
+                OP_DATA_BUFFER.hErr(idx)   = row.hErr;
+                OP_DATA_BUFFER.tx(idx)     = row.tx;
+                OP_DATA_BUFFER.ty(idx)     = row.ty;
+                OP_DATA_BUFFER.tz(idx)     = row.tz;
+                OP_DATA_BUFFER.troll(idx)  = row.troll;
+                OP_DATA_BUFFER.tpitch(idx) = row.tpitch;
+                OP_DATA_BUFFER.tyaw(idx)   = row.tyaw;
+                OP_DATA_BUFFER.tErr(idx)   = row.tErr;
+                OP_DATA_BUFFER.idx         = idx + 1;
+            end
+        end
+
+        % Write to CONTINUOUS BUFFER (always, no gate)
+        cidx = OP_CONTINUOUS_BUFFER.idx;
+        if cidx <= OP_CONTINUOUS_BUFFER.maxSamples
+            OP_CONTINUOUS_BUFFER.time(cidx)   = row.time;
+            OP_CONTINUOUS_BUFFER.hx(cidx)     = row.hx;
+            OP_CONTINUOUS_BUFFER.hy(cidx)     = row.hy;
+            OP_CONTINUOUS_BUFFER.hz(cidx)     = row.hz;
+            OP_CONTINUOUS_BUFFER.hroll(cidx)  = row.hroll;
+            OP_CONTINUOUS_BUFFER.hpitch(cidx) = row.hpitch;
+            OP_CONTINUOUS_BUFFER.hyaw(cidx)   = row.hyaw;
+            OP_CONTINUOUS_BUFFER.hErr(cidx)   = row.hErr;
+            OP_CONTINUOUS_BUFFER.tx(cidx)     = row.tx;
+            OP_CONTINUOUS_BUFFER.ty(cidx)     = row.ty;
+            OP_CONTINUOUS_BUFFER.tz(cidx)     = row.tz;
+            OP_CONTINUOUS_BUFFER.troll(cidx)  = row.troll;
+            OP_CONTINUOUS_BUFFER.tpitch(cidx) = row.tpitch;
+            OP_CONTINUOUS_BUFFER.tyaw(cidx)   = row.tyaw;
+            OP_CONTINUOUS_BUFFER.tErr(cidx)   = row.tErr;
+            OP_CONTINUOUS_BUFFER.idx          = cidx + 1;
+        end
+
+    catch ME
+        % Silently suppress callback errors (never crash the callback)
+        fprintf('FrameCallback error (suppressed): %s\n', ME.message);
     end
 
-    properties (GetAccess = public, SetAccess = public)
-        MotiveT0 = 0; 
-    end
-
-    methods (Static)
-
-        % =================================================================
-        % CONNECT
-        % =================================================================
-        function success = Connect(subjectID)
-            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING OP_CONTINUOUS_BUFFER OP_EVENT_LOG
-
-            clear global OP_BRIDGE_STATE;
-            global OP_BRIDGE_STATE
-
-            OP_BRIDGE_STATE = OptiTrackBridge;
-            OP_RECORDING    = false;
-
-            % Pre-allocate trial buffer
-            n = OptiTrackBridge.MAX_SAMPLES;
-            OP_DATA_BUFFER.idx     = 1;
-            OP_DATA_BUFFER.maxSamples = n;
-            OP_DATA_BUFFER.time    = NaN(n, 1);
-            OP_DATA_BUFFER.hx      = NaN(n, 1);
-            OP_DATA_BUFFER.hy      = NaN(n, 1);
-            OP_DATA_BUFFER.hz      = NaN(n, 1);
-            OP_DATA_BUFFER.hroll   = NaN(n, 1);
-            OP_DATA_BUFFER.hpitch  = NaN(n, 1);
-            OP_DATA_BUFFER.hyaw    = NaN(n, 1);
-            OP_DATA_BUFFER.hErr    = NaN(n, 1);
-            OP_DATA_BUFFER.tx      = NaN(n, 1);
-            OP_DATA_BUFFER.ty      = NaN(n, 1);
-            OP_DATA_BUFFER.tz      = NaN(n, 1);
-            OP_DATA_BUFFER.troll   = NaN(n, 1);
-            OP_DATA_BUFFER.tpitch  = NaN(n, 1);
-            OP_DATA_BUFFER.tyaw    = NaN(n, 1);
-            OP_DATA_BUFFER.tErr    = NaN(n, 1);
-
-            % Pre-allocate continuous buffer (full session)
-            nc = 500000;
-            OP_CONTINUOUS_BUFFER.idx        = 1;
-            OP_CONTINUOUS_BUFFER.maxSamples = nc;
-            OP_CONTINUOUS_BUFFER.time       = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hx         = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hy         = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hz         = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hroll      = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hpitch     = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hyaw       = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hErr       = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tx         = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.ty         = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tz         = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.troll      = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tpitch     = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tyaw       = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tErr       = NaN(nc, 1);
-
-            % Event log
-            OP_EVENT_LOG.time  = [];
-            OP_EVENT_LOG.trial = [];
-            OP_EVENT_LOG.event = {};
-            OP_EVENT_LOG.state = {};
-
-            if OptiTrackBridge.FORCE_DUMMY_MODE
-                OP_BRIDGE_STATE.IsDummy = true;
-                success = true;
-                return;
-            end
-
-            try
-                fprintf('Creating natnet class object...\n');
-                OP_BRIDGE_STATE.NatNetClient = natnet;
-
-                fprintf('Connecting to server at %s...\n', OptiTrackBridge.HOST_IP);
-                OP_BRIDGE_STATE.NatNetClient.HostIP         = OptiTrackBridge.HOST_IP;
-                OP_BRIDGE_STATE.NatNetClient.ClientIP       = OptiTrackBridge.CLIENT_IP;
-                OP_BRIDGE_STATE.NatNetClient.ConnectionType = 'Multicast';
-
-                OP_BRIDGE_STATE.NatNetClient.connect;
-
-                if OP_BRIDGE_STATE.NatNetClient.IsConnected == 0
-                    warning('Client failed to connect. Falling back to Dummy Mode.');
-                    OP_BRIDGE_STATE.IsDummy = true;
-                    success = false;
-                    return;
-                end
-
-                OP_BRIDGE_STATE.IsConnected = true;
-                fprintf('Connected to Motive successfully at 120 Hz (callback mode).\n');
-
-                % Wire up the 120Hz callback
-                OP_BRIDGE_STATE.NatNetClient.addlistener(1, 'FrameCallback');
-                OP_BRIDGE_STATE.NatNetClient.enable(1);
-
-                success = true;
-
-            catch ME
-                warning('Connection failed: %s. Falling back to Dummy Mode.', ME.message);
-                OP_BRIDGE_STATE.IsDummy = true;
-                success = false;
-            end
-        end
-
-        % =================================================================
-        % DISCONNECT
-        % =================================================================
-        function Disconnect()
-            global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING OP_CONTINUOUS_BUFFER OP_EVENT_LOG
-
-            if ~isempty(OP_BRIDGE_STATE) && ~OP_BRIDGE_STATE.IsDummy
-                try
-                    OP_BRIDGE_STATE.NatNetClient.disable(1);
-                    OP_BRIDGE_STATE.NatNetClient.disconnect;
-                catch
-                end
-            end
-
-            OP_RECORDING = false;
-            clear global OP_BRIDGE_STATE OP_DATA_BUFFER OP_RECORDING OP_CONTINUOUS_BUFFER OP_EVENT_LOG;
-        end
-
-        % =================================================================
-        % EVENT LOGGING
-        % =================================================================
-        function startEvent(trialNum, eventName)
-            global OP_BRIDGE_STATE OP_BRIDGE_STATE
-            if isempty(OP_BRIDGE_STATE), return; end
-            
-            global OP_EVENT_LOG
-            i = length(OP_EVENT_LOG.time) + 1;
-            OP_EVENT_LOG.time(i)  = GetSecs;
-            OP_EVENT_LOG.trial(i) = trialNum;
-            OP_EVENT_LOG.event{i} = eventName;
-            OP_EVENT_LOG.state{i} = 'START';
-        end
-
-        function stopEvent(trialNum, eventName)
-            global OP_BRIDGE_STATE OP_EVENT_LOG
-            if isempty(OP_BRIDGE_STATE), return; end
-            
-            i = length(OP_EVENT_LOG.time) + 1;
-            OP_EVENT_LOG.time(i)  = GetSecs;
-            OP_EVENT_LOG.trial(i) = trialNum;
-            OP_EVENT_LOG.event{i} = eventName;
-            OP_EVENT_LOG.state{i} = 'STOP';
-        end
-
-        % =================================================================
-        % START/STOP RECORDING
-        % =================================================================
-        function StartRecording()
-            global OP_DATA_BUFFER OP_RECORDING
-            OP_DATA_BUFFER.idx = 1;
-            OP_RECORDING = true;
-        end
-
-        function [headTrace, torsoTrace] = StopRecording()
-            global OP_DATA_BUFFER OP_RECORDING OP_BRIDGE_STATE
-
-            OP_RECORDING = false;
-
-            n = OP_DATA_BUFFER.idx - 1;
-            if n < 1
-                headTrace  = OptiTrackBridge.EmptyTrace();
-                torsoTrace = OptiTrackBridge.EmptyTrace();
-                return;
-            end
-
-            t = OP_DATA_BUFFER.time(1:n);
-
-            % Normalize to start at 0 from MotiveT0
-            if OP_BRIDGE_STATE.MotiveT0 > 0
-                t = t - OP_BRIDGE_STATE.MotiveT0;
-            else
-                t = t - t(1);
-            end
-
-            headTrace.time  = t;
-            headTrace.x     = OP_DATA_BUFFER.hx(1:n);
-            headTrace.y     = OP_DATA_BUFFER.hy(1:n);
-            headTrace.z     = OP_DATA_BUFFER.hz(1:n);
-            headTrace.roll  = OP_DATA_BUFFER.hroll(1:n);
-            headTrace.pitch = OP_DATA_BUFFER.hpitch(1:n);
-            headTrace.yaw   = OP_DATA_BUFFER.hyaw(1:n);
-            headTrace.error = OP_DATA_BUFFER.hErr(1:n);
-
-            torsoTrace.time  = t;
-            torsoTrace.x     = OP_DATA_BUFFER.tx(1:n);
-            torsoTrace.y     = OP_DATA_BUFFER.ty(1:n);
-            torsoTrace.z     = OP_DATA_BUFFER.tz(1:n);
-            torsoTrace.roll  = OP_DATA_BUFFER.troll(1:n);
-            torsoTrace.pitch = OP_DATA_BUFFER.tpitch(1:n);
-            torsoTrace.yaw   = OP_DATA_BUFFER.tyaw(1:n);
-            torsoTrace.error = OP_DATA_BUFFER.tErr(1:n);
-        end
-
-        % =================================================================
-        % GET LATEST FRAME
-        % =================================================================
-        function [headPos, torsoPos, headEuler, torsoEuler] = GetOpti()
-            global OP_BRIDGE_STATE OP_DATA_BUFFER
-
-            if OP_BRIDGE_STATE.IsDummy
-                headPos   = [0 0 0]; torsoPos   = [0 0 0];
-                headEuler = [0 0 0]; torsoEuler = [0 0 0];
-                return;
-            end
-
-            headPos   = [NaN NaN NaN]; torsoPos   = [NaN NaN NaN];
-            headEuler = [NaN NaN NaN]; torsoEuler = [NaN NaN NaN];
-
-            idx = OP_DATA_BUFFER.idx - 1;
-            if idx < 1, return; end
-
-            hErr = OP_DATA_BUFFER.hErr(idx);
-            tErr = OP_DATA_BUFFER.tErr(idx);
-
-            if hErr <= 0 || hErr > 0.50
-                headPos = [NaN NaN NaN]; headEuler = [NaN NaN NaN];
-            else
-                headPos = [OP_DATA_BUFFER.hx(idx), OP_DATA_BUFFER.hy(idx), OP_DATA_BUFFER.hz(idx)];
-                headEuler = [OP_DATA_BUFFER.hroll(idx), OP_DATA_BUFFER.hpitch(idx), OP_DATA_BUFFER.hyaw(idx)];
-            end
-
-            if tErr <= 0 || tErr > 0.50
-                torsoPos = [NaN NaN NaN]; torsoEuler = [NaN NaN NaN];
-            else
-                torsoPos = [OP_DATA_BUFFER.tx(idx), OP_DATA_BUFFER.ty(idx), OP_DATA_BUFFER.tz(idx)];
-                torsoEuler = [OP_DATA_BUFFER.troll(idx), OP_DATA_BUFFER.tpitch(idx), OP_DATA_BUFFER.tyaw(idx)];
-            end
-        end
-
-        % =================================================================
-        % EMPTY TRACE
-        % =================================================================
-        function trace = EmptyTrace()
-            trace.time  = 0; trace.x = 0; trace.y = 0; trace.z = 0;
-            trace.roll  = 0; trace.pitch = 0; trace.yaw = 0; trace.error = 0;
-        end
-
-        % =================================================================
-        % WAIT FOR WALK END (FIXED: NO VALIDATION LOOP)
-        % =================================================================
-        function [distWalkedTorso, distWalkedHead, headTrace, torsoTrace] = WaitForWalkEnd(headID, torsoID, win, tolerance)
-            global OP_BRIDGE_STATE
-
-            if nargin < 4, tolerance = 0.10; end
-
-            if OP_BRIDGE_STATE.IsDummy
-                DrawFormattedText(win, 'DUMMY MODE: Press "x" to simulate walking.', 'center', 'center', [255 255 0]);
-                Screen('Flip', win);
-                while true
-                    [kd, ~, kc] = KbCheck;
-                    if kd && kc(KbName('ESCAPE')), error('User Quit'); end
-                    if kd && kc(KbName('r')),      error('Redo_Trial'); end
-                    if kd && kc(KbName('x')), WaitSecs(0.3); break; end
-                end
-                distWalkedTorso = 2.0; distWalkedHead = 2.0;
-                headTrace  = OptiTrackBridge.EmptyTrace();
-                torsoTrace = OptiTrackBridge.EmptyTrace();
-                return;
-            end
-
-            white = WhiteIndex(win);
-            Screen('TextSize', win, 40);
-
-            [startHeadPos, startTorsoPos, ~, ~] = OptiTrackBridge.GetOpti();
-
-            % START RECORDING IMMEDIATELY (no validation loop)
-            OptiTrackBridge.StartRecording();
-
-            RENDER_INTERVAL = 0.033;
-            lastRenderTime  = GetSecs();
-            currTorsoPos    = startTorsoPos;
-            zTarget         = -0.25;
-
-            while true
-                [kd, ~, kc] = KbCheck;
-                if kd && kc(KbName('ESCAPE')), error('User Quit'); end
-                if kd && kc(KbName('r')),      error('Redo_Trial'); end
-
-                [~, currTorsoPos, ~, ~] = OptiTrackBridge.GetOpti();
-
-                if any(isnan(currTorsoPos))
-                    if (GetSecs() - lastRenderTime) >= RENDER_INTERVAL
-                        DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers', 'center', 'center', [255 0 0]);
-                        Screen('Flip', win);
-                        lastRenderTime = GetSecs();
-                    end
-                    continue;
-                end
-
-                distToCenter = sqrt(currTorsoPos(1)^2 + (currTorsoPos(3) - zTarget)^2);
-                inSemiCircle = (distToCenter < tolerance) && (currTorsoPos(3) >= zTarget);
-
-                if (GetSecs() - lastRenderTime) >= RENDER_INTERVAL
-                    msg = sprintf('Walk to Start\nDistance: %.2fm', distToCenter);
-                    DrawFormattedText(win, msg, 'center', 'center', white);
-                    color = [255 0 0];
-                    if inSemiCircle, color = [0 255 0]; end
-                    centeredRect = CenterRectOnPointd([0 0 50 50], 960, 600);
-                    Screen('FillArc', win, color, centeredRect + [0 100 0 100], 270, 180);
-                    Screen('Flip', win);
-                    lastRenderTime = GetSecs();
-                end
-
-                if inSemiCircle
-                    DrawFormattedText(win, 'Hold Position...', 'center', 'center', [0 255 0]);
-                    Screen('Flip', win);
-                    break;
-                end
-            end
-
-            [headTrace, torsoTrace] = OptiTrackBridge.StopRecording();
-
-            currTorsoPos = [torsoTrace.x(end), torsoTrace.y(end), torsoTrace.z(end)];
-            currHeadPos  = [headTrace.x(end), headTrace.y(end), headTrace.z(end)];
-            
-            distWalkedTorso = sqrt((currTorsoPos(1) - startTorsoPos(1))^2 + (currTorsoPos(3) - startTorsoPos(3))^2);
-            distWalkedHead  = sqrt((currHeadPos(1)  - startHeadPos(1))^2  + (currHeadPos(3)  - startHeadPos(3))^2);
-        end
-
-        % =================================================================
-        % WAIT FOR ROTATION DUAL (FIXED: RETRY ON WRONG DIRECTION)
-        % =================================================================
-        function [startHead, startTorso, finalHead, finalTorso, headTrace, torsoTrace] = WaitForRotationDual(headID, torsoID, targetDeg, win, dirCode)
-            global OP_BRIDGE_STATE
-
-            if OP_BRIDGE_STATE.IsDummy
-                DrawFormattedText(win, 'DUMMY MODE: Press "x" to simulate turning.', 'center', 'center', [255 255 0]);
-                Screen('Flip', win);
-                while true
-                    [kd, ~, kc] = KbCheck;
-                    if kd && kc(KbName('ESCAPE')), error('User Quit'); end
-                    if kd && kc(KbName('r')), error('Redo_Trial'); end
-                    if kd && kc(KbName('x')), WaitSecs(0.3); break; end
-                end
-                startHead = 0; startTorso = 0; finalHead = targetDeg; finalTorso = targetDeg;
-                headTrace  = OptiTrackBridge.EmptyTrace();
-                torsoTrace = OptiTrackBridge.EmptyTrace();
-                return;
-            end
-
-            white = WhiteIndex(win);
-
-            [~, ~, startHeadEuler, startTorsoEuler] = OptiTrackBridge.GetOpti();
-            startHead  = startHeadEuler(3);
-            startTorso = startTorsoEuler(3);
-
-            prevTorsoYaw     = startTorso;
-            accumulatedTurn  = 0;
-
-            RENDER_INTERVAL = 0.033;
-            lastRenderTime  = GetSecs();
-
-            KbReleaseWait;
-
-            OptiTrackBridge.StartRecording();
-
-            while true
-                [kd, ~, kc] = KbCheck;
-                if kd && kc(KbName('ESCAPE')), error('User Quit'); end
-                if kd && kc(KbName('r')),      error('Redo_Trial'); end
-
-                [~, ~, ~, currTorsoEuler] = OptiTrackBridge.GetOpti();
-
-                if any(isnan(currTorsoEuler))
-                    if (GetSecs() - lastRenderTime) >= RENDER_INTERVAL
-                        DrawFormattedText(win, '!!! TRACKING LOST !!!', 'center', 'center', [255 0 0]);
-                        Screen('Flip', win);
-                        lastRenderTime = GetSecs();
-                    end
-                    continue;
-                end
-
-                currTorsoYaw = currTorsoEuler(3);
-
-                delta = currTorsoYaw - prevTorsoYaw;
-                if delta >  180, delta = delta - 360; end
-                if delta < -180, delta = delta + 360; end
-                accumulatedTurn = accumulatedTurn + delta;
-                prevTorsoYaw    = currTorsoYaw;
-
-                if (GetSecs() - lastRenderTime) >= RENDER_INTERVAL
-                    remaining = max(0, targetDeg - abs(accumulatedTurn));
-                    msg = sprintf('Turn Body: %.1f / %.1f\nRemaining: %.1f', abs(accumulatedTurn), targetDeg, remaining);
-                    DrawFormattedText(win, msg, 'center', 'center', white);
-                    Screen('Flip', win);
-                    lastRenderTime = GetSecs();
-                end
-
-                if abs(accumulatedTurn) >= targetDeg
-                    turnedLeftCorrectly  = strcmpi(dirCode, 'L') && (accumulatedTurn >= targetDeg);
-                    turnedRightCorrectly = strcmpi(dirCode, 'R') && (accumulatedTurn <= -targetDeg);
-
-                    if turnedLeftCorrectly || turnedRightCorrectly
-                        DrawFormattedText(win, 'DONE! STOP.', 'center', 'center', [0 255 0]);
-                        Screen('Flip', win);
-                        break;
-                    else
-                        % WRONG DIRECTION: Reset and try again (don't stop recording)
-                        DrawFormattedText(win, 'INCORRECT DIRECTION\nTry again...', 'center', 'center', [255 0 0]);
-                        Screen('Flip', win);
-                        WaitSecs(2.0);
-                        
-                        % Reset accumulators and continue
-                        [~, ~, ~, startTorsoEuler] = OptiTrackBridge.GetOpti();
-                        startTorso = startTorsoEuler(3);
-                        prevTorsoYaw = startTorso;
-                        accumulatedTurn = 0;
-                        continue;  % Go back to while loop, don't exit
-                    end
-                end
-            end
-
-            [headTrace, torsoTrace] = OptiTrackBridge.StopRecording();
-
-            [~, ~, finalHeadEuler, finalTorsoEuler] = OptiTrackBridge.GetOpti();
-            finalHead  = finalHeadEuler(3);
-            finalTorso = finalTorsoEuler(3);
-        end
-
-        % =================================================================
-        % RECORD UNTIL KEY
-        % =================================================================
-        function [finalHead, finalTorso, headTrace, torsoTrace] = RecordUntilKey(headID, torsoID, keyName, win)
-            global OP_BRIDGE_STATE
-
-            targetKey = KbName(keyName);
-            escKey    = KbName('ESCAPE');
-            xKey      = KbName('x');
-            rKey      = KbName('r');
-
-            if OP_BRIDGE_STATE.IsDummy
-                DrawFormattedText(win, sprintf('DUMMY MODE: Press "x" or %s to finish.', keyName), 'center', 'center', [255 255 0]);
-                Screen('Flip', win);
-                while true
-                    [kd, ~, kc] = KbCheck;
-                    if kd && any(kc(escKey)), error('User Quit'); end
-                    if kd && any(kc(rKey)),   error('Redo_Trial'); end
-                    if kd && (any(kc(targetKey)) || any(kc(xKey))), WaitSecs(0.3); break; end
-                end
-                finalHead = 0; finalTorso = 0;
-                headTrace  = OptiTrackBridge.EmptyTrace();
-                torsoTrace = OptiTrackBridge.EmptyTrace();
-                return;
-            end
-
-            white = WhiteIndex(win);
-            DrawFormattedText(win, sprintf('Perform task...\nPress %s when finished.', keyName), 'center', 'center', white);
-            Screen('Flip', win);
-
-            KbReleaseWait;
-
-            OptiTrackBridge.StartRecording();
-
-            while true
-                [kd, ~, kc] = KbCheck;
-                if kd && any(kc(escKey)),    error('User Quit'); end
-                if kd && any(kc(rKey)),      error('Redo_Trial'); end
-                if kd && any(kc(targetKey)), break; end
-            end
-
-            [headTrace, torsoTrace] = OptiTrackBridge.StopRecording();
-
-            [~, ~, finalHeadEuler, finalTorsoEuler] = OptiTrackBridge.GetOpti();
-            finalHead  = finalHeadEuler(3);
-            finalTorso = finalTorsoEuler(3);
-        end
-
-        % =================================================================
-        % PASSIVE TRACK
-        % =================================================================
-        function [headTrace, torsoTrace] = PassiveTrack(headID, torsoID, durationSecs)
-            global OP_BRIDGE_STATE
-
-            if OP_BRIDGE_STATE.IsDummy
-                WaitSecs(durationSecs);
-                headTrace  = OptiTrackBridge.EmptyTrace();
-                torsoTrace = OptiTrackBridge.EmptyTrace();
-                return;
-            end
-
-            OptiTrackBridge.StartRecording();
-
-            deadline = GetSecs() + durationSecs;
-            while GetSecs() < deadline
-                [kd, ~, kc] = KbCheck;
-                if kd && kc(KbName('ESCAPE')), error('User Quit'); end
-            end
-
-            [headTrace, torsoTrace] = OptiTrackBridge.StopRecording();
-        end
-
-        % =================================================================
-        % SAVE CONTINUOUS
-        % =================================================================
-        function SaveContinuous(filename)
-            global OP_CONTINUOUS_BUFFER OP_EVENT_LOG OP_BRIDGE_STATE
-
-            n = OP_CONTINUOUS_BUFFER.idx - 1;
-
-            if n < 1
-                warning('Continuous buffer is empty. Nothing saved.');
-                return;
-            end
-
-            ContinuousTrace.time   = OP_CONTINUOUS_BUFFER.time(1:n);
-            ContinuousTrace.hx     = OP_CONTINUOUS_BUFFER.hx(1:n);
-            ContinuousTrace.hy     = OP_CONTINUOUS_BUFFER.hy(1:n);
-            ContinuousTrace.hz     = OP_CONTINUOUS_BUFFER.hz(1:n);
-            ContinuousTrace.hroll  = OP_CONTINUOUS_BUFFER.hroll(1:n);
-            ContinuousTrace.hpitch = OP_CONTINUOUS_BUFFER.hpitch(1:n);
-            ContinuousTrace.hyaw   = OP_CONTINUOUS_BUFFER.hyaw(1:n);
-            ContinuousTrace.hErr   = OP_CONTINUOUS_BUFFER.hErr(1:n);
-            ContinuousTrace.tx     = OP_CONTINUOUS_BUFFER.tx(1:n);
-            ContinuousTrace.ty     = OP_CONTINUOUS_BUFFER.ty(1:n);
-            ContinuousTrace.tz     = OP_CONTINUOUS_BUFFER.tz(1:n);
-            ContinuousTrace.troll  = OP_CONTINUOUS_BUFFER.troll(1:n);
-            ContinuousTrace.tpitch = OP_CONTINUOUS_BUFFER.tpitch(1:n);
-            ContinuousTrace.tyaw   = OP_CONTINUOUS_BUFFER.tyaw(1:n);
-            ContinuousTrace.tErr   = OP_CONTINUOUS_BUFFER.tErr(1:n);
-
-            % Normalize times to MotiveT0
-            if OP_BRIDGE_STATE.MotiveT0 > 0
-                ContinuousTrace.time = ContinuousTrace.time - OP_BRIDGE_STATE.MotiveT0;
-            else
-                ContinuousTrace.time = ContinuousTrace.time - ContinuousTrace.time(1);
-            end
-
-            % Normalize event log times
-            if ~isempty(OP_EVENT_LOG.time)
-                eventTimes = OP_EVENT_LOG.time - OP_EVENT_LOG.time(1);
-                EventLog = table(eventTimes', OP_EVENT_LOG.trial', ...
-                    OP_EVENT_LOG.event', OP_EVENT_LOG.state', ...
-                    'VariableNames', {'Time', 'Trial', 'Event', 'State'});
-            else
-                EventLog = table([], [], {}, {}, 'VariableNames', {'Time', 'Trial', 'Event', 'State'});
-            end
-
-            save(filename, 'ContinuousTrace', 'EventLog', '-v7.3');
-            fprintf('Continuous session data saved: %s (%d frames, %.1f min)\n', ...
-                filename, n, ContinuousTrace.time(end) / 60);
-        end
-
-        % =================================================================
-        % QUATERNION TO EULER
-        % =================================================================
-        function [roll, pitch, yaw] = QuatToEuler(qw, qx, qy, qz)
-            t0 = 2.0 * (qw * qx + qy * qz);
-            t1 = 1.0 - 2.0 * (qx * qx + qy * qy);
-            roll = rad2deg(atan2(t0, t1));
-
-            t2 = max(min(2.0 * (qw * qy - qz * qx), 1.0), -1.0);
-            pitch = rad2deg(asin(t2));
-
-            t3 = 2.0 * (qw * qz + qx * qy);
-            t4 = 1.0 - 2.0 * (qy * qy + qz * qz);
-            yaw = mod(rad2deg(atan2(t3, t4)), 360);
-        end
-
-    end % methods
-end % classdef
+end
+
+% =========================================================================
+% LOCAL HELPER - Quaternion to Euler
+% =========================================================================
+function [roll, pitch, yaw] = QuatToEuler(qw, qx, qy, qz)
+    % Roll (X-axis)
+    t0 = 2.0 * (qw * qx + qy * qz);
+    t1 = 1.0 - 2.0 * (qx * qx + qy * qy);
+    roll = rad2deg(atan2(t0, t1));
+
+    % Pitch (Y-axis)
+    t2 = max(min(2.0 * (qw * qy - qz * qx), 1.0), -1.0);
+    pitch = rad2deg(asin(t2));
+
+    % Yaw (Z-axis) - normalized to 0-360
+    t3 = 2.0 * (qw * qz + qx * qy);
+    t4 = 1.0 - 2.0 * (qy * qy + qz * qz);
+    yaw = mod(rad2deg(atan2(t3, t4)), 360);
+end

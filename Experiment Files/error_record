@@ -738,11 +738,10 @@ classdef OptiTrackBridge
         end
 
         % ---------------------------------------------------------
-        % INTERNAL HELPER: Poll frame and write to continuous buffer
-        % Anchors MotiveT0 on first frame, normalizes time relative to Motive start
+        % INTERNAL HELPER: Poll frame (returns data only, no buffer writes)
         % ---------------------------------------------------------
         function [pos_h, euler_h, pos_t, euler_t] = PollFrameAndLog()
-            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
+            global OP_BRIDGE_STATE
             
             pos_h = [NaN NaN NaN]; euler_h = [NaN NaN NaN];
             pos_t = [NaN NaN NaN]; euler_t = [NaN NaN NaN];
@@ -751,10 +750,10 @@ classdef OptiTrackBridge
             
             try
                 data = OP_BRIDGE_STATE.NatNetClient.getFrame();
-                if isempty(data), data = OP_BRIDGE_STATE.NatNetClient.GetLastFrameOfData(); end
-                if isempty(data) || isempty(data.RigidBody), return; end
+                if isempty(data), return; end
+                if isempty(data.RigidBody), return; end
                 
-                % ANCHOR MotiveT0 on first frame
+                % Anchor MotiveT0 on first frame
                 if OP_BRIDGE_STATE.MotiveT0 == 0
                     OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
                     if data.bRecording
@@ -778,25 +777,6 @@ classdef OptiTrackBridge
                         pos_t = [double(rb.x), double(rb.y), double(rb.z)];
                         euler_t = [r, p, y];
                     end
-                end
-                
-                % WRITE TO CONTINUOUS BUFFER (always, regardless of trial state)
-                cidx = OP_CONTINUOUS_BUFFER.idx;
-                if cidx <= OP_CONTINUOUS_BUFFER.maxSamples
-                    OP_CONTINUOUS_BUFFER.time(cidx)   = motiveTime;
-                    OP_CONTINUOUS_BUFFER.hx(cidx)     = pos_h(1);
-                    OP_CONTINUOUS_BUFFER.hy(cidx)     = pos_h(2);
-                    OP_CONTINUOUS_BUFFER.hz(cidx)     = pos_h(3);
-                    OP_CONTINUOUS_BUFFER.hroll(cidx)  = euler_h(1);
-                    OP_CONTINUOUS_BUFFER.hpitch(cidx) = euler_h(2);
-                    OP_CONTINUOUS_BUFFER.hyaw(cidx)   = euler_h(3);
-                    OP_CONTINUOUS_BUFFER.tx(cidx)     = pos_t(1);
-                    OP_CONTINUOUS_BUFFER.ty(cidx)     = pos_t(2);
-                    OP_CONTINUOUS_BUFFER.tz(cidx)     = pos_t(3);
-                    OP_CONTINUOUS_BUFFER.troll(cidx)  = euler_t(1);
-                    OP_CONTINUOUS_BUFFER.tpitch(cidx) = euler_t(2);
-                    OP_CONTINUOUS_BUFFER.tyaw(cidx)   = euler_t(3);
-                    OP_CONTINUOUS_BUFFER.idx = cidx + 1;
                 end
                 
             catch

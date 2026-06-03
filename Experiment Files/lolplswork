@@ -117,13 +117,14 @@ classdef OptiTrackBridge
             % Call Motive to start recording
             if ~OP_BRIDGE_STATE.IsDummy
                 try
+                    recordingStartGetSecs = GetSecs();
                     OP_BRIDGE_STATE.NatNetClient.startRecord();
-                    fprintf('>>> natnetclient.startRecord() called. T=0 is now.\n');
+                    fprintf('>>> natnetclient.startRecord() called at GetSecs()=%.6f\n', recordingStartGetSecs);
+                    fprintf('>>> Recording started. All subsequent times use GetSecs() - %.6f\n', recordingStartGetSecs);
                 catch ME
-                    fprintf('>>> Warning: startRecord() failed: %s\n', ME.message);
+                    fprintf('>>> Error in startRecord(): %s\n', ME.message);
                 end
             end
-            % Time = GetSecs() from this point forward for all traces
         end
 
         function [headTrace, torsoTrace] = StopRecording()

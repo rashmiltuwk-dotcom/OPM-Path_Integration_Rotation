@@ -221,32 +221,33 @@ classdef OptiTrackBridge
                 [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
                 [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
 
-                % === Skip recalculation if tracking lost, distToCenter persists ===
-                if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
-                    continue;  % Skip the rest, distToCenter keeps its last valid value
+                % Only recalculate if we have valid tracking
+                if ~(any(isnan(currHeadPos)) || any(isnan(currTorsoPos)))
+                    zTarget = -0.25;
+                    distToCenter = sqrt(currTorsoPos(1)^2 + (currTorsoPos(3) - zTarget)^2);
+                    inSemiCircle = (distToCenter < tolerance) && (currTorsoPos(3) >= zTarget);
+                    
+                    if idx <= maxSamples
+                        tData(idx) = GetSecs() - startTime; 
+                        hxData(idx) = currHeadPos(1);            
+                        hyData(idx) = currHeadPos(2);
+                        hzData(idx) = currHeadPos(3);
+                        hrollData(idx) = currHeadEuler(1);
+                        hpitchData(idx) = currHeadEuler(2);
+                        hyawData(idx) = currHeadEuler(3);
+                        txData(idx) = currTorsoPos(1);            
+                        tyData(idx) = currTorsoPos(2);
+                        tzData(idx) = currTorsoPos(3);
+                        trollData(idx) = currTorsoEuler(1);
+                        tpitchData(idx) = currTorsoEuler(2);
+                        tyawData(idx) = currTorsoEuler(3);
+                        idx = idx + 1;                      
+                    end
+                else
+                    inSemiCircle = false;  % Can't succeed without valid tracking
                 end
                 
-                zTarget = -0.25;
-                distToCenter = sqrt(currTorsoPos(1)^2 + (currTorsoPos(3) - zTarget)^2);
-                inSemiCircle = (distToCenter < tolerance) && (currTorsoPos(3) >= zTarget);
-                
-                if idx <= maxSamples
-                    tData(idx) = GetSecs() - startTime; 
-                    hxData(idx) = currHeadPos(1);            
-                    hyData(idx) = currHeadPos(2);
-                    hzData(idx) = currHeadPos(3);
-                    hrollData(idx) = currHeadEuler(1);
-                    hpitchData(idx) = currHeadEuler(2);
-                    hyawData(idx) = currHeadEuler(3);
-                    txData(idx) = currTorsoPos(1);            
-                    tyData(idx) = currTorsoPos(2);
-                    tzData(idx) = currTorsoPos(3);
-                    trollData(idx) = currTorsoEuler(1);
-                    tpitchData(idx) = currTorsoEuler(2);
-                    tyawData(idx) = currTorsoEuler(3);
-                    idx = idx + 1;                      
-                end
-                
+                % ALWAYS DRAW (even if tracking lost)
                 msg = sprintf('Walk to Start\nDistance: %.2fm', distToCenter);
                 DrawFormattedText(win, msg, 'center', 'center', white);
                 

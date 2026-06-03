@@ -1,88 +1,53 @@
-function DiagnosticNatNetTest
-% STANDALONE DIAGNOSTIC - Uses POLLING instead of callbacks
-% Connects to Motive, polls for data, prints what we get
 
-clear all;
-fprintf('=== OPTITRACK DIAGNOSTIC TEST (POLLING) ===\n\n');
+=== SUMMARY ===
+Total frames captured: 1831
 
-try
-    % --- CONNECT ---
-    fprintf('Connecting to Motive at 128.40.164.130...\n');
-    client = natnet;
-    client.HostIP = '128.40.164.130';
-    client.ClientIP = '128.40.164.174';
-    client.ConnectionType = 'Multicast';
-    client.connect;
-    
-    if client.IsConnected == 0
-        error('Failed to connect to Motive');
-    end
-    fprintf('✓ Connected successfully\n\n');
-    
-    % --- POLL FOR 5 SECONDS ---
-    fprintf('Polling for data (5 seconds)...\n');
-    frameCount = 0;
-    startTime = tic;
-    frames = [];
-    
-    while toc(startTime) < 5
-        % Try to get the latest frame
-        try
-            frame = client.getFrame();
-            if ~isempty(frame)
-                frameCount = frameCount + 1;
-                frames = [frames, frame];
-                
-                if mod(frameCount, 30) == 0
-                    fprintf('  ... %d frames received\n', frameCount);
-                end
-            end
-        catch
-            % Keep polling
-        end
-        pause(0.001);  % Small pause to avoid hammering
-    end
-    
-    % --- DISCONNECT ---
-    client.disconnect;
-    
-    % --- SUMMARY ---
-    fprintf('\n=== SUMMARY ===\n');
-    fprintf('Total frames captured: %d\n', frameCount);
-    
-    if frameCount > 0
-        fprintf('\n=== FRAME STRUCTURE ===\n');
-        fprintf('Fields in frame object:\n');
-        disp(fieldnames(frames(1)));
-        
-        fprintf('\n=== Sample frame 1 ===\n');
-        PrintFrame(frames(1));
-        
-        if frameCount > 1
-            fprintf('\n=== Sample frame (middle) ===\n');
-            mid = floor(frameCount / 2);
-            PrintFrame(frames(mid));
-            
-            fprintf('\n=== Sample frame (last) ===\n');
-            PrintFrame(frames(end));
-        end
-    else
-        fprintf('ERROR: No frames captured via polling!\n');
-        fprintf('This suggests the natnet connection is not receiving data.\n');
-    end
-    
-catch ME
-    fprintf('ERROR: %s\n', ME.message);
-    try
-        client.disconnect;
-    catch
-    end
-end
+=== FRAME STRUCTURE ===
+Fields in frame object:
+    'Frame'
+    'Timestamp'
+    'Timecode'
+    'TimecodeSubframe'
+    'UnlabeledMarker'
+    'LabeledMarker'
+    'RigidBody'
+    'Skeleton'
 
-end
 
-% =========================================================================
-function PrintFrame(data)
-    fprintf('\nFull frame structure:\n');
-    disp(data);
-end
+=== Sample frame 1 ===
+
+Full frame structure:
+               Frame: 770685
+           Timestamp: 4.6955e+03
+            Timecode: 0
+    TimecodeSubframe: 0
+     UnlabeledMarker: [1×1 NatNetML.Marker[]]
+       LabeledMarker: [1×1 NatNetML.Marker[]]
+           RigidBody: [1×1 NatNetML.RigidBodyData[]]
+            Skeleton: [1×1 NatNetML.SkeletonData[]]
+
+
+=== Sample frame (middle) ===
+
+Full frame structure:
+               Frame: 770912
+           Timestamp: 4.6974e+03
+            Timecode: 0
+    TimecodeSubframe: 0
+     UnlabeledMarker: [1×1 NatNetML.Marker[]]
+       LabeledMarker: [1×1 NatNetML.Marker[]]
+           RigidBody: [1×1 NatNetML.RigidBodyData[]]
+            Skeleton: [1×1 NatNetML.SkeletonData[]]
+
+
+=== Sample frame (last) ===
+
+Full frame structure:
+               Frame: 771285
+           Timestamp: 4.7005e+03
+            Timecode: 0
+    TimecodeSubframe: 0
+     UnlabeledMarker: [1×1 NatNetML.Marker[]]
+       LabeledMarker: [1×1 NatNetML.Marker[]]
+           RigidBody: [1×1 NatNetML.RigidBodyData[]]
+            Skele

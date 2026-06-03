@@ -1,5 +1,5 @@
-The class OptiTrackBridge has no Constant property or Static method named 'GetOpti'.
-
-Error in rotation_experiment (line 475)
-                    [~, currTorsoPos, ~, ~] = OptiTrackBridge.GetOpti();
- 
+function [headPos, torsoPos, headEuler, torsoEuler] = GetOpti()
+            % Backwards compatibility wrapper for older scripts
+            % Uses the safe, consolidated GetDualData function under the hood
+            [headPos, torsoPos, headEuler, torsoEuler, ~, ~] = OptiTrackBridge.GetDualData();
+        end

@@ -28,7 +28,7 @@ try
     end
 
     % --- BUILD THE ROW ---
-    row.time   = double(data.fTimestamp)
+    row.time   = double(data.fTimestamp);
 
     row.hx     = NaN; row.hy = NaN; row.hz = NaN;
     row.hroll  = NaN; row.hpitch = NaN; row.hyaw = NaN;

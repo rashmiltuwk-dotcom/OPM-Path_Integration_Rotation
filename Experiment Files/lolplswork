@@ -1,26 +1,4 @@
-
-===== TEST: natnetclient.startRecord() =====
-
-Step 1: Creating natnetclient...
-  OK: natnetclient created
-Step 2: Setting IPs...
-  HostIP: 128.40.164.130
-  ClientIP: 128.40.164.174
-Step 3: Connecting...
-  IsConnected: 1
-  OK: Connected
-
-Step 4: Calling startRecord()...
-  About to call natnetclient.startRecord()...
-  OK: startRecord() completed
-
-Step 5: Calling stopRecord()...
-  About to call natnetclient.stopRecord()...
-  OK: stopRecord() completed
-
-Step 6: Disconnecting...
-  OK: Disconnected
-
-===== TEST COMPLETE =====
-
->> 
+clear all;
+OptiTrackBridge.Connect('test');
+OptiTrackBridge.StartRecording();
+OptiTrackBridge.Disconnect();

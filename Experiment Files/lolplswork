@@ -1,77 +1,67 @@
-function test_experiment_minimal
-% Minimal test: just the OptiTrack parts, no Screen or Audio
+test_experiment_minimal
+TEST: Initializing OptiTrack...
+Creating natnet class object...
+Connecting to the server at 128.40.164.130...
+Connected to Motive successfully.
+TEST: Connected
 
-clear all; close all;
+=== TEST 1: PassiveTrack (1 sec) ===
+PTB-INFO: Multi-display setup in explicit multi-display mode detected. Using the following mapping:
+PTB-INFO: Screen 0 corresponds to the full Windows desktop area. Useful for stereo presentations in stereomode=4 ...
+PTB-INFO: Screen 1 corresponds to the display area of the monitor with the Windows-internal name \\.\DISPLAY2 ...
+PTB-INFO: Screen 2 corresponds to the display area of the monitor with the Windows-internal name \\.\DISPLAY1 ...
 
-fprintf('TEST: Initializing OptiTrack...\n');
-OptiTrackBridge.Connect('001');
-fprintf('TEST: Connected\n');
+PTB-INFO: Your version of Matlab 64-Bit is global system DPI aware. On Windows-8 or later, fullscreen onscreen windows will only work 
+PTB-INFO: properly timing-wise when displayed on displays with the same pixel density as your systems primary display monitor.
+PTB-INFO: For your multi-display setup the stimulus display monitor must have a DPI of (96, 96), matching that of
+PTB-INFO: your primary display monitor. Ideally you will only display on the primary display in the first place.
+PTB-INFO: Displaying on anything with a different DPI will cause mysterious visual timing problems, sync failures etc.
+PTB-INFO: Read 'help RetinaDisplay' for more info on this topic.
+SUCCESS: PassiveTrack completed
+  HeadTrace size: 0 rows
+  TorsoTrace size: 0 rows
 
-headID = 1;
-torsoID = 2;
+=== TEST 2: GetOpti (10 frames) ===
+  Frame 1: Head=0.13,1.56,-1.42
+  Frame 2: Head=0.13,1.56,-1.42
+  Frame 3: Head=0.13,1.56,-1.42
+  Frame 4: Head=0.13,1.56,-1.42
+  Frame 5: Head=0.13,1.56,-1.42
+  Frame 6: Head=0.13,1.56,-1.42
+  Frame 7: Head=0.13,1.56,-1.42
+  Frame 8: Head=0.13,1.56,-1.42
+  Frame 9: Head=0.13,1.56,-1.42
+  Frame 10: Head=0.13,1.56,-1.42
+SUCCESS: GetOpti completed
 
-% Test each function in isolation
-fprintf('\n=== TEST 1: PassiveTrack (1 sec) ===\n');
-try
-    [h1, t1] = OptiTrackBridge.PassiveTrack(headID, torsoID, 1.0);
-    fprintf('SUCCESS: PassiveTrack completed\n');
-    fprintf('  HeadTrace size: %d rows\n', length(h1.time));
-    fprintf('  TorsoTrace size: %d rows\n', length(t1.time));
-catch ME
-    fprintf('ERROR in PassiveTrack:\n');
-    fprintf('  %s\n', ME.message);
-    return;
-end
+=== TEST 3: GetPositionAndEuler (10 frames) ===
+  Frame 1: Pos=NaN,NaN,NaN Yaw=NaN
+  Frame 2: Pos=NaN,NaN,NaN Yaw=NaN
+  Frame 3: Pos=NaN,NaN,NaN Yaw=NaN
+  Frame 4: Pos=NaN,NaN,NaN Yaw=NaN
+  Frame 5: Pos=NaN,NaN,NaN Yaw=NaN
+  Frame 6: Pos=NaN,NaN,NaN Yaw=NaN
+  Frame 7: Pos=NaN,NaN,NaN Yaw=NaN
+  Frame 8: Pos=NaN,NaN,NaN Yaw=NaN
+  Frame 9: Pos=NaN,NaN,NaN Yaw=NaN
+  Frame 10: Pos=NaN,NaN,NaN Yaw=NaN
+SUCCESS: GetPositionAndEuler completed
 
-fprintf('\n=== TEST 2: GetOpti (10 frames) ===\n');
-try
-    for i = 1:10
-        [headPos, torsoPos, headEuler, torsoEuler] = OptiTrackBridge.GetOpti();
-        fprintf('  Frame %d: Head=%.2f,%.2f,%.2f\n', i, headPos(1), headPos(2), headPos(3));
-    end
-    fprintf('SUCCESS: GetOpti completed\n');
-catch ME
-    fprintf('ERROR in GetOpti:\n');
-    fprintf('  %s\n', ME.message);
-    return;
-end
+=== TEST 4: GetDualYaw (10 frames) ===
+  Frame 1: HeadYaw=7.8 TorsoYaw=170.9
+  Frame 2: HeadYaw=7.8 TorsoYaw=170.9
+  Frame 3: HeadYaw=7.8 TorsoYaw=170.8
+  Frame 4: HeadYaw=7.8 TorsoYaw=170.8
+  Frame 5: HeadYaw=7.8 TorsoYaw=170.8
+  Frame 6: HeadYaw=7.8 TorsoYaw=170.9
+  Frame 7: HeadYaw=7.8 TorsoYaw=170.9
+  Frame 8: HeadYaw=7.8 TorsoYaw=170.9
+  Frame 9: HeadYaw=7.8 TorsoYaw=170.9
+  Frame 10: HeadYaw=7.8 TorsoYaw=170.9
+SUCCESS: GetDualYaw completed
 
-fprintf('\n=== TEST 3: GetPositionAndEuler (10 frames) ===\n');
-try
-    for i = 1:10
-        [pos, euler] = OptiTrackBridge.GetPositionAndEuler(headID);
-        fprintf('  Frame %d: Pos=%.2f,%.2f,%.2f Yaw=%.1f\n', i, pos(1), pos(2), pos(3), euler(3));
-    end
-    fprintf('SUCCESS: GetPositionAndEuler completed\n');
-catch ME
-    fprintf('ERROR in GetPositionAndEuler:\n');
-    fprintf('  %s\n', ME.message);
-    return;
-end
+=== TEST 5: Disconnect ===
+SUCCESS: Disconnected
 
-fprintf('\n=== TEST 4: GetDualYaw (10 frames) ===\n');
-try
-    for i = 1:10
-        [headYaw, torsoYaw] = OptiTrackBridge.GetDualYaw();
-        fprintf('  Frame %d: HeadYaw=%.1f TorsoYaw=%.1f\n', i, headYaw, torsoYaw);
-    end
-    fprintf('SUCCESS: GetDualYaw completed\n');
-catch ME
-    fprintf('ERROR in GetDualYaw:\n');
-    fprintf('  %s\n', ME.message);
-    return;
-end
-
-fprintf('\n=== TEST 5: Disconnect ===\n');
-try
-    OptiTrackBridge.Disconnect();
-    fprintf('SUCCESS: Disconnected\n');
-catch ME
-    fprintf('ERROR in Disconnect:\n');
-    fprintf('  %s\n', ME.message);
-    return;
-end
-
-fprintf('\n*** ALL TESTS PASSED ***\n');
-
-end
+*** ALL TESTS PASSED ***
+>> 

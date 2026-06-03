@@ -255,9 +255,8 @@ classdef OptiTrackBridge
 
                 [currHeadPos, currHeadEuler, currTorsoPos, currTorsoEuler] = OptiTrackBridge.PollFrameAndLog();
 
+                % Skip frame if out of FOV (NaN) - this is normal, not an error
                 if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
-                    DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers', 'center', 'center', [255 0 0]);
-                    Screen('Flip', win);
                     continue; 
                 end
                 

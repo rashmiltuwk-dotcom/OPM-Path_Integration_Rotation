@@ -206,9 +206,15 @@ classdef OptiTrackBridge
             hxData = nan(maxSamples, 1);
             hyData = nan(maxSamples, 1);
             hzData = nan(maxSamples, 1);
+            hrollData = nan(maxSamples, 1);
+            hpitchData = nan(maxSamples, 1);
+            hyawData = nan(maxSamples, 1);
             txData = nan(maxSamples, 1);
             tyData = nan(maxSamples, 1);
             tzData = nan(maxSamples, 1);
+            trollData = nan(maxSamples, 1);
+            tpitchData = nan(maxSamples, 1);
+            tyawData = nan(maxSamples, 1);
             idx = 1;
 
             while true
@@ -216,8 +222,8 @@ classdef OptiTrackBridge
                 if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                 if kd && kc(KbName('r')), error('Redo_Trial'); end 
 
-                currHeadPos = OptiTrackBridge.GetPosition(headID);
-                currTorsoPos = OptiTrackBridge.GetPosition(torsoID);
+                [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
+                [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
 
                 if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
                     DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers', 'center', 'center', [255 0 0]);
@@ -233,10 +239,16 @@ classdef OptiTrackBridge
                     tData(idx) = GetSecs() - startTime; 
                     hxData(idx) = currHeadPos(1);            
                     hyData(idx) = currHeadPos(2);
-                    hzData(idx) = currHeadPos(3); 
+                    hzData(idx) = currHeadPos(3);
+                    hrollData(idx) = currHeadEuler(1);
+                    hpitchData(idx) = currHeadEuler(2);
+                    hyawData(idx) = currHeadEuler(3);
                     txData(idx) = currTorsoPos(1);            
                     tyData(idx) = currTorsoPos(2);
-                    tzData(idx) = currTorsoPos(3);            
+                    tzData(idx) = currTorsoPos(3);
+                    trollData(idx) = currTorsoEuler(1);
+                    tpitchData(idx) = currTorsoEuler(2);
+                    tyawData(idx) = currTorsoEuler(3);
                     idx = idx + 1;                      
                 end
                 
@@ -267,18 +279,18 @@ classdef OptiTrackBridge
             headTrace.x = hxData(1:n);
             headTrace.y = hyData(1:n);
             headTrace.z = hzData(1:n);
-            headTrace.roll = nan(n, 1);
-            headTrace.pitch = nan(n, 1);
-            headTrace.yaw = nan(n, 1);
+            headTrace.roll = hrollData(1:n);
+            headTrace.pitch = hpitchData(1:n);
+            headTrace.yaw = hyawData(1:n);
             headTrace.error = nan(n, 1);
 
             torsoTrace.time = t;
             torsoTrace.x = txData(1:n);
             torsoTrace.y = tyData(1:n);
             torsoTrace.z = tzData(1:n);
-            torsoTrace.roll = nan(n, 1);
-            torsoTrace.pitch = nan(n, 1);
-            torsoTrace.yaw = nan(n, 1);
+            torsoTrace.roll = trollData(1:n);
+            torsoTrace.pitch = tpitchData(1:n);
+            torsoTrace.yaw = tyawData(1:n);
             torsoTrace.error = nan(n, 1);
 
             distWalkedTorso = sqrt((currTorsoPos(1) - startTorsoPos(1))^2 + (currTorsoPos(3) - startTorsoPos(3))^2);
@@ -311,15 +323,27 @@ classdef OptiTrackBridge
             while ~rotationCorrect
                 white = WhiteIndex(win);
 
-                [startHead, startTorso] = OptiTrackBridge.GetDualYaw();
+                [startHeadEuler, startTorsoEuler] = OptiTrackBridge.GetDualEuler();
+                startHead = startHeadEuler(3);
+                startTorso = startTorsoEuler(3);
                 prevTorsoYaw = startTorso; 
                 accumulatedTurn = 0;       
                 startTime = GetSecs();     
                 
                 maxSamples = 20000;
-                tData = nan(maxSamples, 1);   
-                hData = nan(maxSamples, 1);   
-                tsoData = nan(maxSamples, 1); 
+                tData = nan(maxSamples, 1);
+                hxData = nan(maxSamples, 1);
+                hyData = nan(maxSamples, 1);
+                hzData = nan(maxSamples, 1);
+                hrollData = nan(maxSamples, 1);
+                hpitchData = nan(maxSamples, 1);
+                hyawData = nan(maxSamples, 1);
+                txData = nan(maxSamples, 1);
+                tyData = nan(maxSamples, 1);
+                tzData = nan(maxSamples, 1);
+                trollData = nan(maxSamples, 1);
+                tpitchData = nan(maxSamples, 1);
+                tyawData = nan(maxSamples, 1);
                 idx = 1;      
                 
                 KbReleaseWait;
@@ -329,25 +353,37 @@ classdef OptiTrackBridge
                     if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                     if kd && kc(KbName('r')), error('Redo_Trial'); end 
                     
-                    [currHead, currTorso] = OptiTrackBridge.GetDualYaw();
+                    [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
+                    [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
                     
-                    if any(isnan([currHead, currTorso]))
+                    if any(isnan(currTorsoEuler))
                        WaitSecs(0.01);
                        continue;
                     end
 
                     if idx <= maxSamples
-                        tData(idx) = GetSecs() - startTime; 
-                        hData(idx) = currHead;              
-                        tsoData(idx) = currTorso;           
+                        tData(idx) = GetSecs() - startTime;
+                        hxData(idx) = currHeadPos(1);
+                        hyData(idx) = currHeadPos(2);
+                        hzData(idx) = currHeadPos(3);
+                        hrollData(idx) = currHeadEuler(1);
+                        hpitchData(idx) = currHeadEuler(2);
+                        hyawData(idx) = currHeadEuler(3);
+                        txData(idx) = currTorsoPos(1);
+                        tyData(idx) = currTorsoPos(2);
+                        tzData(idx) = currTorsoPos(3);
+                        trollData(idx) = currTorsoEuler(1);
+                        tpitchData(idx) = currTorsoEuler(2);
+                        tyawData(idx) = currTorsoEuler(3);
                         idx = idx + 1;                      
                     end
                     
-                    delta = currTorso - prevTorsoYaw;
+                    currTorsoYaw = currTorsoEuler(3);
+                    delta = currTorsoYaw - prevTorsoYaw;
                     if delta > 180,  delta = delta - 360; end
                     if delta < -180, delta = delta + 360; end
                     accumulatedTurn = accumulatedTurn + delta; 
-                    prevTorsoYaw = currTorso;
+                    prevTorsoYaw = currTorsoYaw;
 
                     remaining = targetDeg - abs(accumulatedTurn);
                     msg = sprintf('Turn Body: %.1f / %.1f\nRemaining: %.1f', abs(accumulatedTurn), targetDeg, max(0, remaining));
@@ -377,24 +413,27 @@ classdef OptiTrackBridge
             n = idx - 1;
             t = tData(1:n);
             
-            finalHead = currHead; 
-            finalTorso = currTorso;
-            headTrace.time = t; 
-            headTrace.yaw = hData(1:n);
-            headTrace.x = nan(n, 1);
-            headTrace.y = nan(n, 1);
-            headTrace.z = nan(n, 1);
-            headTrace.roll = nan(n, 1);
-            headTrace.pitch = nan(n, 1);
+            finalHeadEuler = currHeadEuler;
+            finalTorsoEuler = currTorsoEuler;
+            finalHead = finalHeadEuler(3); 
+            finalTorso = finalTorsoEuler(3);
+            
+            headTrace.time = t;
+            headTrace.x = hxData(1:n);
+            headTrace.y = hyData(1:n);
+            headTrace.z = hzData(1:n);
+            headTrace.roll = hrollData(1:n);
+            headTrace.pitch = hpitchData(1:n);
+            headTrace.yaw = hyawData(1:n);
             headTrace.error = nan(n, 1);
             
-            torsoTrace.time = t; 
-            torsoTrace.yaw = tsoData(1:n);
-            torsoTrace.x = nan(n, 1);
-            torsoTrace.y = nan(n, 1);
-            torsoTrace.z = nan(n, 1);
-            torsoTrace.roll = nan(n, 1);
-            torsoTrace.pitch = nan(n, 1);
+            torsoTrace.time = t;
+            torsoTrace.x = txData(1:n);
+            torsoTrace.y = tyData(1:n);
+            torsoTrace.z = tzData(1:n);
+            torsoTrace.roll = trollData(1:n);
+            torsoTrace.pitch = tpitchData(1:n);
+            torsoTrace.yaw = tyawData(1:n);
             torsoTrace.error = nan(n, 1);
         end
 
@@ -427,14 +466,26 @@ classdef OptiTrackBridge
             startTime = GetSecs();
             white = WhiteIndex(win);
             
-            maxSamples = 10000; 
-            tData = nan(maxSamples, 1);   
-            hData = nan(maxSamples, 1);   
-            tsoData = nan(maxSamples, 1); 
+            maxSamples = 10000;
+            tData = nan(maxSamples, 1);
+            hxData = nan(maxSamples, 1);
+            hyData = nan(maxSamples, 1);
+            hzData = nan(maxSamples, 1);
+            hrollData = nan(maxSamples, 1);
+            hpitchData = nan(maxSamples, 1);
+            hyawData = nan(maxSamples, 1);
+            txData = nan(maxSamples, 1);
+            tyData = nan(maxSamples, 1);
+            tzData = nan(maxSamples, 1);
+            trollData = nan(maxSamples, 1);
+            tpitchData = nan(maxSamples, 1);
+            tyawData = nan(maxSamples, 1);
             idx = 1;
 
-            currHead = NaN; 
-            currTorso = NaN;
+            currHeadPos = [NaN NaN NaN];
+            currTorsoPos = [NaN NaN NaN];
+            currHeadEuler = [NaN NaN NaN];
+            currTorsoEuler = [NaN NaN NaN];
 
             DrawFormattedText(win, sprintf('Perform task...\nPress %s when finished.', keyName), 'center', 'center', white);
             Screen('Flip', win);
@@ -449,17 +500,28 @@ classdef OptiTrackBridge
                 
                 if kd && any(kc(targetKey)), break; end
                 
-                [currHead, currTorso] = OptiTrackBridge.GetDualYaw();
+                [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
+                [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
                 
-                if any(isnan([currHead, currTorso]))
+                if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
                     WaitSecs(0.01);
                     continue;
                 end
                 
                 if idx <= maxSamples
-                    tData(idx) = GetSecs() - startTime; 
-                    hData(idx) = currHead;              
-                    tsoData(idx) = currTorso;           
+                    tData(idx) = GetSecs() - startTime;
+                    hxData(idx) = currHeadPos(1);
+                    hyData(idx) = currHeadPos(2);
+                    hzData(idx) = currHeadPos(3);
+                    hrollData(idx) = currHeadEuler(1);
+                    hpitchData(idx) = currHeadEuler(2);
+                    hyawData(idx) = currHeadEuler(3);
+                    txData(idx) = currTorsoPos(1);
+                    tyData(idx) = currTorsoPos(2);
+                    tzData(idx) = currTorsoPos(3);
+                    trollData(idx) = currTorsoEuler(1);
+                    tpitchData(idx) = currTorsoEuler(2);
+                    tyawData(idx) = currTorsoEuler(3);
                     idx = idx + 1;                      
                 end
                 
@@ -469,25 +531,25 @@ classdef OptiTrackBridge
             n = idx - 1;
             t = tData(1:n);
             
-            finalHead = currHead; 
-            finalTorso = currTorso;
+            finalHead = currHeadEuler(3);
+            finalTorso = currTorsoEuler(3);
             
-            headTrace.time = t; 
-            headTrace.yaw = hData(1:n);
-            headTrace.x = nan(n, 1);
-            headTrace.y = nan(n, 1);
-            headTrace.z = nan(n, 1);
-            headTrace.roll = nan(n, 1);
-            headTrace.pitch = nan(n, 1);
+            headTrace.time = t;
+            headTrace.x = hxData(1:n);
+            headTrace.y = hyData(1:n);
+            headTrace.z = hzData(1:n);
+            headTrace.roll = hrollData(1:n);
+            headTrace.pitch = hpitchData(1:n);
+            headTrace.yaw = hyawData(1:n);
             headTrace.error = nan(n, 1);
             
-            torsoTrace.time = t; 
-            torsoTrace.yaw = tsoData(1:n);
-            torsoTrace.x = nan(n, 1);
-            torsoTrace.y = nan(n, 1);
-            torsoTrace.z = nan(n, 1);
-            torsoTrace.roll = nan(n, 1);
-            torsoTrace.pitch = nan(n, 1);
+            torsoTrace.time = t;
+            torsoTrace.x = txData(1:n);
+            torsoTrace.y = tyData(1:n);
+            torsoTrace.z = tzData(1:n);
+            torsoTrace.roll = trollData(1:n);
+            torsoTrace.pitch = tpitchData(1:n);
+            torsoTrace.yaw = tyawData(1:n);
             torsoTrace.error = nan(n, 1);
         end
 
@@ -499,8 +561,10 @@ classdef OptiTrackBridge
             
             if OP_BRIDGE_STATE.IsDummy
                 WaitSecs(durationSecs);
-                headTrace.time = [0]; headTrace.x = [0]; headTrace.y = [0]; headTrace.z = [0]; headTrace.yaw = [0];
-                torsoTrace.time = [0]; torsoTrace.x = [0]; torsoTrace.y = [0]; torsoTrace.z = [0]; torsoTrace.yaw = [0];
+                headTrace.time = [0]; headTrace.x = [0]; headTrace.y = [0]; headTrace.z = [0];
+                headTrace.roll = [0]; headTrace.pitch = [0]; headTrace.yaw = [0];
+                torsoTrace.time = [0]; torsoTrace.x = [0]; torsoTrace.y = [0]; torsoTrace.z = [0];
+                torsoTrace.roll = [0]; torsoTrace.pitch = [0]; torsoTrace.yaw = [0];
                 return;
             end
             
@@ -511,11 +575,15 @@ classdef OptiTrackBridge
             hxData = nan(maxSamples, 1);
             hyData = nan(maxSamples, 1);
             hzData = nan(maxSamples, 1);
-            hYawData = nan(maxSamples, 1);
+            hrollData = nan(maxSamples, 1);
+            hpitchData = nan(maxSamples, 1);
+            hyawData = nan(maxSamples, 1);
             txData = nan(maxSamples, 1);
             tyData = nan(maxSamples, 1);
             tzData = nan(maxSamples, 1);
-            tYawData = nan(maxSamples, 1);
+            trollData = nan(maxSamples, 1);
+            tpitchData = nan(maxSamples, 1);
+            tyawData = nan(maxSamples, 1);
             idx = 1;
             
             deadline = GetSecs() + durationSecs;
@@ -523,20 +591,23 @@ classdef OptiTrackBridge
                 [kd, ~, kc] = KbCheck;
                 if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                 
-                currHeadPos = OptiTrackBridge.GetPosition(headID);
-                currTorsoPos = OptiTrackBridge.GetPosition(torsoID);
-                [currHeadYaw, currTorsoYaw] = OptiTrackBridge.GetDualYaw();
+                [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
+                [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
                 
                 if ~any(isnan(currHeadPos)) && ~any(isnan(currTorsoPos)) && idx <= maxSamples
                     tData(idx) = GetSecs() - startTime;
                     hxData(idx) = currHeadPos(1);
                     hyData(idx) = currHeadPos(2);
                     hzData(idx) = currHeadPos(3);
-                    hYawData(idx) = currHeadYaw;
+                    hrollData(idx) = currHeadEuler(1);
+                    hpitchData(idx) = currHeadEuler(2);
+                    hyawData(idx) = currHeadEuler(3);
                     txData(idx) = currTorsoPos(1);
                     tyData(idx) = currTorsoPos(2);
                     tzData(idx) = currTorsoPos(3);
-                    tYawData(idx) = currTorsoYaw;
+                    trollData(idx) = currTorsoEuler(1);
+                    tpitchData(idx) = currTorsoEuler(2);
+                    tyawData(idx) = currTorsoEuler(3);
                     idx = idx + 1;
                 end
                 
@@ -550,22 +621,24 @@ classdef OptiTrackBridge
                 headTrace.x = hxData(1:n);
                 headTrace.y = hyData(1:n);
                 headTrace.z = hzData(1:n);
-                headTrace.yaw = hYawData(1:n);
-                headTrace.roll = nan(n, 1);
-                headTrace.pitch = nan(n, 1);
+                headTrace.roll = hrollData(1:n);
+                headTrace.pitch = hpitchData(1:n);
+                headTrace.yaw = hyawData(1:n);
                 headTrace.error = nan(n, 1);
                 
                 torsoTrace.time = t;
                 torsoTrace.x = txData(1:n);
                 torsoTrace.y = tyData(1:n);
                 torsoTrace.z = tzData(1:n);
-                torsoTrace.yaw = tYawData(1:n);
-                torsoTrace.roll = nan(n, 1);
-                torsoTrace.pitch = nan(n, 1);
+                torsoTrace.roll = trollData(1:n);
+                torsoTrace.pitch = tpitchData(1:n);
+                torsoTrace.yaw = tyawData(1:n);
                 torsoTrace.error = nan(n, 1);
             else
-                headTrace.time = []; headTrace.x = []; headTrace.y = []; headTrace.z = []; headTrace.yaw = [];
-                torsoTrace.time = []; torsoTrace.x = []; torsoTrace.y = []; torsoTrace.z = []; torsoTrace.yaw = [];
+                headTrace.time = []; headTrace.x = []; headTrace.y = []; headTrace.z = [];
+                headTrace.roll = []; headTrace.pitch = []; headTrace.yaw = [];
+                torsoTrace.time = []; torsoTrace.x = []; torsoTrace.y = []; torsoTrace.z = [];
+                torsoTrace.roll = []; torsoTrace.pitch = []; torsoTrace.yaw = [];
             end
         end
         
@@ -602,6 +675,57 @@ classdef OptiTrackBridge
         % ---------------------------------------------------------
         % DATA EXTRACTION HELPERS
         % ---------------------------------------------------------
+        function [pos, euler] = GetPositionAndEuler(rbID)
+            global OP_BRIDGE_STATE
+            if OP_BRIDGE_STATE.IsDummy
+                pos = [0 0 0]; euler = [0 0 0]; return; 
+            end
+            pos = [NaN, NaN, NaN]; euler = [NaN NaN NaN];
+            
+            try
+                data = OP_BRIDGE_STATE.NatNetClient.getFrame();
+                if isempty(data), data = OP_BRIDGE_STATE.NatNetClient.GetLastFrameOfData(); end
+                if isempty(data) || isempty(data.RigidBody), return; end
+                
+                for i = 1:data.RigidBody.Length
+                    rb = data.RigidBody(i);
+                    if rb.ID == rbID
+                        pos = [double(rb.x), double(rb.y), double(rb.z)];
+                        [r, p, y] = OptiTrackBridge.QuatToEuler(rb.qw, rb.qx, rb.qy, rb.qz);
+                        euler = [r, p, y];
+                        return;
+                    end
+                end
+            catch
+            end
+        end
+
+        function [headEuler, torsoEuler] = GetDualEuler()
+            global OP_BRIDGE_STATE
+            if OP_BRIDGE_STATE.IsDummy
+                headEuler = [0 0 0]; torsoEuler = [0 0 0]; return; 
+            end
+            headEuler = [NaN NaN NaN]; torsoEuler = [NaN NaN NaN];
+            
+            try
+                data = OP_BRIDGE_STATE.NatNetClient.getFrame();
+                if isempty(data), data = OP_BRIDGE_STATE.NatNetClient.GetLastFrameOfData(); end
+                if isempty(data) || isempty(data.RigidBody), return; end
+                
+                for i = 1:data.RigidBody.Length
+                    rb = data.RigidBody(i);
+                    if rb.ID == OptiTrackBridge.HEAD_ID
+                        [r, p, y] = OptiTrackBridge.QuatToEuler(rb.qw, rb.qx, rb.qy, rb.qz);
+                        headEuler = [r, p, y];
+                    elseif rb.ID == OptiTrackBridge.TORSO_ID
+                        [r, p, y] = OptiTrackBridge.QuatToEuler(rb.qw, rb.qx, rb.qy, rb.qz);
+                        torsoEuler = [r, p, y];
+                    end
+                end
+            catch
+            end
+        end
+
         function [headYaw, torsoYaw] = GetDualYaw()
             global OP_BRIDGE_STATE
             if OP_BRIDGE_STATE.IsDummy
@@ -647,6 +771,22 @@ classdef OptiTrackBridge
                 end
             catch
             end
+        end
+        
+        function [roll, pitch, yaw] = QuatToEuler(qw, qx, qy, qz)
+            % Roll (X-axis)
+            t0 = 2.0 * (qw * qx + qy * qz);
+            t1 = 1.0 - 2.0 * (qx * qx + qy * qy);
+            roll = rad2deg(atan2(t0, t1));
+
+            % Pitch (Y-axis)
+            t2 = max(min(2.0 * (qw * qy - qz * qx), 1.0), -1.0);
+            pitch = rad2deg(asin(t2));
+
+            % Yaw (Z-axis) — normalised to 0-360 compass heading
+            t3 = 2.0 * (qw * qz + qx * qy);
+            t4 = 1.0 - 2.0 * (qy * qy + qz * qz);
+            yaw = mod(rad2deg(atan2(t3, t4)), 360);
         end
         
         function yaw = QuatToYaw(qw, qx, qy, qz)

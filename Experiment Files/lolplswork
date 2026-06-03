@@ -1,4 +1,10 @@
-clear all;
-OptiTrackBridge.Connect('test');
-OptiTrackBridge.StartRecording();
-OptiTrackBridge.Disconnect();
+Creating natnet class object...
+Connecting to the server at 128.40.164.130...
+Connected to Motive successfully.
+>>> StartRecording() called
+>>> NatNetClient type: natnet
+>>> NatNetClient IsConnected: 1
+>>> About to call startRecord()...
+>>> natnetclient.startRecord() called at GetSecs()=79950.985972
+>>> Recording started. All subsequent times use GetSecs() - 79950.985972
+>> 

@@ -150,8 +150,13 @@ classdef OptiTrackBridge
             end
 
             startTime = GetSecs();
-            startTorsoPos = OptiTrackBridge.GetPosition(torsoID); 
-            startHeadPos = OptiTrackBridge.GetPosition(headID);
+            
+            % Wait for initial valid frame to establish start positions
+            startTorsoPos = [NaN NaN NaN]; startHeadPos = [NaN NaN NaN];
+            while any(isnan(startTorsoPos)) || any(isnan(startHeadPos))
+                [startHeadPos, startTorsoPos, ~, ~] = OptiTrackBridge.GetDualData();
+                WaitSecs(0.01);
+            end
             
             white = WhiteIndex(win);
             Screen('TextSize', win, 40);
@@ -169,10 +174,9 @@ classdef OptiTrackBridge
                 if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                 if kd && kc(KbName('r')), error('Redo_Trial'); end 
 
-                [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
-                [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
+                % Pull data in a single synchronized call to prevent buffer exhaustion
+                [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler] = OptiTrackBridge.GetDualData();
 
-                % SAFE NaN HANDLING (Now properly updates screen so it can recover)
                 if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
                     DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers or move to visible area', 'center', 'center', [255 0 0]);
                     Screen('Flip', win);
@@ -208,7 +212,6 @@ classdef OptiTrackBridge
 
                 if inSemiCircle
                     DrawFormattedText(win, 'Hold Position...', 'center', 'center', [0 255 0]);
-                    Screen('FillArc', win, [0 255 0], centeredRect + [0 100 0 100], 270, 180);
                     Screen('Flip', win);
                     break;
                 end
@@ -251,7 +254,13 @@ classdef OptiTrackBridge
             while ~rotationCorrect
                 white = WhiteIndex(win);
 
-                [startHeadEuler, startTorsoEuler] = OptiTrackBridge.GetDualEuler();
+                % Ensure baseline start orientation
+                startHeadEuler = [NaN NaN NaN]; startTorsoEuler = [NaN NaN NaN];
+                while any(isnan(startHeadEuler)) || any(isnan(startTorsoEuler))
+                    [~, ~, startHeadEuler, startTorsoEuler] = OptiTrackBridge.GetDualData();
+                    WaitSecs(0.01);
+                end
+                
                 startHead = startHeadEuler(3);
                 startTorso = startTorsoEuler(3);
                 prevTorsoYaw = startTorso; 
@@ -273,8 +282,7 @@ classdef OptiTrackBridge
                     if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                     if kd && kc(KbName('r')), error('Redo_Trial'); end 
                     
-                    [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
-                    [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
+                    [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler] = OptiTrackBridge.GetDualData();
                     
                     if any(isnan(currTorsoEuler)) || any(isnan(currHeadEuler))
                        DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers or move to visible area', 'center', 'center', [255 0 0]);
@@ -379,8 +387,7 @@ classdef OptiTrackBridge
                 if kd && any(kc(rKey)), error('Redo_Trial'); end 
                 if kd && any(kc(targetKey)), break; end
                 
-                [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
-                [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
+                [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler] = OptiTrackBridge.GetDualData();
                 
                 if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
                     DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers or move to visible area', 'center', 'center', [255 0 0]);
@@ -439,8 +446,7 @@ classdef OptiTrackBridge
                 [kd, ~, kc] = KbCheck;
                 if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                 
-                [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
-                [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
+                [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler] = OptiTrackBridge.GetDualData();
                 
                 if ~any(isnan(currHeadPos)) && ~any(isnan(currTorsoPos)) && idx <= maxSamples
                     tData(idx) = GetSecs() - startTime;
@@ -468,39 +474,16 @@ classdef OptiTrackBridge
         end
 
         % ---------------------------------------------------------
-        % DATA EXTRACTION HELPERS (Fixed to prevent silent crashes)
+        % UNIFIED DATA EXTRACTION HELPER (Prevents Buffer Clears)
         % ---------------------------------------------------------
-        function [pos, euler] = GetPositionAndEuler(rbID)
+        function [headPos, torsoPos, headEuler, torsoEuler] = GetDualData()
             global OP_BRIDGE_STATE
             if OP_BRIDGE_STATE.IsDummy
-                pos = [0 0 0]; euler = [0 0 0]; return; 
+                headPos = [0 0 0]; torsoPos = [0 0 0]; 
+                headEuler = [0 0 0]; torsoEuler = [0 0 0]; 
+                return; 
             end
-            pos = [NaN, NaN, NaN]; euler = [NaN NaN NaN];
-            
-            try
-                data = OP_BRIDGE_STATE.NatNetClient.getFrame();
-                if isempty(data), data = OP_BRIDGE_STATE.NatNetClient.GetLastFrameOfData(); end
-                if isempty(data) || isempty(data.RigidBody), return; end
-                
-                for i = 1:data.RigidBody.Length
-                    rb = data.RigidBody(i);
-                    if rb.ID == rbID
-                        pos = [double(rb.x), double(rb.y), double(rb.z)];
-                        [r, p, y] = OptiTrackBridge.QuatToEuler(rb.qw, rb.qx, rb.qy, rb.qz);
-                        euler = [r, p, y];
-                        return;
-                    end
-                end
-            catch
-                % Silently catch and let NaNs pass through to trigger safety limits
-            end
-        end
-
-        function [headEuler, torsoEuler] = GetDualEuler()
-            global OP_BRIDGE_STATE
-            if OP_BRIDGE_STATE.IsDummy
-                headEuler = [0 0 0]; torsoEuler = [0 0 0]; return; 
-            end
+            headPos = [NaN NaN NaN]; torsoPos = [NaN NaN NaN];
             headEuler = [NaN NaN NaN]; torsoEuler = [NaN NaN NaN];
             
             try
@@ -511,62 +494,41 @@ classdef OptiTrackBridge
                 for i = 1:data.RigidBody.Length
                     rb = data.RigidBody(i);
                     if rb.ID == OptiTrackBridge.HEAD_ID
-                        [r, p, y] = OptiTrackBridge.QuatToEuler(rb.qw, rb.qx, rb.qy, rb.qz);
+                        headPos = [double(rb.x), double(rb.y), double(rb.z)];
+                        % Forcing double() conversion to prevent .NET crashes in MATLAB math functions
+                        [r, p, y] = OptiTrackBridge.QuatToEuler(double(rb.qw), double(rb.qx), double(rb.qy), double(rb.qz));
                         headEuler = [r, p, y];
                     elseif rb.ID == OptiTrackBridge.TORSO_ID
-                        [r, p, y] = OptiTrackBridge.QuatToEuler(rb.qw, rb.qx, rb.qy, rb.qz);
+                        torsoPos = [double(rb.x), double(rb.y), double(rb.z)];
+                        % Forcing double() conversion
+                        [r, p, y] = OptiTrackBridge.QuatToEuler(double(rb.qw), double(rb.qx), double(rb.qy), double(rb.qz));
                         torsoEuler = [r, p, y];
                     end
                 end
-            catch
+            catch ME
+                % Explicitly display the error in the console rather than failing silently
+                disp(['Data Extraction Error: ', ME.message]);
+            end
+        end
+
+        % --- Backwards Compatibility Wrappers ---
+        function pos = GetPosition(rbID)
+            [hPos, tPos, ~, ~] = OptiTrackBridge.GetDualData();
+            if rbID == OptiTrackBridge.HEAD_ID
+                pos = hPos;
+            else
+                pos = tPos;
             end
         end
 
         function [headYaw, torsoYaw] = GetDualYaw()
-            global OP_BRIDGE_STATE
-            if OP_BRIDGE_STATE.IsDummy
-                headYaw = 0; torsoYaw = 0; return; 
-            end
-            headYaw = NaN; torsoYaw = NaN;
-            
-            try
-                data = OP_BRIDGE_STATE.NatNetClient.getFrame();
-                if isempty(data), data = OP_BRIDGE_STATE.NatNetClient.GetLastFrameOfData(); end
-                if isempty(data) || isempty(data.RigidBody), return; end
-                
-                for i = 1:data.RigidBody.Length
-                    rb = data.RigidBody(i);
-                    if rb.ID == OptiTrackBridge.HEAD_ID
-                        headYaw = OptiTrackBridge.QuatToYaw(rb.qw, rb.qx, rb.qy, rb.qz);
-                    elseif rb.ID == OptiTrackBridge.TORSO_ID
-                        torsoYaw = OptiTrackBridge.QuatToYaw(rb.qw, rb.qx, rb.qy, rb.qz);
-                    end
-                end
-            catch
-            end
+            [~, ~, hEuler, tEuler] = OptiTrackBridge.GetDualData();
+            headYaw = hEuler(3);
+            torsoYaw = tEuler(3);
         end
 
-        function pos = GetPosition(rbID)
-            global OP_BRIDGE_STATE
-            if OP_BRIDGE_STATE.IsDummy
-                pos = [0 0 0]; return; 
-            end
-            pos = [NaN, NaN, NaN]; 
-            
-            try
-                data = OP_BRIDGE_STATE.NatNetClient.getFrame();
-                if isempty(data), data = OP_BRIDGE_STATE.NatNetClient.GetLastFrameOfData(); end
-                if isempty(data) || isempty(data.RigidBody), return; end
-                
-                for i = 1:data.RigidBody.Length
-                    rb = data.RigidBody(i);
-                    if rb.ID == rbID
-                        pos = [double(rb.x), double(rb.y), double(rb.z)];
-                        return;
-                    end
-                end
-            catch
-            end
+        function [headEuler, torsoEuler] = GetDualEuler()
+            [~, ~, headEuler, torsoEuler] = OptiTrackBridge.GetDualData();
         end
         
         function [roll, pitch, yaw] = QuatToEuler(qw, qx, qy, qz)
@@ -587,6 +549,5 @@ classdef OptiTrackBridge
             t4 = 1.0 - 2.0 * (qy*qy + qz*qz);
             yaw = mod(rad2deg(atan2(t3, t4)), 360);
         end
-        
     end
 end

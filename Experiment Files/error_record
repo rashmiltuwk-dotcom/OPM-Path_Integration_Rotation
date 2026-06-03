@@ -478,5 +478,97 @@ classdef OptiTrackBridge
             yaw = mod(rad2deg(atan2(t3, t4)), 360);
         end
         
+        % ---------------------------------------------------------
+        % PASSIVE TRACK (silent recording for duration)
+        % ---------------------------------------------------------
+        function [headTrace, torsoTrace] = PassiveTrack(headID, torsoID, durationSecs)
+            global OP_BRIDGE_STATE
+            
+            if OP_BRIDGE_STATE.IsDummy
+                WaitSecs(durationSecs);
+                headTrace.time = [0]; headTrace.x = [0]; headTrace.y = [0]; headTrace.z = [0];
+                torsoTrace.time = [0]; torsoTrace.x = [0]; torsoTrace.y = [0]; torsoTrace.z = [0];
+                return;
+            end
+            
+            startTime = GetSecs();
+            maxSamples = 30000;
+            
+            tData = nan(maxSamples, 1);
+            motiveTimestamps = nan(maxSamples, 1);
+            hxData = nan(maxSamples, 1);
+            hyData = nan(maxSamples, 1);
+            hzData = nan(maxSamples, 1);
+            txData = nan(maxSamples, 1);
+            tyData = nan(maxSamples, 1);
+            tzData = nan(maxSamples, 1);
+            idx = 1;
+            
+            deadline = GetSecs() + durationSecs;
+            while GetSecs() < deadline
+                [kd, ~, kc] = KbCheck;
+                if kd && kc(KbName('ESCAPE')), error('User Quit'); end
+                
+                currHeadPos = OptiTrackBridge.GetPosition(headID);
+                currTorsoPos = OptiTrackBridge.GetPosition(torsoID);
+                motiveTimestamp = OptiTrackBridge.GetMotiveTimestamp();
+                
+                if ~any(isnan(currHeadPos)) && ~any(isnan(currTorsoPos)) && idx <= maxSamples
+                    tData(idx) = GetSecs() - startTime;
+                    motiveTimestamps(idx) = motiveTimestamp;
+                    hxData(idx) = currHeadPos(1);
+                    hyData(idx) = currHeadPos(2);
+                    hzData(idx) = currHeadPos(3);
+                    txData(idx) = currTorsoPos(1);
+                    tyData(idx) = currTorsoPos(2);
+                    tzData(idx) = currTorsoPos(3);
+                    idx = idx + 1;
+                end
+                
+                WaitSecs(0.01);
+            end
+            
+            n = idx - 1;
+            if n > 0
+                motiveT0 = motiveTimestamps(1);
+                headTrace.time = tData(1:n);
+                headTrace.motive_timestamp = motiveTimestamps(1:n) - motiveT0;
+                headTrace.x = hxData(1:n);
+                headTrace.y = hyData(1:n);
+                headTrace.z = hzData(1:n);
+                headTrace.frequency = OptiTrackBridge.EXPECTED_FREQUENCY;
+                
+                torsoTrace.time = tData(1:n);
+                torsoTrace.motive_timestamp = motiveTimestamps(1:n) - motiveT0;
+                torsoTrace.x = txData(1:n);
+                torsoTrace.y = tyData(1:n);
+                torsoTrace.z = tzData(1:n);
+                torsoTrace.frequency = OptiTrackBridge.EXPECTED_FREQUENCY;
+            else
+                headTrace.time = []; headTrace.x = []; headTrace.y = []; headTrace.z = [];
+                torsoTrace.time = []; torsoTrace.x = []; torsoTrace.y = []; torsoTrace.z = [];
+            end
+        end
+        
+        % ---------------------------------------------------------
+        % SAVE CONTINUOUS SESSION DATA
+        % ---------------------------------------------------------
+        function SaveContinuous(filename, sessionData)
+            % Saves session traces to file
+            % sessionData is a struct with fields: headTraces, torsoTraces, eventLog (optional)
+            
+            if nargin < 2 || isempty(sessionData)
+                warning('No session data to save.');
+                return;
+            end
+            
+            try
+                save(filename, 'sessionData', '-v7.3');
+                fprintf('Session data saved: %s\n', filename);
+            catch ME
+                warning('Failed to save: %s', ME.message);
+            end
+        end
+        
     end
 end

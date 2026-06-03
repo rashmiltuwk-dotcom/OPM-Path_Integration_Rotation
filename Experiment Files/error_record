@@ -1,6 +1,9 @@
-function FrameCallback(source, eventData)
-    % Inspect eventData structure
-    disp('eventData fields:');
-    disp(fieldnames(eventData));
-    
-    data = eventData;  % Try using eventData directly for now
+Warning: Error occurred while executing the listener callback for event OnFrameReady2 defined for class
+NatNetML.NatNetClientML:
+Error using FrameCallback (line 19)
+No appropriate method, property, or field 'fTimestamp' for class 'NatNetML.NatNetEventArgs'.
+
+Error in natnet 
+eventData fields:
+    'client'
+    'data'

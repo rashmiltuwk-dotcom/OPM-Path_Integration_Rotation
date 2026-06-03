@@ -1,15 +1,88 @@
-function FrameCallback(source, eventData)
-    data = eventData.data;
+function DiagnosticNatNetTest
+% STANDALONE DIAGNOSTIC - Uses POLLING instead of callbacks
+% Connects to Motive, polls for data, prints what we get
+
+clear all;
+fprintf('=== OPTITRACK DIAGNOSTIC TEST (POLLING) ===\n\n');
+
+try
+    % --- CONNECT ---
+    fprintf('Connecting to Motive at 128.40.164.130...\n');
+    client = natnet;
+    client.HostIP = '128.40.164.130';
+    client.ClientIP = '128.40.164.174';
+    client.ConnectionType = 'Multicast';
+    client.connect;
     
-    if isempty(data) || data.nRigidBodies == 0
-        fprintf('.');
-        return;
+    if client.IsConnected == 0
+        error('Failed to connect to Motive');
+    end
+    fprintf('✓ Connected successfully\n\n');
+    
+    % --- POLL FOR 5 SECONDS ---
+    fprintf('Polling for data (5 seconds)...\n');
+    frameCount = 0;
+    startTime = tic;
+    frames = [];
+    
+    while toc(startTime) < 5
+        % Try to get the latest frame
+        try
+            frame = client.getFrame();
+            if ~isempty(frame)
+                frameCount = frameCount + 1;
+                frames = [frames, frame];
+                
+                if mod(frameCount, 30) == 0
+                    fprintf('  ... %d frames received\n', frameCount);
+                end
+            end
+        catch
+            % Keep polling
+        end
+        pause(0.001);  % Small pause to avoid hammering
     end
     
-    for i = 1:data.nRigidBodies
-        rb = data.RigidBodies(i);
-        fprintf('[ID=%d Err=%.6f] ', rb.ID, rb.MeanError);
-    end
-    fprintf('\n');
+    % --- DISCONNECT ---
+    client.disconnect;
     
+    % --- SUMMARY ---
+    fprintf('\n=== SUMMARY ===\n');
+    fprintf('Total frames captured: %d\n', frameCount);
+    
+    if frameCount > 0
+        fprintf('\n=== FRAME STRUCTURE ===\n');
+        fprintf('Fields in frame object:\n');
+        disp(fieldnames(frames(1)));
+        
+        fprintf('\n=== Sample frame 1 ===\n');
+        PrintFrame(frames(1));
+        
+        if frameCount > 1
+            fprintf('\n=== Sample frame (middle) ===\n');
+            mid = floor(frameCount / 2);
+            PrintFrame(frames(mid));
+            
+            fprintf('\n=== Sample frame (last) ===\n');
+            PrintFrame(frames(end));
+        end
+    else
+        fprintf('ERROR: No frames captured via polling!\n');
+        fprintf('This suggests the natnet connection is not receiving data.\n');
+    end
+    
+catch ME
+    fprintf('ERROR: %s\n', ME.message);
+    try
+        client.disconnect;
+    catch
+    end
+end
+
+end
+
+% =========================================================================
+function PrintFrame(data)
+    fprintf('\nFull frame structure:\n');
+    disp(data);
 end

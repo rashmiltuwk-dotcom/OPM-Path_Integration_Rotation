@@ -168,131 +168,117 @@ classdef OptiTrackBridge
         end
 
         % ---------------------------------------------------------
-        % WAIT FOR WALK END (matches old WaitForOrigin logic)
+        % WAIT FOR WALK END (EXACT OLD WaitForOrigin - unchanged)
         % ---------------------------------------------------------
-        function [distWalkedTorso, distWalkedHead, headTrace, torsoTrace] = WaitForWalkEnd(headID, torsoID, win, tolerance)
+        function [distWalked, headTraces, torsoTraces] = WaitForWalkEnd(headID, torsoID, win, tolerance)
             global OP_BRIDGE_STATE
             if nargin < 4, tolerance = 0.10; end 
             
             if OP_BRIDGE_STATE.IsDummy
-                DrawFormattedText(win, 'DUMMY MODE: Press "x" to simulate walking.', 'center', 'center', [255 255 0]);
+                DrawFormattedText(win, 'DUMMY MODE: Press "x" to simulate walking to center.', 'center', 'center', [255 255 0]);
                 Screen('Flip', win);
                 while true
                     [kd, ~, kc] = KbCheck;
                     if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                     if kd && kc(KbName('r')), error('Redo_Trial'); end                        
-                    if kd && kc(KbName('x')), WaitSecs(0.3); break; end
+                    if kd && kc(KbName('x'))
+                        WaitSecs(0.3); % Debounce to prevent double-skipping
+                        break;
+                    end
                 end
-                distWalkedTorso = 2.0; distWalkedHead = 2.0;
-                headTrace = OptiTrackBridge.EmptyTrace();
-                torsoTrace = OptiTrackBridge.EmptyTrace();
+                distWalked = 2.0; % Fake distance
+                headTraces.time = [0]; headTraces.x = [0]; headTraces.z = [0];
+                torsoTraces.time = [0]; torsoTraces.x = [0]; torsoTraces.z = [0];
                 return;
             end
 
             startTime = GetSecs();
+            % Track start distance based on the Torso
             startTorsoPos = OptiTrackBridge.GetPosition(torsoID); 
-            startHeadPos = OptiTrackBridge.GetPosition(headID);
             
             white = WhiteIndex(win);
             Screen('TextSize', win, 40);
 
+            % --- 2. MEMORY PRE-ALLOCATION ---
             maxSamples = 10000; 
-            tData = nan(maxSamples, 1);
-            hxData = nan(maxSamples, 1);
-            hyData = nan(maxSamples, 1);
-            hzData = nan(maxSamples, 1);
-            hrollData = nan(maxSamples, 1);
-            hpitchData = nan(maxSamples, 1);
-            hyawData = nan(maxSamples, 1);
-            txData = nan(maxSamples, 1);
-            tyData = nan(maxSamples, 1);
-            tzData = nan(maxSamples, 1);
-            trollData = nan(maxSamples, 1);
-            tpitchData = nan(maxSamples, 1);
-            tyawData = nan(maxSamples, 1);
+            tData = nan(maxSamples, 1); 
+            hxData = nan(maxSamples, 1); % Head X
+            hzData = nan(maxSamples, 1); % Head Z
+            txData = nan(maxSamples, 1); % Torso X
+            tzData = nan(maxSamples, 1); % Torso Z
             idx = 1;
-            distToCenter = 0;  % Initialize so it persists when NaN occurs
 
+            % --- 3. THE ACTIVE TRACKING LOOP ---
             while true
                 [kd, ~, kc] = KbCheck;
                 if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                 if kd && kc(KbName('r')), error('Redo_Trial'); end 
 
-                [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
-                [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
+                % Grab both positions
+                currHeadPos = OptiTrackBridge.GetPosition(headID);
+                currTorsoPos = OptiTrackBridge.GetPosition(torsoID);
 
-                % Only recalculate if we have valid tracking
-                if ~(any(isnan(currHeadPos)) || any(isnan(currTorsoPos)))
-                    zTarget = -0.25;
-                    distToCenter = sqrt(currTorsoPos(1)^2 + (currTorsoPos(3) - zTarget)^2);
-                    inSemiCircle = (distToCenter < tolerance) && (currTorsoPos(3) >= zTarget);
-                    
-                    if idx <= maxSamples
-                        tData(idx) = GetSecs() - startTime; 
-                        hxData(idx) = currHeadPos(1);            
-                        hyData(idx) = currHeadPos(2);
-                        hzData(idx) = currHeadPos(3);
-                        hrollData(idx) = currHeadEuler(1);
-                        hpitchData(idx) = currHeadEuler(2);
-                        hyawData(idx) = currHeadEuler(3);
-                        txData(idx) = currTorsoPos(1);            
-                        tyData(idx) = currTorsoPos(2);
-                        tzData(idx) = currTorsoPos(3);
-                        trollData(idx) = currTorsoEuler(1);
-                        tpitchData(idx) = currTorsoEuler(2);
-                        tyawData(idx) = currTorsoEuler(3);
-                        idx = idx + 1;                      
-                    end
-                else
-                    inSemiCircle = false;  % Can't succeed without valid tracking
+                % --- NEW SAFETY CHECK ---
+                if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
+                    DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers or move to visible area', 'center', 'center', [255 0 0]);
+                    Screen('Flip', win);
+                    continue; 
                 end
                 
-                % ALWAYS DRAW (even if tracking lost)
+                
+                zTarget = -0.25;
+                
+                % Calculate how far they are from the center based on the Torso
+                distToCenter = sqrt(currTorsoPos(1)^2 + (currTorsoPos(3) - zTarget)^2);
+                
+                % --- NEW SEMI-CIRCLE LOGIC ---
+                inSemiCircle = (distToCenter < tolerance) && (currTorsoPos(3) >= zTarget);
+                
+                % --- 4. RECORDING THE DATA ---
+                if idx <= maxSamples
+                    tData(idx) = GetSecs() - startTime; 
+                    hxData(idx) = currHeadPos(1);            
+                    hzData(idx) = currHeadPos(3); 
+                    txData(idx) = currTorsoPos(1);            
+                    tzData(idx) = currTorsoPos(3);            
+                    idx = idx + 1;                      
+                end
+                
+                % --- 5. VISUAL FEEDBACK (ON-SCREEN) ---
                 msg = sprintf('Walk to Start\nDistance: %.2fm', distToCenter);
                 DrawFormattedText(win, msg, 'center', 'center', white);
                 
                 if inSemiCircle
-                    color = [0 255 0];
+                    color = [0 255 0]; % Green if inside the valid semi-circle
                 else
-                    color = [255 0 0];
+                    color = [255 0 0]; % Red if outside (or in the wrong half)
                 end
                 
                 centeredRect = CenterRectOnPointd([0 0 50 50], 960, 600);
                 Screen('FillArc', win, color, centeredRect + [0 100 0 100], 270, 180);
                 Screen('Flip', win); 
 
+                % --- 6. THE SUCCESS CHECK ---
                 if inSemiCircle
                     DrawFormattedText(win, 'Hold Position...', 'center', 'center', [0 255 0]);
+                    Screen('FillArc', win, [0 255 0], centeredRect + [0 100 0 100], 270, 180);
                     Screen('Flip', win);
                     break;
                 end
-                
-                WaitSecs(0.01);
             end
             
-            n = idx - 1;
-            t = tData(1:n);
+            % --- 7. FINAL CALCULATIONS & DATA PACKAGING ---
+            distWalked = sqrt((currTorsoPos(1) - startTorsoPos(1))^2 + (currTorsoPos(3) - startTorsoPos(3))^2);
             
-            headTrace.time = t;
-            headTrace.x = hxData(1:n);
-            headTrace.y = hyData(1:n);
-            headTrace.z = hzData(1:n);
-            headTrace.roll = hrollData(1:n);
-            headTrace.pitch = hpitchData(1:n);
-            headTrace.yaw = hyawData(1:n);
-            headTrace.error = nan(n, 1);
+            % Package Head Traces
+            headTraces.time = tData(1:idx-1);
+            headTraces.x = hxData(1:idx-1);
+            headTraces.z = hzData(1:idx-1);
 
-            torsoTrace.time = t;
-            torsoTrace.x = txData(1:n);
-            torsoTrace.y = tyData(1:n);
-            torsoTrace.z = tzData(1:n);
-            torsoTrace.roll = trollData(1:n);
-            torsoTrace.pitch = tpitchData(1:n);
-            torsoTrace.yaw = tyawData(1:n);
-            torsoTrace.error = nan(n, 1);
-
-            distWalkedTorso = sqrt((currTorsoPos(1) - startTorsoPos(1))^2 + (currTorsoPos(3) - startTorsoPos(3))^2);
-            distWalkedHead = sqrt((currHeadPos(1) - startHeadPos(1))^2 + (currHeadPos(3) - startHeadPos(3))^2);
+            % Package Torso Traces
+            torsoTraces.time = tData(1:idx-1);
+            torsoTraces.x = txData(1:idx-1);
+            torsoTraces.z = tzData(1:idx-1);
         end
 
         % ---------------------------------------------------------

@@ -221,10 +221,8 @@ classdef OptiTrackBridge
                 [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
                 [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
 
-                % === MATCH OLD LOGIC: Show TRACKING LOST, continue without recalculating ===
+                % === Skip recalculation if tracking lost, distToCenter persists ===
                 if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
-                    DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers or move to visible area', 'center', 'center', [255 0 0]);
-                    Screen('Flip', win);
                     continue;  % Skip the rest, distToCenter keeps its last valid value
                 end
                 

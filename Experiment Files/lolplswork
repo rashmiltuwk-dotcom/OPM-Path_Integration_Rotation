@@ -2,7 +2,7 @@ classdef OptiTrackBridge
     % OPTITRACKBRIDGE (Polling-based)
     % Handles connection to OptiTrack Motive using the natnet class.
     % Uses polling (getFrame) instead of callbacks.
-    % FIXED: Always renders visuals, even when tracking is temporarily lost.
+    % FIXED: Matches old WaitForOrigin logic - shows TRACKING LOST, displays last known distance.
     
     properties (Constant)
         FORCE_DUMMY_MODE = false;
@@ -168,7 +168,7 @@ classdef OptiTrackBridge
         end
 
         % ---------------------------------------------------------
-        % WAIT FOR WALK END (FIXED: Always renders, even if tracking lost)
+        % WAIT FOR WALK END (matches old WaitForOrigin logic)
         % ---------------------------------------------------------
         function [distWalkedTorso, distWalkedHead, headTrace, torsoTrace] = WaitForWalkEnd(headID, torsoID, win, tolerance)
             global OP_BRIDGE_STATE
@@ -211,6 +211,7 @@ classdef OptiTrackBridge
             tpitchData = nan(maxSamples, 1);
             tyawData = nan(maxSamples, 1);
             idx = 1;
+            distToCenter = 0;  % Initialize so it persists when NaN occurs
 
             while true
                 [kd, ~, kc] = KbCheck;
@@ -220,37 +221,34 @@ classdef OptiTrackBridge
                 [currHeadPos, currHeadEuler] = OptiTrackBridge.GetPositionAndEuler(headID);
                 [currTorsoPos, currTorsoEuler] = OptiTrackBridge.GetPositionAndEuler(torsoID);
 
-                % === FIX: ALWAYS DRAW VISUALS ===
-                % Only calculate distance if tracking is valid
-                if ~any(isnan(currHeadPos)) && ~any(isnan(currTorsoPos))
-                    zTarget = -0.25;
-                    distToCenter = sqrt(currTorsoPos(1)^2 + (currTorsoPos(3) - zTarget)^2);
-                    inSemiCircle = (distToCenter < tolerance) && (currTorsoPos(3) >= zTarget);
-                    
-                    % Record data only when we have valid tracking
-                    if idx <= maxSamples
-                        tData(idx) = GetSecs() - startTime; 
-                        hxData(idx) = currHeadPos(1);            
-                        hyData(idx) = currHeadPos(2);
-                        hzData(idx) = currHeadPos(3);
-                        hrollData(idx) = currHeadEuler(1);
-                        hpitchData(idx) = currHeadEuler(2);
-                        hyawData(idx) = currHeadEuler(3);
-                        txData(idx) = currTorsoPos(1);            
-                        tyData(idx) = currTorsoPos(2);
-                        tzData(idx) = currTorsoPos(3);
-                        trollData(idx) = currTorsoEuler(1);
-                        tpitchData(idx) = currTorsoEuler(2);
-                        tyawData(idx) = currTorsoEuler(3);
-                        idx = idx + 1;                      
-                    end
-                else
-                    % Tracking lost: mark as NaN but keep drawing
-                    distToCenter = NaN;
-                    inSemiCircle = false;
+                % === MATCH OLD LOGIC: Show TRACKING LOST, continue without recalculating ===
+                if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
+                    DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers or move to visible area', 'center', 'center', [255 0 0]);
+                    Screen('Flip', win);
+                    continue;  % Skip the rest, distToCenter keeps its last valid value
                 end
                 
-                % ALWAYS DRAW (regardless of tracking status)
+                zTarget = -0.25;
+                distToCenter = sqrt(currTorsoPos(1)^2 + (currTorsoPos(3) - zTarget)^2);
+                inSemiCircle = (distToCenter < tolerance) && (currTorsoPos(3) >= zTarget);
+                
+                if idx <= maxSamples
+                    tData(idx) = GetSecs() - startTime; 
+                    hxData(idx) = currHeadPos(1);            
+                    hyData(idx) = currHeadPos(2);
+                    hzData(idx) = currHeadPos(3);
+                    hrollData(idx) = currHeadEuler(1);
+                    hpitchData(idx) = currHeadEuler(2);
+                    hyawData(idx) = currHeadEuler(3);
+                    txData(idx) = currTorsoPos(1);            
+                    tyData(idx) = currTorsoPos(2);
+                    tzData(idx) = currTorsoPos(3);
+                    trollData(idx) = currTorsoEuler(1);
+                    tpitchData(idx) = currTorsoEuler(2);
+                    tyawData(idx) = currTorsoEuler(3);
+                    idx = idx + 1;                      
+                end
+                
                 msg = sprintf('Walk to Start\nDistance: %.2fm', distToCenter);
                 DrawFormattedText(win, msg, 'center', 'center', white);
                 

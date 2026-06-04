@@ -77,6 +77,8 @@ if ~connected % [MATLAB] If the connection fails...
 
 end
 
+OptiTrackBridge.MarkMotiveT0();
+
 % --- FILE & FOLDER MANAGEMENT ---
 
 timeStr = datestr(now, 'yyyy-mm-dd_HHMMSS');

@@ -325,7 +325,7 @@ results = table();
     % --- START CONTINUOUS TRACKING ---
     % Begin background polling that captures every frame from now until experiment ends
     OptiTrackBridge.StartContinuousCollection();
-    OptiTrackBridge.StartMotiveRecording();
+
 
     % --- THE "READY" SCREEN ---
     % Standard: Provide a clear starting point for the participant.

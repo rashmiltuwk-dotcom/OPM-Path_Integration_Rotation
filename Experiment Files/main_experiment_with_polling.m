@@ -134,7 +134,7 @@ sca;
 headID = 1;
 torsoID = 2;
 
-
+Screen('Preference', 'SkipSyncTests', 1);
 Screen('Preference', 'VisualDebugLevel', 1); % Reduces internal PTB chatter
 
 % --- SCREEN SELECTION ---
@@ -322,8 +322,8 @@ results = table();
 
     try % [MATLAB] Safety "Net": If anything fails, it jumps to the catch block at the end.
 
-    % --- START RECORDINGS ---
-    % Turn on the background tracking before the very first screen
+    % --- START CONTINUOUS TRACKING ---
+    % Begin background polling that captures every frame from now until experiment ends
     OptiTrackBridge.StartContinuousCollection();
     OptiTrackBridge.StartMotiveRecording();
 
@@ -470,9 +470,6 @@ WaitSecs(0.5);
                 stationaryStartTime = GetSecs(); 
 
                 while (GetSecs() - stationaryStartTime) < requiredTime
-                    % --- COLLECT FRAME TO CONTINUOUS ARRAY ---
-                    OptiTrackBridge.CollectFrameToContinuous();
-
                     % 1. Safety Exit (Always needed in a while loop)
                     [kd, ~, kc] = KbCheck;
                     if kd && kc(KbName('ESCAPE')), error('User Quit'); end
@@ -882,6 +879,11 @@ WaitSecs(0.5);
                     WaitSecs(0.5);
                 end
             end % --- END OF EIGHT TRIALS ---
+
+% --- STOP CONTINUOUS TRACKING AND SAVE ---
+OptiTrackBridge.StopContinuousCollection();
+OptiTrackBridge.SaveContinuous(continuousFile);
+
 % ---------------------------------------------------------
 % STEP 2: CRASH RECOVERY (The Catch Block)
 % ---------------------------------------------------------
@@ -889,7 +891,6 @@ WaitSecs(0.5);
 catch ME
     % Ensures hardware is cleanly disconnected to prevent computer crashes
     if ~isempty(TL), TL.close(); end
-    OptiTrackBridge.StopMotiveRecording();
     OptiTrackBridge.StopContinuousCollection();
     OptiTrackBridge.SaveContinuous(continuousFile);
     OptiTrackBridge.Disconnect();
@@ -913,7 +914,6 @@ end
 % ---------------------------------------------------------
 % Standard: This runs when the experiment finishes successfully.
 if ~isempty(TL), TL.close(); end
-OptiTrackBridge.StopMotiveRecording();
 OptiTrackBridge.StopContinuousCollection();
 OptiTrackBridge.SaveContinuous(continuousFile);
 OptiTrackBridge.Disconnect();

@@ -317,11 +317,13 @@ classdef OptiTrackBridge
                 inSemiCircle = (distToCenter < tolerance) && (currTorsoPos(3) >= zTarget);
                 
                 if idx <= maxSamples
-                    % Use Motive timestamp with proper reference
+                    % Use global reference: MotiveT0 or first continuous frame
                     if OP_BRIDGE_STATE.MotiveT0 > 0
                         tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                    elseif ~isempty(OP_CONTINUOUS_BUFFER.frames) && length(OP_CONTINUOUS_BUFFER.frames) > 0
+                        tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.frames{1}.rawTimestamp;
                     else
-                        tData(idx) = frameTimestamp;  % Use raw timestamp, normalize in SaveContinuous
+                        tData(idx) = frameTimestamp;
                     end
                     hxData(idx) = currHeadPos(1); hyData(idx) = currHeadPos(2); hzData(idx) = currHeadPos(3);
                     hrollData(idx) = currHeadEuler(1); hpitchData(idx) = currHeadEuler(2); hyawData(idx) = currHeadEuler(3);
@@ -429,9 +431,11 @@ classdef OptiTrackBridge
                     end
 
                     if idx <= maxSamples
-                        % Use Motive timestamp with proper reference
+                        % Use global reference: MotiveT0 or first continuous frame
                         if OP_BRIDGE_STATE.MotiveT0 > 0
                             tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                        elseif ~isempty(OP_CONTINUOUS_BUFFER.frames) && length(OP_CONTINUOUS_BUFFER.frames) > 0
+                            tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.frames{1}.rawTimestamp;
                         else
                             tData(idx) = frameTimestamp;
                         end
@@ -543,9 +547,11 @@ classdef OptiTrackBridge
                 end
                 
                 if idx <= maxSamples
-                    % Use Motive timestamp with proper reference
+                    % Use global reference: MotiveT0 or first continuous frame
                     if OP_BRIDGE_STATE.MotiveT0 > 0
                         tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                    elseif ~isempty(OP_CONTINUOUS_BUFFER.frames) && length(OP_CONTINUOUS_BUFFER.frames) > 0
+                        tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.frames{1}.rawTimestamp;
                     else
                         tData(idx) = frameTimestamp;
                     end
@@ -604,9 +610,11 @@ classdef OptiTrackBridge
                 [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
                 
                 if ~any(isnan(currHeadPos)) && ~any(isnan(currTorsoPos)) && idx <= maxSamples
-                    % Use Motive timestamp with proper reference
+                    % Use global reference: MotiveT0 or first continuous frame
                     if OP_BRIDGE_STATE.MotiveT0 > 0
                         tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                    elseif ~isempty(OP_CONTINUOUS_BUFFER.frames) && length(OP_CONTINUOUS_BUFFER.frames) > 0
+                        tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.frames{1}.rawTimestamp;
                     else
                         tData(idx) = frameTimestamp;
                     end

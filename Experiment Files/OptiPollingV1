@@ -34,11 +34,6 @@ classdef OptiTrackBridge
             OP_BRIDGE_STATE.IsConnected = false;
             OP_BRIDGE_STATE.IsDummy = false;
             
-            % Initialize continuous data collection
-            OP_BRIDGE_STATE.ContinuousActive = false;
-            OP_BRIDGE_STATE.ContinuousData = [];
-            OP_BRIDGE_STATE.ContinuousStartTime = 0;
-            
             % Initialize event log
             OP_EVENT_LOG.time  = [];
             OP_EVENT_LOG.trial = [];
@@ -112,135 +107,9 @@ classdef OptiTrackBridge
         end
 
         % =================================================================
-        % RECORDING CONTROL
+        % DUMMY START/STOP RECORDING
         % =================================================================
         function StartRecording()
-            % Dummy stub: polling is always active
-        end
-
-        function StartMotiveRecording()
-            % Optional: Call natnetclient.startRecord() to save to Motive
-            global OP_BRIDGE_STATE
-            if ~OP_BRIDGE_STATE.IsDummy
-                try
-                    t = GetSecs();
-                    OP_BRIDGE_STATE.NatNetClient.startRecord();
-                    fprintf('>>> Motive recording started at GetSecs()=%.6f\n', t);
-                catch ME
-                    fprintf('>>> Error in Motive startRecord(): %s\n', ME.message);
-                end
-            end
-        end
-
-        function StopMotiveRecording()
-            % Optional: Call natnetclient.stopRecord()
-            global OP_BRIDGE_STATE
-            if ~OP_BRIDGE_STATE.IsDummy
-                try
-                    OP_BRIDGE_STATE.NatNetClient.stopRecord();
-                    fprintf('>>> Motive recording stopped\n');
-                catch ME
-                    fprintf('>>> Error in Motive stopRecord(): %s\n', ME.message);
-                end
-            end
-        end
-
-        % =================================================================
-        % CONTINUOUS DATA COLLECTION (Background)
-        % =================================================================
-        function StartContinuousCollection()
-            % Begin collecting all rigid body data to memory
-            global OP_BRIDGE_STATE
-            OP_BRIDGE_STATE.ContinuousActive = true;
-            OP_BRIDGE_STATE.ContinuousData = [];
-            OP_BRIDGE_STATE.ContinuousStartTime = GetSecs();
-            fprintf('>>> Continuous data collection STARTED\n');
-        end
-
-        function StopContinuousCollection()
-            % Stop collecting continuous data
-            global OP_BRIDGE_STATE
-            OP_BRIDGE_STATE.ContinuousActive = false;
-            fprintf('>>> Continuous data collection STOPPED (%d frames)\n', length(OP_BRIDGE_STATE.ContinuousData));
-        end
-
-        function CollectFrameToContinuous()
-            % Capture current frame to continuous storage (call during polling loops)
-            global OP_BRIDGE_STATE
-            
-            if ~OP_BRIDGE_STATE.ContinuousActive || OP_BRIDGE_STATE.IsDummy
-                return;
-            end
-
-            try
-                data = OP_BRIDGE_STATE.NatNetClient.getFrame();
-                if isempty(data), data = OP_BRIDGE_STATE.NatNetClient.GetLastFrameOfData(); end
-                if isempty(data) || isempty(data.RigidBody), return; end
-                
-                % Timestamp relative to collection start
-                relTime = GetSecs() - OP_BRIDGE_STATE.ContinuousStartTime;
-                
-                % Loop through all rigid bodies in this frame
-                for i = 1:data.RigidBody.Length
-                    rb = data.RigidBody(i);
-                    
-                    frame = struct();
-                    frame.timestamp = relTime;
-                    
-                    % Safe extraction of the Motive timestamp to prevent .NET crashes
-                    try
-                        frame.motive_timestamp = double(data.Timestamp);
-                    catch
-                        frame.motive_timestamp = NaN;
-                    end
-                    
-                    frame.rbID = rb.ID;
-                    frame.x = double(rb.x);
-                    frame.y = double(rb.y);
-                    frame.z = double(rb.z);
-                    frame.qw = double(rb.qw);
-                    frame.qx = double(rb.qx);
-                    frame.qy = double(rb.qy);
-                    frame.qz = double(rb.qz);
-                    
-                    % Compute Euler angles
-                    [roll, pitch, yaw] = OptiTrackBridge.QuatToEuler(frame.qw, frame.qx, frame.qy, frame.qz);
-                    frame.roll = roll;
-                    frame.pitch = pitch;
-                    frame.yaw = yaw;
-                    
-                    % Append to continuous storage
-                    if isempty(OP_BRIDGE_STATE.ContinuousData)
-                        OP_BRIDGE_STATE.ContinuousData = frame;
-                    else
-                        OP_BRIDGE_STATE.ContinuousData(end+1) = frame;
-                    end
-                end
-                
-            catch ME
-                % Fail silently as per polling structure, to not interrupt loop
-            end
-        end
-
-        % ---------------------------------------------------------
-        % SAVE CONTINUOUS (saves collected data to .mat file)
-        % ---------------------------------------------------------
-        function SaveContinuous(filename)
-            global OP_BRIDGE_STATE
-            
-            if isempty(OP_BRIDGE_STATE.ContinuousData)
-                fprintf('>>> No continuous data to save\n');
-                return;
-            end
-            
-            continuousData = OP_BRIDGE_STATE.ContinuousData;
-            
-            try
-                save(filename, 'continuousData', '-v7.3');
-                fprintf('>>> Continuous data saved to: %s (%d frames)\n', filename, length(continuousData));
-            catch ME
-                fprintf('>>> Error saving continuous data: %s\n', ME.message);
-            end
         end
 
         function [headTrace, torsoTrace] = StopRecording()

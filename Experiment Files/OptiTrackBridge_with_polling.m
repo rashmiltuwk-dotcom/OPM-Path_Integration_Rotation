@@ -106,17 +106,31 @@ classdef OptiTrackBridge
         % MARK MOTIVE RECORDING START TIME
         % =================================================================
         function MarkMotiveT0()
-            global OP_BRIDGE_STATE
-            if OP_BRIDGE_STATE.IsDummy
-                return;
-            end
-            success = OP_BRIDGE_STATE.NatNetClient.startRecord();
-            if success
-                fprintf('>>> Motive recording STARTED.\n');
-            else
-                fprintf('>>> WARNING: startRecord() failed.\n');
-            end
+    global OP_BRIDGE_STATE
+    
+    if OP_BRIDGE_STATE.IsDummy
+        return;
+    end
+    
+    % Start Motive recording
+    success = OP_BRIDGE_STATE.NatNetClient.startRecord();
+    
+    if success
+        % Grab Motive's timestamp at the moment recording started
+        % This is the reference point for syncing .mat to take file
+        WaitSecs(0.05);  % Wait one frame for Motive to lock in
+        data = OP_BRIDGE_STATE.NatNetClient.getFrame();
+        
+        if ~isempty(data)
+            OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
+            fprintf('>>> Motive recording STARTED. T0 = %.6f\n', OP_BRIDGE_STATE.MotiveT0);
+        else
+            fprintf('>>> WARNING: Could not capture Motive T0 timestamp.\n');
         end
+    else
+        fprintf('>>> WARNING: startRecord() failed.\n');
+    end
+end
 
         % =================================================================
         % EVENT LOGGING

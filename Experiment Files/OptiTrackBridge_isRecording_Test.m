@@ -178,7 +178,7 @@ classdef OptiTrackBridge
             OP_BRIDGE_STATE.PollingTimer = timer(...
                 'ExecutionMode', 'fixedRate', ...
                 'Period', 1/120, ...
-                'TimerFcn', @(~,~) OptiTrackBridge.PollFrame());
+                'TimerFcn', @(~,~) OptiTrackBridge.AcquireFrame());
             
             start(OP_BRIDGE_STATE.PollingTimer);
             fprintf('>>> Continuous polling started at 120Hz\n');
@@ -187,7 +187,7 @@ classdef OptiTrackBridge
         % =================================================================
         % POLL SINGLE FRAME (Called by timer at 120Hz)
         % =================================================================
-        function PollFrame()
+        function AcquireFrame()
             global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
             
             try

@@ -38,8 +38,8 @@ classdef OptiTrackBridge
             OP_EVENT_LOG.event = {};
             OP_EVENT_LOG.state = {};
 
-            % Initialize continuous buffer as empty (dynamic collection)
-            OP_CONTINUOUS_BUFFER.frames = [];  % Cell array of frame structs
+            % Initialize continuous buffer (empty, no pre-allocation)
+            OP_CONTINUOUS_BUFFER.frames = [];  % Dynamic cell array
             OP_CONTINUOUS_BUFFER.isCollecting = false;
 
             if OptiTrackBridge.FORCE_DUMMY_MODE
@@ -100,7 +100,7 @@ classdef OptiTrackBridge
                 if OP_BRIDGE_STATE.MotiveT0 > 0
                     % Use Motive T0 as reference
                     eventTime = double(data.Timestamp) - OP_BRIDGE_STATE.MotiveT0;
-                elseif ~isempty(OP_CONTINUOUS_BUFFER.frames) && length(OP_CONTINUOUS_BUFFER.frames) > 0
+                elseif ~isempty(OP_CONTINUOUS_BUFFER) && ~isempty(OP_CONTINUOUS_BUFFER.frames) && length(OP_CONTINUOUS_BUFFER.frames) > 0
                     % Fallback: use first continuous buffer frame as reference
                     firstFrame = OP_CONTINUOUS_BUFFER.frames{1};
                     eventTime = double(data.Timestamp) - firstFrame.rawTimestamp;
@@ -124,7 +124,7 @@ classdef OptiTrackBridge
                 if OP_BRIDGE_STATE.MotiveT0 > 0
                     % Use Motive T0 as reference
                     eventTime = double(data.Timestamp) - OP_BRIDGE_STATE.MotiveT0;
-                elseif ~isempty(OP_CONTINUOUS_BUFFER.frames) && length(OP_CONTINUOUS_BUFFER.frames) > 0
+                elseif ~isempty(OP_CONTINUOUS_BUFFER) && ~isempty(OP_CONTINUOUS_BUFFER.frames) && length(OP_CONTINUOUS_BUFFER.frames) > 0
                     % Fallback: use first continuous buffer frame as reference
                     firstFrame = OP_CONTINUOUS_BUFFER.frames{1};
                     eventTime = double(data.Timestamp) - firstFrame.rawTimestamp;
@@ -161,10 +161,9 @@ classdef OptiTrackBridge
             
             if OP_BRIDGE_STATE.IsDummy, return; end
             
-            % Enable continuous collection flag
-            % Frames will be collected naturally as GetDualData() is called
+            % Initialize continuous buffer on-demand
+            OP_CONTINUOUS_BUFFER.frames = [];  % Cell array of frame structs
             OP_CONTINUOUS_BUFFER.isCollecting = true;
-            OP_CONTINUOUS_BUFFER.frames = [];  % Reset to empty
             
             fprintf('>>> Continuous collection enabled\n');
         end
@@ -187,11 +186,19 @@ classdef OptiTrackBridge
         function SaveContinuous(filename)
             global OP_CONTINUOUS_BUFFER OP_EVENT_LOG OP_BRIDGE_STATE
             
-            n = length(OP_CONTINUOUS_BUFFER.frames);
-            if n < 1
-                warning('Continuous buffer is empty.');
+            % Check if continuous buffer was even initialized
+            if isempty(OP_CONTINUOUS_BUFFER) || ~isfield(OP_CONTINUOUS_BUFFER, 'frames') || isempty(OP_CONTINUOUS_BUFFER.frames)
+                warning('Continuous buffer is empty. No continuous data to save.');
+                % Still save empty EventLog
+                EventLog = table(OP_EVENT_LOG.time', OP_EVENT_LOG.trial', ...
+                    OP_EVENT_LOG.event', OP_EVENT_LOG.state', ...
+                    'VariableNames', {'Time', 'Trial', 'Event', 'State'});
+                save(filename, 'EventLog', '-v7.3');
+                fprintf('Saved EventLog only (no continuous frames).\n');
                 return;
             end
+            
+            n = length(OP_CONTINUOUS_BUFFER.frames);
             
             % Extract all frames into arrays
             ContinuousTrace.time = zeros(n, 1);
@@ -688,29 +695,31 @@ classdef OptiTrackBridge
                 end
                 
                 % Append to continuous buffer if collecting
-                if OP_CONTINUOUS_BUFFER.isCollecting && ~any(isnan(headPos)) && ~any(isnan(torsoPos))
-                    frame = struct();
-                    frame.rawTimestamp = frameTimestamp;
-                    frame.headPos = headPos;
-                    frame.torsoPos = torsoPos;
-                    frame.headEuler = headEuler;
-                    frame.torsoEuler = torsoEuler;
-                    frame.headErr = headErr;
-                    frame.torsoErr = torsoErr;
-                    
-                    % Apply time normalization
-                    if OP_BRIDGE_STATE.MotiveT0 > 0
-                        frame.time = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
-                    else
-                        % Use first frame as reference (will be normalized in SaveContinuous if needed)
-                        if isempty(OP_CONTINUOUS_BUFFER.frames)
-                            frame.time = 0;
+                if ~isempty(OP_CONTINUOUS_BUFFER) && isfield(OP_CONTINUOUS_BUFFER, 'isCollecting') && OP_CONTINUOUS_BUFFER.isCollecting
+                    if ~any(isnan(headPos)) && ~any(isnan(torsoPos))
+                        frame = struct();
+                        frame.rawTimestamp = frameTimestamp;
+                        frame.headPos = headPos;
+                        frame.torsoPos = torsoPos;
+                        frame.headEuler = headEuler;
+                        frame.torsoEuler = torsoEuler;
+                        frame.headErr = headErr;
+                        frame.torsoErr = torsoErr;
+                        
+                        % Apply time normalization
+                        if OP_BRIDGE_STATE.MotiveT0 > 0
+                            frame.time = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
                         else
-                            frame.time = frameTimestamp - OP_CONTINUOUS_BUFFER.frames{1}.rawTimestamp;
+                            % Use first frame as reference (will be normalized in SaveContinuous if needed)
+                            if isempty(OP_CONTINUOUS_BUFFER.frames)
+                                frame.time = 0;
+                            else
+                                frame.time = frameTimestamp - OP_CONTINUOUS_BUFFER.frames{1}.rawTimestamp;
+                            end
                         end
+                        
+                        OP_CONTINUOUS_BUFFER.frames{end+1} = frame;
                     end
-                    
-                    OP_CONTINUOUS_BUFFER.frames{end+1} = frame;
                 end
                 
             catch ME

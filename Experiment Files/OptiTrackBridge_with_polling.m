@@ -368,7 +368,7 @@ classdef OptiTrackBridge
                 if kd && kc(KbName('r')), error('Redo_Trial'); end 
 
                 % Pull data in a single synchronized call
-                [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr] = OptiTrackBridge.GetDualData();
+                [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
 
                 if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
                     DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers or move to visible area', 'center', 'center', [255 0 0]);
@@ -382,7 +382,12 @@ classdef OptiTrackBridge
                 inSemiCircle = (distToCenter < tolerance) && (currTorsoPos(3) >= zTarget);
                 
                 if idx <= maxSamples
-                    tData(idx) = GetSecs() - startTime; 
+                    % Use Motive timestamp with proper reference
+                    if OP_BRIDGE_STATE.MotiveT0 > 0
+                        tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                    else
+                        tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.time(1);
+                    end
                     hxData(idx) = currHeadPos(1); hyData(idx) = currHeadPos(2); hzData(idx) = currHeadPos(3);
                     hrollData(idx) = currHeadEuler(1); hpitchData(idx) = currHeadEuler(2); hyawData(idx) = currHeadEuler(3);
                     herrData(idx) = currHeadErr;
@@ -479,7 +484,7 @@ classdef OptiTrackBridge
                     if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                     if kd && kc(KbName('r')), error('Redo_Trial'); end 
                     
-                    [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr] = OptiTrackBridge.GetDualData();
+                    [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
                     
                     if any(isnan(currTorsoEuler)) || any(isnan(currHeadEuler))
                        DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers or move to visible area', 'center', 'center', [255 0 0]);
@@ -489,7 +494,12 @@ classdef OptiTrackBridge
                     end
 
                     if idx <= maxSamples
-                        tData(idx) = GetSecs() - startTime;
+                        % Use Motive timestamp with proper reference
+                        if OP_BRIDGE_STATE.MotiveT0 > 0
+                            tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                        else
+                            tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.time(1);
+                        end
                         hxData(idx) = currHeadPos(1); hyData(idx) = currHeadPos(2); hzData(idx) = currHeadPos(3);
                         hrollData(idx) = currHeadEuler(1); hpitchData(idx) = currHeadEuler(2); hyawData(idx) = currHeadEuler(3);
                         herrData(idx) = currHeadErr;
@@ -588,7 +598,7 @@ classdef OptiTrackBridge
                 if kd && any(kc(rKey)), error('Redo_Trial'); end 
                 if kd && any(kc(targetKey)), break; end
                 
-                [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr] = OptiTrackBridge.GetDualData();
+                [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
                 
                 if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
                     DrawFormattedText(win, '!!! TRACKING LOST !!!\nAdjust markers or move to visible area', 'center', 'center', [255 0 0]);
@@ -598,7 +608,12 @@ classdef OptiTrackBridge
                 end
                 
                 if idx <= maxSamples
-                    tData(idx) = GetSecs() - startTime;
+                    % Use Motive timestamp with proper reference
+                    if OP_BRIDGE_STATE.MotiveT0 > 0
+                        tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                    else
+                        tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.time(1);
+                    end
                     hxData(idx) = currHeadPos(1); hyData(idx) = currHeadPos(2); hzData(idx) = currHeadPos(3);
                     hrollData(idx) = currHeadEuler(1); hpitchData(idx) = currHeadEuler(2); hyawData(idx) = currHeadEuler(3);
                     herrData(idx) = currHeadErr;
@@ -651,10 +666,15 @@ classdef OptiTrackBridge
                 [kd, ~, kc] = KbCheck;
                 if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                 
-                [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr] = OptiTrackBridge.GetDualData();
+                [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
                 
                 if ~any(isnan(currHeadPos)) && ~any(isnan(currTorsoPos)) && idx <= maxSamples
-                    tData(idx) = GetSecs() - startTime;
+                    % Use Motive timestamp with proper reference
+                    if OP_BRIDGE_STATE.MotiveT0 > 0
+                        tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                    else
+                        tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.time(1);
+                    end
                     hxData(idx) = currHeadPos(1); hyData(idx) = currHeadPos(2); hzData(idx) = currHeadPos(3);
                     hrollData(idx) = currHeadEuler(1); hpitchData(idx) = currHeadEuler(2); hyawData(idx) = currHeadEuler(3);
                     herrData(idx) = currHeadErr;
@@ -683,22 +703,24 @@ classdef OptiTrackBridge
         % ---------------------------------------------------------
         % UNIFIED DATA EXTRACTION HELPER
         % ---------------------------------------------------------
-        function [headPos, torsoPos, headEuler, torsoEuler, headErr, torsoErr] = GetDualData()
+        function [headPos, torsoPos, headEuler, torsoEuler, headErr, torsoErr, frameTimestamp] = GetDualData()
             global OP_BRIDGE_STATE
             if OP_BRIDGE_STATE.IsDummy
                 headPos = [0 0 0]; torsoPos = [0 0 0]; 
                 headEuler = [0 0 0]; torsoEuler = [0 0 0]; 
-                headErr = 0; torsoErr = 0;
+                headErr = 0; torsoErr = 0; frameTimestamp = 0;
                 return; 
             end
             headPos = [NaN NaN NaN]; torsoPos = [NaN NaN NaN];
             headEuler = [NaN NaN NaN]; torsoEuler = [NaN NaN NaN];
-            headErr = NaN; torsoErr = NaN;
+            headErr = NaN; torsoErr = NaN; frameTimestamp = NaN;
             
             try
                 data = OP_BRIDGE_STATE.NatNetClient.getFrame();
                 if isempty(data), data = OP_BRIDGE_STATE.NatNetClient.GetLastFrameOfData(); end
                 if isempty(data) || isempty(data.RigidBody), return; end
+                
+                frameTimestamp = double(data.Timestamp);
                 
                 for i = 1:data.RigidBody.Length
                     rb = data.RigidBody(i);

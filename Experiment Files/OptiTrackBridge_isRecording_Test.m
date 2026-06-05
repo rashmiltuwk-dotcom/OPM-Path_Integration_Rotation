@@ -1,7 +1,7 @@
 classdef OptiTrackBridge
-    % OPTITRACKBRIDGE (Polling-based)
+    % OPTITRACKBRIDGE
     % Handles connection to OptiTrack Motive using the natnet class.
-    % Uses polling (getFrame) instead of callbacks.
+    % Uses polling (getFrame).
     
     properties (Constant)
         FORCE_DUMMY_MODE = false;
@@ -30,6 +30,7 @@ classdef OptiTrackBridge
             OP_BRIDGE_STATE.NatNetClient = [];
             OP_BRIDGE_STATE.IsConnected = false;
             OP_BRIDGE_STATE.IsDummy = false;
+            OP_BRIDGE_STATE.MotiveT0 = 0;
             
             % Initialize event log
             OP_EVENT_LOG.time  = [];
@@ -37,25 +38,9 @@ classdef OptiTrackBridge
             OP_EVENT_LOG.event = {};
             OP_EVENT_LOG.state = {};
 
-            % Pre-allocate continuous buffer
-            nc = 500000;
-            OP_CONTINUOUS_BUFFER.idx = 1;
-            OP_CONTINUOUS_BUFFER.maxSamples = nc;
-            OP_CONTINUOUS_BUFFER.time = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hx = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hy = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hz = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hroll = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hpitch = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hyaw = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.hErr = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tx = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.ty = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tz = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.troll = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tpitch = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tyaw = NaN(nc, 1);
-            OP_CONTINUOUS_BUFFER.tErr = NaN(nc, 1);
+            % Initialize continuous buffer as empty (dynamic collection)
+            OP_CONTINUOUS_BUFFER.frames = [];  % Cell array of frame structs
+            OP_CONTINUOUS_BUFFER.isCollecting = false;
 
             if OptiTrackBridge.FORCE_DUMMY_MODE
                 OP_BRIDGE_STATE.IsDummy = true;
@@ -115,9 +100,10 @@ classdef OptiTrackBridge
                 if OP_BRIDGE_STATE.MotiveT0 > 0
                     % Use Motive T0 as reference
                     eventTime = double(data.Timestamp) - OP_BRIDGE_STATE.MotiveT0;
-                elseif ~isempty(OP_CONTINUOUS_BUFFER.time) && ~isnan(OP_CONTINUOUS_BUFFER.time(1))
-                    % Fallback: use continuous buffer's first frame as reference
-                    eventTime = double(data.Timestamp) - OP_CONTINUOUS_BUFFER.time(1);
+                elseif ~isempty(OP_CONTINUOUS_BUFFER.frames) && length(OP_CONTINUOUS_BUFFER.frames) > 0
+                    % Fallback: use first continuous buffer frame as reference
+                    firstFrame = OP_CONTINUOUS_BUFFER.frames{1};
+                    eventTime = double(data.Timestamp) - firstFrame.rawTimestamp;
                 end
             end
             
@@ -138,9 +124,10 @@ classdef OptiTrackBridge
                 if OP_BRIDGE_STATE.MotiveT0 > 0
                     % Use Motive T0 as reference
                     eventTime = double(data.Timestamp) - OP_BRIDGE_STATE.MotiveT0;
-                elseif ~isempty(OP_CONTINUOUS_BUFFER.time) && ~isnan(OP_CONTINUOUS_BUFFER.time(1))
-                    % Fallback: use continuous buffer's first frame as reference
-                    eventTime = double(data.Timestamp) - OP_CONTINUOUS_BUFFER.time(1);
+                elseif ~isempty(OP_CONTINUOUS_BUFFER.frames) && length(OP_CONTINUOUS_BUFFER.frames) > 0
+                    % Fallback: use first continuous buffer frame as reference
+                    firstFrame = OP_CONTINUOUS_BUFFER.frames{1};
+                    eventTime = double(data.Timestamp) - firstFrame.rawTimestamp;
                 end
             end
             
@@ -167,80 +154,31 @@ classdef OptiTrackBridge
         end
 
         % =================================================================
-        % START CONTINUOUS COLLECTION (Background polling at 120Hz)
+        % START CONTINUOUS COLLECTION (Dynamic, no timer)
         % =================================================================
         function StartContinuousCollection()
             global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
             
             if OP_BRIDGE_STATE.IsDummy, return; end
             
-            % Create and start polling timer at 120Hz
-            OP_BRIDGE_STATE.PollingTimer = timer(...
-                'ExecutionMode', 'fixedRate', ...
-                'Period', 1/120, ...
-                'TimerFcn', @(~,~) OptiTrackBridge.AcquireFrame());
+            % Enable continuous collection flag
+            % Frames will be collected naturally as GetDualData() is called
+            OP_CONTINUOUS_BUFFER.isCollecting = true;
+            OP_CONTINUOUS_BUFFER.frames = [];  % Reset to empty
             
-            start(OP_BRIDGE_STATE.PollingTimer);
-            fprintf('>>> Continuous polling started at 120Hz\n');
-        end
-
-        % =================================================================
-        % POLL SINGLE FRAME (Called by timer at 120Hz)
-        % =================================================================
-        function AcquireFrame()
-            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
-            
-            try
-                data = OP_BRIDGE_STATE.NatNetClient.getFrame();
-                if isempty(data) || isempty(data.RigidBody), return; end
-                
-                % Auto-detect Motive recording start (passive T0 capture)
-                if isfield(data, 'bRecording')
-                    if logical(data.bRecording) && OP_BRIDGE_STATE.MotiveT0 == 0
-                        OP_BRIDGE_STATE.MotiveT0 = double(data.Timestamp);
-                        fprintf('>>> Motive recording detected. T0 = %.6f\n', OP_BRIDGE_STATE.MotiveT0);
-                    end
-                end
-                
-                [headPos, torsoPos, headEuler, torsoEuler, headErr, torsoErr] = OptiTrackBridge.GetDualData();
-                
-                % Write to continuous buffer using Motive frame timestamp
-                cidx = OP_CONTINUOUS_BUFFER.idx;
-                if cidx <= OP_CONTINUOUS_BUFFER.maxSamples
-                    OP_CONTINUOUS_BUFFER.time(cidx) = double(data.Timestamp);
-                    OP_CONTINUOUS_BUFFER.hx(cidx) = headPos(1);
-                    OP_CONTINUOUS_BUFFER.hy(cidx) = headPos(2);
-                    OP_CONTINUOUS_BUFFER.hz(cidx) = headPos(3);
-                    OP_CONTINUOUS_BUFFER.hroll(cidx) = headEuler(1);
-                    OP_CONTINUOUS_BUFFER.hpitch(cidx) = headEuler(2);
-                    OP_CONTINUOUS_BUFFER.hyaw(cidx) = headEuler(3);
-                    OP_CONTINUOUS_BUFFER.hErr(cidx) = headErr;
-                    OP_CONTINUOUS_BUFFER.tx(cidx) = torsoPos(1);
-                    OP_CONTINUOUS_BUFFER.ty(cidx) = torsoPos(2);
-                    OP_CONTINUOUS_BUFFER.tz(cidx) = torsoPos(3);
-                    OP_CONTINUOUS_BUFFER.troll(cidx) = torsoEuler(1);
-                    OP_CONTINUOUS_BUFFER.tpitch(cidx) = torsoEuler(2);
-                    OP_CONTINUOUS_BUFFER.tyaw(cidx) = torsoEuler(3);
-                    OP_CONTINUOUS_BUFFER.tErr(cidx) = torsoErr;
-                    OP_CONTINUOUS_BUFFER.idx = cidx + 1;
-                end
-            catch
-                % Silently skip frame on error
-            end
+            fprintf('>>> Continuous collection enabled\n');
         end
 
         % =================================================================
         % STOP CONTINUOUS COLLECTION
         % =================================================================
         function StopContinuousCollection()
-            global OP_BRIDGE_STATE
-            if ~isempty(OP_BRIDGE_STATE) && isfield(OP_BRIDGE_STATE, 'PollingTimer')
-                if isvalid(OP_BRIDGE_STATE.PollingTimer)
-                    stop(OP_BRIDGE_STATE.PollingTimer);
-                    delete(OP_BRIDGE_STATE.PollingTimer);
-                end
-            end
-            fprintf('>>> Continuous polling stopped\n');
+            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
+            
+            % Disable continuous collection flag
+            OP_CONTINUOUS_BUFFER.isCollecting = false;
+            
+            fprintf('>>> Continuous collection stopped (%d frames collected)\n', length(OP_CONTINUOUS_BUFFER.frames));
         end
 
         % =================================================================
@@ -249,35 +187,46 @@ classdef OptiTrackBridge
         function SaveContinuous(filename)
             global OP_CONTINUOUS_BUFFER OP_EVENT_LOG OP_BRIDGE_STATE
             
-            n = OP_CONTINUOUS_BUFFER.idx - 1;
+            n = length(OP_CONTINUOUS_BUFFER.frames);
             if n < 1
                 warning('Continuous buffer is empty.');
                 return;
             end
             
-            ContinuousTrace.time = OP_CONTINUOUS_BUFFER.time(1:n);
-            ContinuousTrace.hx = OP_CONTINUOUS_BUFFER.hx(1:n);
-            ContinuousTrace.hy = OP_CONTINUOUS_BUFFER.hy(1:n);
-            ContinuousTrace.hz = OP_CONTINUOUS_BUFFER.hz(1:n);
-            ContinuousTrace.hroll = OP_CONTINUOUS_BUFFER.hroll(1:n);
-            ContinuousTrace.hpitch = OP_CONTINUOUS_BUFFER.hpitch(1:n);
-            ContinuousTrace.hyaw = OP_CONTINUOUS_BUFFER.hyaw(1:n);
-            ContinuousTrace.hErr = OP_CONTINUOUS_BUFFER.hErr(1:n);
-            ContinuousTrace.tx = OP_CONTINUOUS_BUFFER.tx(1:n);
-            ContinuousTrace.ty = OP_CONTINUOUS_BUFFER.ty(1:n);
-            ContinuousTrace.tz = OP_CONTINUOUS_BUFFER.tz(1:n);
-            ContinuousTrace.troll = OP_CONTINUOUS_BUFFER.troll(1:n);
-            ContinuousTrace.tpitch = OP_CONTINUOUS_BUFFER.tpitch(1:n);
-            ContinuousTrace.tyaw = OP_CONTINUOUS_BUFFER.tyaw(1:n);
-            ContinuousTrace.tErr = OP_CONTINUOUS_BUFFER.tErr(1:n);
+            % Extract all frames into arrays
+            ContinuousTrace.time = zeros(n, 1);
+            ContinuousTrace.hx = zeros(n, 1);
+            ContinuousTrace.hy = zeros(n, 1);
+            ContinuousTrace.hz = zeros(n, 1);
+            ContinuousTrace.hroll = zeros(n, 1);
+            ContinuousTrace.hpitch = zeros(n, 1);
+            ContinuousTrace.hyaw = zeros(n, 1);
+            ContinuousTrace.hErr = zeros(n, 1);
+            ContinuousTrace.tx = zeros(n, 1);
+            ContinuousTrace.ty = zeros(n, 1);
+            ContinuousTrace.tz = zeros(n, 1);
+            ContinuousTrace.troll = zeros(n, 1);
+            ContinuousTrace.tpitch = zeros(n, 1);
+            ContinuousTrace.tyaw = zeros(n, 1);
+            ContinuousTrace.tErr = zeros(n, 1);
             
-            % Normalize time: consistent logic with startEvent/stopEvent
-            if OP_BRIDGE_STATE.MotiveT0 > 0
-                % Use Motive T0 as reference
-                ContinuousTrace.time = ContinuousTrace.time - OP_BRIDGE_STATE.MotiveT0;
-            elseif n >= 1
-                % Fallback: use continuous buffer's first frame as reference
-                ContinuousTrace.time = ContinuousTrace.time - ContinuousTrace.time(1);
+            for i = 1:n
+                frame = OP_CONTINUOUS_BUFFER.frames{i};
+                ContinuousTrace.time(i) = frame.time;
+                ContinuousTrace.hx(i) = frame.headPos(1);
+                ContinuousTrace.hy(i) = frame.headPos(2);
+                ContinuousTrace.hz(i) = frame.headPos(3);
+                ContinuousTrace.hroll(i) = frame.headEuler(1);
+                ContinuousTrace.hpitch(i) = frame.headEuler(2);
+                ContinuousTrace.hyaw(i) = frame.headEuler(3);
+                ContinuousTrace.hErr(i) = frame.headErr;
+                ContinuousTrace.tx(i) = frame.torsoPos(1);
+                ContinuousTrace.ty(i) = frame.torsoPos(2);
+                ContinuousTrace.tz(i) = frame.torsoPos(3);
+                ContinuousTrace.troll(i) = frame.torsoEuler(1);
+                ContinuousTrace.tpitch(i) = frame.torsoEuler(2);
+                ContinuousTrace.tyaw(i) = frame.torsoEuler(3);
+                ContinuousTrace.tErr(i) = frame.torsoErr;
             end
             
             EventLog = table(OP_EVENT_LOG.time', OP_EVENT_LOG.trial', ...
@@ -365,7 +314,7 @@ classdef OptiTrackBridge
                     if OP_BRIDGE_STATE.MotiveT0 > 0
                         tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
                     else
-                        tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.time(1);
+                        tData(idx) = frameTimestamp;  % Use raw timestamp, normalize in SaveContinuous
                     end
                     hxData(idx) = currHeadPos(1); hyData(idx) = currHeadPos(2); hzData(idx) = currHeadPos(3);
                     hrollData(idx) = currHeadEuler(1); hpitchData(idx) = currHeadEuler(2); hyawData(idx) = currHeadEuler(3);
@@ -477,7 +426,7 @@ classdef OptiTrackBridge
                         if OP_BRIDGE_STATE.MotiveT0 > 0
                             tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
                         else
-                            tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.time(1);
+                            tData(idx) = frameTimestamp;
                         end
                         hxData(idx) = currHeadPos(1); hyData(idx) = currHeadPos(2); hzData(idx) = currHeadPos(3);
                         hrollData(idx) = currHeadEuler(1); hpitchData(idx) = currHeadEuler(2); hyawData(idx) = currHeadEuler(3);
@@ -591,7 +540,7 @@ classdef OptiTrackBridge
                     if OP_BRIDGE_STATE.MotiveT0 > 0
                         tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
                     else
-                        tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.time(1);
+                        tData(idx) = frameTimestamp;
                     end
                     hxData(idx) = currHeadPos(1); hyData(idx) = currHeadPos(2); hzData(idx) = currHeadPos(3);
                     hrollData(idx) = currHeadEuler(1); hpitchData(idx) = currHeadEuler(2); hyawData(idx) = currHeadEuler(3);
@@ -652,7 +601,7 @@ classdef OptiTrackBridge
                     if OP_BRIDGE_STATE.MotiveT0 > 0
                         tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
                     else
-                        tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.time(1);
+                        tData(idx) = frameTimestamp;
                     end
                     hxData(idx) = currHeadPos(1); hyData(idx) = currHeadPos(2); hzData(idx) = currHeadPos(3);
                     hrollData(idx) = currHeadEuler(1); hpitchData(idx) = currHeadEuler(2); hyawData(idx) = currHeadEuler(3);
@@ -683,13 +632,15 @@ classdef OptiTrackBridge
         % UNIFIED DATA EXTRACTION HELPER
         % ---------------------------------------------------------
         function [headPos, torsoPos, headEuler, torsoEuler, headErr, torsoErr, frameTimestamp] = GetDualData()
-            global OP_BRIDGE_STATE
+            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
+            
             if OP_BRIDGE_STATE.IsDummy
                 headPos = [0 0 0]; torsoPos = [0 0 0]; 
                 headEuler = [0 0 0]; torsoEuler = [0 0 0]; 
                 headErr = 0; torsoErr = 0; frameTimestamp = 0;
                 return; 
             end
+            
             headPos = [NaN NaN NaN]; torsoPos = [NaN NaN NaN];
             headEuler = [NaN NaN NaN]; torsoEuler = [NaN NaN NaN];
             headErr = NaN; torsoErr = NaN; frameTimestamp = NaN;
@@ -700,6 +651,14 @@ classdef OptiTrackBridge
                 if isempty(data) || isempty(data.RigidBody), return; end
                 
                 frameTimestamp = double(data.Timestamp);
+                
+                % Auto-detect Motive recording start (passive T0 capture)
+                if isfield(data, 'bRecording')
+                    if logical(data.bRecording) && OP_BRIDGE_STATE.MotiveT0 == 0
+                        OP_BRIDGE_STATE.MotiveT0 = double(data.Timestamp);
+                        fprintf('>>> Motive recording detected. T0 = %.6f\n', OP_BRIDGE_STATE.MotiveT0);
+                    end
+                end
                 
                 for i = 1:data.RigidBody.Length
                     rb = data.RigidBody(i);
@@ -727,6 +686,33 @@ classdef OptiTrackBridge
                         torsoErr = double(rb.MeanError);
                     end
                 end
+                
+                % Append to continuous buffer if collecting
+                if OP_CONTINUOUS_BUFFER.isCollecting && ~any(isnan(headPos)) && ~any(isnan(torsoPos))
+                    frame = struct();
+                    frame.rawTimestamp = frameTimestamp;
+                    frame.headPos = headPos;
+                    frame.torsoPos = torsoPos;
+                    frame.headEuler = headEuler;
+                    frame.torsoEuler = torsoEuler;
+                    frame.headErr = headErr;
+                    frame.torsoErr = torsoErr;
+                    
+                    % Apply time normalization
+                    if OP_BRIDGE_STATE.MotiveT0 > 0
+                        frame.time = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                    else
+                        % Use first frame as reference (will be normalized in SaveContinuous if needed)
+                        if isempty(OP_CONTINUOUS_BUFFER.frames)
+                            frame.time = 0;
+                        else
+                            frame.time = frameTimestamp - OP_CONTINUOUS_BUFFER.frames{1}.rawTimestamp;
+                        end
+                    end
+                    
+                    OP_CONTINUOUS_BUFFER.frames{end+1} = frame;
+                end
+                
             catch ME
                 disp(['Data Extraction Error: ', ME.message]);
             end

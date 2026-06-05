@@ -135,18 +135,34 @@ classdef OptiTrackBridge
         % EVENT LOGGING
         % =================================================================
         function startEvent(trialNum, eventName)
-            global OP_EVENT_LOG
+            global OP_EVENT_LOG OP_BRIDGE_STATE
+            
+            data = OP_BRIDGE_STATE.NatNetClient.getFrame();
+            if ~isempty(data)
+                eventTime = double(data.Timestamp) - OP_BRIDGE_STATE.MotiveT0;
+            else
+                eventTime = 0;
+            end
+            
             i = length(OP_EVENT_LOG.time) + 1;
-            OP_EVENT_LOG.time(i)  = GetSecs();
+            OP_EVENT_LOG.time(i)  = eventTime;
             OP_EVENT_LOG.trial(i) = trialNum;
             OP_EVENT_LOG.event{i} = eventName;
             OP_EVENT_LOG.state{i} = 'START';
         end
 
         function stopEvent(trialNum, eventName)
-            global OP_EVENT_LOG
+            global OP_EVENT_LOG OP_BRIDGE_STATE
+            
+            data = OP_BRIDGE_STATE.NatNetClient.getFrame();
+            if ~isempty(data)
+                eventTime = double(data.Timestamp) - OP_BRIDGE_STATE.MotiveT0;
+            else
+                eventTime = 0;
+            end
+            
             i = length(OP_EVENT_LOG.time) + 1;
-            OP_EVENT_LOG.time(i)  = GetSecs();
+            OP_EVENT_LOG.time(i)  = eventTime;
             OP_EVENT_LOG.trial(i) = trialNum;
             OP_EVENT_LOG.event{i} = eventName;
             OP_EVENT_LOG.state{i} = 'STOP';

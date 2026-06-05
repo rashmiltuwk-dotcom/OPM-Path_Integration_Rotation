@@ -77,7 +77,8 @@ if ~connected % [MATLAB] If the connection fails...
 
 end
 
-OptiTrackBridge.MarkMotiveT0_Detect();
+% NOTE: T0 is automatically detected in background when Motive recording starts
+% No explicit call needed — detection happens passively in PollFrame()
 
 % --- FILE & FOLDER MANAGEMENT ---
 

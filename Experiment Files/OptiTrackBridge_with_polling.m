@@ -106,31 +106,30 @@ classdef OptiTrackBridge
         % MARK MOTIVE RECORDING START TIME
         % =================================================================
         function MarkMotiveT0()
-    global OP_BRIDGE_STATE
-    
-    if OP_BRIDGE_STATE.IsDummy
-        return;
-    end
-    
-    % Start Motive recording
-    success = OP_BRIDGE_STATE.NatNetClient.startRecord();
-    
-    if success
-        % Grab Motive's timestamp at the moment recording started
-        % This is the reference point for syncing .mat to take file
-        WaitSecs(0.05);  % Wait one frame for Motive to lock in
-        data = OP_BRIDGE_STATE.NatNetClient.getFrame();
-        
-        if ~isempty(data)
-            OP_BRIDGE_STATE.MotiveT0 = double(data.fTimestamp);
-            fprintf('>>> Motive recording STARTED. T0 = %.6f\n', OP_BRIDGE_STATE.MotiveT0);
-        else
-            fprintf('>>> WARNING: Could not capture Motive T0 timestamp.\n');
+            global OP_BRIDGE_STATE
+            
+            if OP_BRIDGE_STATE.IsDummy
+                return;
+            end
+            
+            % Start Motive recording
+            success = OP_BRIDGE_STATE.NatNetClient.startRecord();
+            
+            if success
+                % Wait one frame for Motive to lock in
+                WaitSecs(0.05);
+                data = OP_BRIDGE_STATE.NatNetClient.getFrame();
+                
+                if ~isempty(data)
+                    OP_BRIDGE_STATE.MotiveT0 = double(data.Timestamp);
+                    fprintf('>>> Motive recording STARTED. T0 = %.6f\n', OP_BRIDGE_STATE.MotiveT0);
+                else
+                    fprintf('>>> WARNING: Could not capture Motive T0 timestamp.\n');
+                end
+            else
+                fprintf('>>> WARNING: startRecord() failed.\n');
+            end
         end
-    else
-        fprintf('>>> WARNING: startRecord() failed.\n');
-    end
-end
 
         % =================================================================
         % EVENT LOGGING
@@ -192,7 +191,6 @@ end
             
             try
                 data = OP_BRIDGE_STATE.NatNetClient.getFrame();
-                if isempty(data), data = OP_BRIDGE_STATE.NatNetClient.GetLastFrameOfData(); end
                 if isempty(data) || isempty(data.RigidBody), return; end
                 
                 [headPos, torsoPos, headEuler, torsoEuler, headErr, torsoErr] = OptiTrackBridge.GetDualData();
@@ -200,7 +198,7 @@ end
                 % Write to continuous buffer using Motive frame timestamp
                 cidx = OP_CONTINUOUS_BUFFER.idx;
                 if cidx <= OP_CONTINUOUS_BUFFER.maxSamples
-                    OP_CONTINUOUS_BUFFER.time(cidx) = double(data.fTimestamp);
+                    OP_CONTINUOUS_BUFFER.time(cidx) = double(data.Timestamp);
                     OP_CONTINUOUS_BUFFER.hx(cidx) = headPos(1);
                     OP_CONTINUOUS_BUFFER.hy(cidx) = headPos(2);
                     OP_CONTINUOUS_BUFFER.hz(cidx) = headPos(3);

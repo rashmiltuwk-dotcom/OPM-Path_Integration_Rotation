@@ -135,16 +135,18 @@ classdef OptiTrackBridge
         % EVENT LOGGING
         % =================================================================
         function startEvent(trialNum, eventName)
-            global OP_EVENT_LOG OP_BRIDGE_STATE
+            global OP_EVENT_LOG OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
             
             eventTime = 0;  % Default fallback
             
             data = OP_BRIDGE_STATE.NatNetClient.getFrame();
             if ~isempty(data) && ~isempty(data.Timestamp)
                 if OP_BRIDGE_STATE.MotiveT0 > 0
+                    % Use Motive T0 as reference
                     eventTime = double(data.Timestamp) - OP_BRIDGE_STATE.MotiveT0;
-                else
-                    eventTime = double(data.Timestamp);  % Use absolute Motive time if T0 not set
+                elseif ~isempty(OP_CONTINUOUS_BUFFER.time) && ~isnan(OP_CONTINUOUS_BUFFER.time(1))
+                    % Fallback: use continuous buffer's first frame as reference
+                    eventTime = double(data.Timestamp) - OP_CONTINUOUS_BUFFER.time(1);
                 end
             end
             
@@ -156,16 +158,18 @@ classdef OptiTrackBridge
         end
 
         function stopEvent(trialNum, eventName)
-            global OP_EVENT_LOG OP_BRIDGE_STATE
+            global OP_EVENT_LOG OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
             
             eventTime = 0;  % Default fallback
             
             data = OP_BRIDGE_STATE.NatNetClient.getFrame();
             if ~isempty(data) && ~isempty(data.Timestamp)
                 if OP_BRIDGE_STATE.MotiveT0 > 0
+                    % Use Motive T0 as reference
                     eventTime = double(data.Timestamp) - OP_BRIDGE_STATE.MotiveT0;
-                else
-                    eventTime = double(data.Timestamp);  % Use absolute Motive time if T0 not set
+                elseif ~isempty(OP_CONTINUOUS_BUFFER.time) && ~isnan(OP_CONTINUOUS_BUFFER.time(1))
+                    % Fallback: use continuous buffer's first frame as reference
+                    eventTime = double(data.Timestamp) - OP_CONTINUOUS_BUFFER.time(1);
                 end
             end
             
@@ -183,6 +187,8 @@ classdef OptiTrackBridge
         end
 
         function [headTrace, torsoTrace] = StopRecording()
+            % Stub in polling version (task traces built directly in task functions)
+            % Included for API compatibility; actual recording happens in PassiveTrack, etc.
             headTrace.time = []; headTrace.x = []; headTrace.y = []; headTrace.z = [];
             headTrace.roll = []; headTrace.pitch = []; headTrace.yaw = []; headTrace.error = [];
             torsoTrace.time = []; torsoTrace.x = []; torsoTrace.y = []; torsoTrace.z = [];
@@ -288,8 +294,10 @@ classdef OptiTrackBridge
             
             % Normalize time: consistent logic with startEvent/stopEvent
             if OP_BRIDGE_STATE.MotiveT0 > 0
+                % Use Motive T0 as reference
                 ContinuousTrace.time = ContinuousTrace.time - OP_BRIDGE_STATE.MotiveT0;
             elseif n >= 1
+                % Fallback: use continuous buffer's first frame as reference
                 ContinuousTrace.time = ContinuousTrace.time - ContinuousTrace.time(1);
             end
             

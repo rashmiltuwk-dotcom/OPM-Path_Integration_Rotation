@@ -13,9 +13,6 @@ classdef OptiTrackBridge
         % --- RIGID BODY IDs ---
         HEAD_ID  = 1;
         TORSO_ID = 2;
-
-        % --- EXPECTED FREQUENCY ---
-        EXPECTED_FREQUENCY = 120;
     end
 
     methods (Static)

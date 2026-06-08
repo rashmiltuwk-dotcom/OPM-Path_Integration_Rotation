@@ -35,7 +35,10 @@ N = numel(subset);
 if N == 0, error('No trials match the selected filters.'); end
 
 %% --- STEP 2: METRIC COMPUTATION ----------------------------
-metrics(N) = struct();
+metrics = struct('TrialNum', {}, 'TaskType', {}, 'Walk_PeakErrHead', {}, 'Walk_PeakErrTorso', {}, ...
+                 'Walk_MeanErrHead', {}, 'Walk_MeanErrTorso', {}, 'Enc_PeakErrHead', {}, 'Enc_PeakErrTorso', {}, ...
+                 'Enc_MeanErrHead', {}, 'Enc_MeanErrTorso', {}, 'Res_PeakErrHead', {}, 'Res_PeakErrTorso', {}, ...
+                 'Res_MeanErrHead', {}, 'Res_MeanErrTorso', {});
 for i = 1:N
     tr = subset(i);
     metrics(i).TrialNum  = tr.TrialNum;

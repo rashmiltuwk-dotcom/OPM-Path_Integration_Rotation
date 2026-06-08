@@ -10,12 +10,12 @@
 %
 %  [Columns 2-7: OptiTrack Default Y-Up Coordinate System]
 %  Source: OptiTrack Motive Documentation (docs.optitrack.com)
-%  Column 2: X     (Lateral position — side-to-side across the capture volume)
-%  Column 3: Y     (Vertical position — height relative to the floor)
-%  Column 4: Z     (Depth position — forward and backward)
+%  Column 2: X     (Lateral position – side-to-side across the capture volume)
+%  Column 3: Y     (Vertical position – height relative to the floor)
+%  Column 4: Z     (Depth position – forward and backward)
 %  Column 5: Roll  (Rotation around Z-axis)
 %  Column 6: Pitch (Rotation around X-axis)
-%  Column 7: Yaw   (Rotation around Y-axis — heading direction/turning)
+%  Column 7: Yaw   (Rotation around Y-axis – heading direction/turning)
 %
 %  Column 8: Rigid Body Error (Motive Solver `MeanError`)
 %            Source: NatNet SDK `sRigidBodyData->MeanError` & OptiTrack Support 
@@ -29,11 +29,11 @@
 %            - High values (>0.04): Tracking degradation due to marker slippage, 
 %              partial occlusions, or degradation in room calibration.
 %% ============================================================
-
+ 
 %% --- USER PARAMETERS ---
 trialToView = 1;   % True trial number (1–64)
-
-
+ 
+ 
 % Event selection
 %   OpenEyes:       headEvent = 'OpenEyesHeadTrace';        torsoEvent = 'OpenEyesTorsoTrace';
 %   CloseEyes:      headEvent = 'CloseEyesHeadTrace';       torsoEvent = 'CloseEyesTorsoTrace';
@@ -46,34 +46,65 @@ trialToView = 1;   % True trial number (1–64)
 %   PassiveProd:    headEvent = 'PassiveProdHeadTrace';     torsoEvent = 'PassiveProdTorsoTrace';
 %   ImagineWalk:    headEvent = 'ImagineWalkingHeadTrace';  torsoEvent = 'ImagineWalkingTorsoTrace';
 %   StationaryThree:headEvent = 'StationaryHeadTraceThree'; torsoEvent = 'StationaryTorsoTraceThree';
-
-
+ 
+ 
 % Event selection 
 headEvent  = 'OpenEyesHeadTrace';
 torsoEvent = 'OpenEyesTorsoTrace';
-
+ 
 %% ============================================================
-
+ 
 % 1. Find the last ACCEPTED entry for this trial number
 matchIdx = find( ...
     [MasterData.TrialNum] == trialToView & ...
     strcmp({MasterData.Status}, 'Accepted') ...
 );
-
+ 
 if isempty(matchIdx)
-    error('No Accepted Trial';
+    error('No Accepted Trial');
 end
-
+ 
 entry = MasterData(matchIdx(end));
-
+ 
 % 2. Extract traces
 headTrace  = entry.Traces.(headEvent);
 torsoTrace = entry.Traces.(torsoEvent);
-
+ 
 % 3. Build [samples x 8] matrices using your custom build_matrix function
 h_view  = build_matrix(headTrace);
 to_view = build_matrix(torsoTrace);
-
+ 
 % 4. Open in variable viewer
 openvar('h_view');
 openvar('to_view');
+
+%% --- HELPER FUNCTION ---
+function matrix = build_matrix(trace)
+    % Convert trace struct to [samples x 8] matrix
+    % Columns: Time, X, Y, Z, Roll, Pitch, Yaw, Error
+    
+    if isempty(trace)
+        matrix = [];
+        return;
+    end
+    
+    n = numel(trace.time);
+    matrix = zeros(n, 8);
+    
+    matrix(:, 1) = trace.time(:);
+    matrix(:, 2) = trace.x(:);
+    matrix(:, 3) = trace.y(:);
+    matrix(:, 4) = trace.z(:);
+    matrix(:, 5) = trace.roll(:);
+    matrix(:, 6) = trace.pitch(:);
+    matrix(:, 7) = trace.yaw(:);
+    
+    % Error field (if it exists)
+    if isfield(trace, 'error')
+        matrix(:, 8) = trace.error(:);
+    elseif isfield(trace, 'Error')
+        matrix(:, 8) = trace.Error(:);
+    else
+        matrix(:, 8) = NaN(n, 1);
+    end
+end

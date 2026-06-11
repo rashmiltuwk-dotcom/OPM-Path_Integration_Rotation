@@ -172,7 +172,7 @@ scatter(2*ones(numel(dissoc_enc_imag),1) + randn(numel(dissoc_enc_imag),1)*0.05,
 % Add mean lines
 plot([0.7 1.3], [mean(dissoc_enc_phys) mean(dissoc_enc_phys)], 'b-', 'LineWidth', 3);
 plot([1.7 2.3], [mean(dissoc_enc_imag) mean(dissoc_enc_imag)], 'r-', 'LineWidth', 3);
-set(gca, 'XTick', [1 2], 'XTickLabel', {'Physical', 'Imagined'}, 'XLim', [0.5 2.5]);
+set(gca, 'XTick', [1 2], 'XTickLabel', {'Physical', 'Imagined'}, 'XLim', [0.5 2.5], 'YLim', [0 360]);
 ylabel('Dissociation (°)', 'FontSize', 12);
 title('ENCODING: Head-Torso Dissociation', 'FontSize', 13, 'FontWeight', 'bold');
 grid on;
@@ -187,7 +187,7 @@ if numel(dissoc_prod_phys(~isnan(dissoc_prod_phys))) > 0
     plot([1.7 2.3], [mean(dissoc_prod_phys, 'omitnan') mean(dissoc_prod_phys, 'omitnan')], 'g-', 'LineWidth', 3);
 end
 plot([0.7 1.3], [mean(dissoc_enc_phys) mean(dissoc_enc_phys)], 'b-', 'LineWidth', 3);
-set(gca, 'XTick', [1 2], 'XTickLabel', {'Encoding', 'Production'}, 'XLim', [0.5 2.5]);
+set(gca, 'XTick', [1 2], 'XTickLabel', {'Encoding', 'Production'}, 'XLim', [0.5 2.5], 'YLim', [0 360]);
 ylabel('Dissociation (°)', 'FontSize', 12);
 title('PRODUCTION: Encoding vs Response Rotation', 'FontSize', 13, 'FontWeight', 'bold');
 grid on;

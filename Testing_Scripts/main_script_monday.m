@@ -107,6 +107,7 @@ masterIdx = 1;
 
 % Initialize the custom TriggerLogger class. 
 % This creates a digital record of every pulse sent to the MEG room.
+global TL
 
 % If this code does not work, try uncommenting the line below and commenting out the try-catch block
 % try
@@ -205,6 +206,13 @@ end
 % 3. TASK DESIGN 
 % ---------------------------------------------------------
 
+% ===== PAUSE SYSTEM INITIALIZATION (NON-INTERRUPTING) =====
+% Global variables to track pause state
+global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
+PAUSE_ACTIVE = false;           % true when paused, false when running
+PAUSED_MOTION_BUFFER.frames = []; % Will store motion data during pause
+PAUSED_EVENT_TYPE = '';         % Tracks which event is being paused
+% =========================================================
 
 % Standard: Define the Map HERE. 
 % This is your "Look-up Table." It never changes during the experiment.
@@ -341,22 +349,30 @@ results = table();
 
 % --- BEGIN TRIAL ITERATION ---
     for t = 1:size(trials, 1) % This will run exactly 8 times per run (1 BLOCK)
+        
+        % Make trial number and TriggerLogger accessible to event functions
+        global t TL
 
     trueTrial = startRow + t - 1;
         
         trialAccepted = false; 
-        attemptNum = 1; % Tracks how many times they have tried THIS trial      
+        attemptNum = 1; % Tracks how many times they have tried THIS trial
+        
+        % Initialize paused motion buffer for this trial
+        global PAUSED_MOTION_BUFFER
+        PAUSED_MOTION_BUFFER.frames = [];      
 
         while ~trialAccepted 
             
             % 1. CRITICAL: PRE-ALLOCATE VARIABLES FIRST
             [walkDistTorso, walkDistHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
              actHead, actTorso, rt_Rot, imagineWalkTime, encodeTurnAmount,encodeTorsoTurn, prodTurnAmount, prodTorsoTurn, ...
-             encodeDriftHead, encodeDriftTorso, prodDriftHead, prodDriftTorso] = deal(NaN); % <-- ADDED DRIFT VARS
+             encodeDriftHead, encodeDriftTorso, prodDriftHead, prodDriftTorso] = deal(NaN);
             rank = ''; % Reset rank
             
             [OpenEyesHeadTrace, OpenEyesTorsoTrace, ...
             PhysicallyWalkHeadTrace, PhysicallyWalkTorsoTrace, ...
+            PassiveWalkHeadTrace, PassiveWalkTorsoTrace, ...
             StationaryHeadTraceOne, StationaryTorsoTraceOne, ...
             EncodingRotateHeadTrace, EncodingRotateTorsoTrace, ...
             StationaryHeadTraceTwo, StationaryTorsoTraceTwo, ...
@@ -364,8 +380,14 @@ results = table();
             ImagineWalkingHeadTrace, ImagineWalkingTorsoTrace, ...
             StationaryHeadTraceThree, StationaryTorsoTraceThree, ...
             PassiveEncodeHeadTrace, PassiveEncodeTorsoTrace, ...
-            PassiveProdHeadTrace, PassiveProdTorsoTrace, ...   
-            CloseEyesHeadTrace, CloseEyesTorsoTrace] = deal([]);
+            PassiveProdHeadTrace, PassiveProdTorsoTrace, ...
+            CloseEyesHeadTrace, CloseEyesTorsoTrace, ...
+            % ===== PAUSED TRACES INITIALIZATION =====
+            PausedPhysicallyWalkHeadTrace, PausedPhysicallyWalkTorsoTrace, ...
+            PausedEncodingRotateHeadTrace, PausedEncodingRotateTorsoTrace, ...
+            PausedResponseRotationHeadTrace, PausedResponseRotationTorsoTrace, ...
+            PausedImagineWalkingHeadTrace, PausedImagineWalkingTorsoTrace] = deal([]);
+            % =========================================
             
             try % --- THE RIPCORD STARTS HERE ---
                 
@@ -386,28 +408,28 @@ results = table();
 
 
 
-% --- UPDATED VISUAL CUE ---
-% Translate LPos/RPos into readable text for the screen
-if strcmp(participantPosition, 'LPos')
-    displayPosText = 'LEFT SIDE';
-else
-    displayPosText = 'RIGHT SIDE';
-end
+            % --- UPDATED VISUAL CUE ---
+            % Translate LPos/RPos into readable text for the screen
+            if strcmp(participantPosition, 'LPos')
+                displayPosText = 'LEFT SIDE';
+            else
+                displayPosText = 'RIGHT SIDE';
+            end
 
-% This displays the Target Distance and the required Room Position
-line1 = sprintf('TRIAL %d of 64', trueTrial);
-line2 = sprintf('POSITION: %s', displayPosText); % Uses the translated text
-line3 = sprintf('WALK DISTANCE: %.1f m', targetDist);
-line4 = '\nResearcher: Press SPACE to begin.';
+            % This displays the Target Distance and the required Room Position
+            line1 = sprintf('TRIAL %d of 64', trueTrial);
+            line2 = sprintf('POSITION: %s', displayPosText); % Uses the translated text
+            line3 = sprintf('WALK DISTANCE: %.1f m', targetDist);
+            line4 = '\nResearcher: Press SPACE to begin.';
 
-DrawFormattedText(win, [line1 '\n\n' line2 '\n' line3 '\n\n' line4], 'center', 'center', white);
-Screen('Flip', win);
+            DrawFormattedText(win, [line1 '\n\n' line2 '\n' line3 '\n\n' line4], 'center', 'center', white);
+                Screen('Flip', win);
 
 
-% Pause for researcher
-wait_key('space');   
-Screen('Flip', win); 
-WaitSecs(0.5);
+                % Pause for researcher
+                wait_key('space');   
+                Screen('Flip', win); 
+                WaitSecs(0.5);
                 
                 % ---------------------------------------------------------
                 % EVENT 1: CLOSE EYES
@@ -429,6 +451,10 @@ WaitSecs(0.5);
                 % ---------------------------------------------------------
                 % EVENT 2: PHYSICAL WALK 
                 % ---------------------------------------------------------
+                % ===== SET PAUSE EVENT TYPE =====
+                global PAUSED_EVENT_TYPE
+                PAUSED_EVENT_TYPE = 'PhysicalWalk';
+                % =================================
 
                 if ~isempty(TL), TL.startEvent(3, t, 'PhysWalk'); end
                 OptiTrackBridge.startEvent(t, 'PhysWalk');
@@ -440,6 +466,7 @@ WaitSecs(0.5);
                 
                 % 3. Track them until they hit the (0,0) coordinate
                 % UPDATED: Now capturing 'walkTraces' alongside distance
+                % NOTE: Pause checks run in background but don't interrupt data collection
                 [walkDistTorso, walkDistHead, PhysicallyWalkHeadTrace, PhysicallyWalkTorsoTrace] = OptiTrackBridge.WaitForWalkEnd(headID, torsoID, win);
                 
                 % 4. STOP THE TIMER: Record exactly how long it took
@@ -450,68 +477,31 @@ WaitSecs(0.5);
                 
                 if ~isempty(TL), TL.stopEvent(3, t, 'PhysWalk'); end
                 OptiTrackBridge.stopEvent(t, 'PhysWalk');
-                % Keep the info on screen during the stationary period 
-                % so they can process it while standing still.
+                
+                captureDuration = 0.5; % Record for 0.5 seconds after they stop
+                [PassiveWalkHeadTrace, PassiveWalkTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, captureDuration);
+                
+                if ~isempty(PassiveWalkTorsoTrace.yaw)
+                    % Calculate shortest path drift (handles 360-degree wrap around)
+                    initT = sqrt(PassiveWalkTorsoTrace.x(1)^2 + PassiveWalkTorsoTrace.z(1)^2);; finT = sqrt(PassiveWalkTorsoTrace.x(end)^2 + PassiveWalkTorsoTrace.z(end)^2);
+                    encodeDriftTorso = finT - initT;
+                    
+                    initH = sqrt(PassiveWalkHeadTrace.x(1)^2 + PassiveWalkHeadTrace.z(1)^2);; finH = sqrt(PassiveWalkHeadTrace.x(end)^2 + PassiveWalkHeadTrace.z(end)^2);
+                    encodeDriftHead = finH - initH;
+                else
+                    encodeDriftTorso = 0; encodeDriftHead = 0;
+                end 
 
                 % ---------------------------------------------------------
                 % ENSURE CONTINUOUS STATIONARY PERIOD AT (0,0,0)
                 % ---------------------------------------------------------
                 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ADD A WAY TO TRACK THE TRACES HERE!!!
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ADD PAUSE BUTTON EVERYWHEREEEEEEEE GO TO OPTITRACKBRIDGE TOO
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
                 centerThreshold = 0.35;  
-                requiredTime = 0.5;      
-                isWarningOnScreen = false; 
-
-                stationaryStartTime = GetSecs(); 
-
-                while (GetSecs() - stationaryStartTime) < requiredTime
-                    % 1. Safety Exit (Always needed in a while loop)
-                    [kd, ~, kc] = KbCheck;
-                    if kd && kc(KbName('ESCAPE')), error('User Quit'); end
-                    
-                    % ---> THE RIPCORD CHECK ADDED HERE <---
-                    if kd && kc(KbName('r')), error('Redo_Trial'); end 
-
-                    % 2. Get Position as a single array (Prevents "Too Many Arguments" error)
-                    [~, currTorsoPos, ~, ~] = OptiTrackBridge.GetOpti();
-                    currPos = currTorsoPos; % To keep your existing logic working
-                    
-                    % 3. Check for valid data (Prevents math errors on NaNs)
-                    if any(isnan(currPos))
-                        WaitSecs(0.01); 
-                        continue; 
-                    end
-
-                    % 4. Calculate distance (X and Z only for floor distance)
-                    distFromCenter = sqrt(currPos(1)^2 + currPos(3)^2); 
-                    
-                    if distFromCenter > centerThreshold
-                        % Reset the timer because they moved
-                        stationaryStartTime = GetSecs(); 
-                        
-                        if ~isWarningOnScreen
-                            DrawFormattedText(win, 'WARN PARTICIPANT: Please return to the center.', 'center', 'center', white);
-                            Screen('Flip', win); 
-                            isWarningOnScreen = true; 
-                        end
-                    else
-                        % They are back in range
-                        if isWarningOnScreen
-                            Screen('Flip', win); % Clear warning back to black
-                            isWarningOnScreen = false;
-                        end
-                    end
-                    
-                end
+                requiredTime = 0.5;
+                
+                OptiTrackBridge.startEvent(t, 'RealignWalking');
+                [RealignHeadTrace, RealignTorsoTrace] = OptiTrackBridge.WaitForRealignment(headID, torsoID, centerThreshold, requiredTime, win);
+                OptiTrackBridge.stopEvent(t, 'RealignWalk');
                 % --------------------------------------------
                     
                 % ---------------------------------------------------------
@@ -546,6 +536,10 @@ WaitSecs(0.5);
                 % ---------------------------------------------------------
                 % EVENT 3: PHYSICAL ROTATION (Encoding)
                 % ---------------------------------------------------------
+                % ===== SET PAUSE EVENT TYPE =====
+                PAUSED_EVENT_TYPE = 'EncodingRotate';
+                % =================================
+                
                 % Start MEG Trigger for Encoding
                 if ~isempty(TL), TL.startEvent(4, t, 'PhysRotateEncoding'); end
                 OptiTrackBridge.startEvent(t, 'PhysRotateEncoding');
@@ -597,6 +591,9 @@ WaitSecs(0.5);
                 % ---------------------------------------------------------
                 % EVENT 4: ROTATION TASK (Physical/Imagined)
                 % ---------------------------------------------------------
+                % ===== SET PAUSE EVENT TYPE =====
+                PAUSED_EVENT_TYPE = 'ResponseRotation';
+                % =================================
 
                 if ~isempty(TL), TL.startEvent(5, t, 'RotationProduction'); end
                 OptiTrackBridge.startEvent(t, 'RotationProduction');
@@ -656,6 +653,9 @@ WaitSecs(0.5);
                 % ---------------------------------------------------------
                 % EVENT 5: Imagine Walk
                 % ---------------------------------------------------------
+                % ===== SET PAUSE EVENT TYPE =====
+                PAUSED_EVENT_TYPE = 'ImagineWalk';
+                % =================================
 
                 if ~isempty(TL), TL.startEvent(6, t, 'ImagineWalk'); end
                 OptiTrackBridge.startEvent(t, 'ImagineWalk');
@@ -772,24 +772,60 @@ WaitSecs(0.5);
                 tracePacket.OpenEyesTorsoTrace = OpenEyesTorsoTrace;
                 tracePacket.PhysicallyWalkHeadTrace = PhysicallyWalkHeadTrace;
                 tracePacket.PhysicallyWalkTorsoTrace = PhysicallyWalkTorsoTrace;
+                tracePacket.PassiveWalkHeadTrace = PassiveWalkHeadTrace;
+                tracePacket.PassiveWalkTorsoTrace = PassiveWalkTorsoTrace;
                 tracePacket.StationaryHeadTraceOne = StationaryHeadTraceOne;
                 tracePacket.StationaryTorsoTraceOne = StationaryTorsoTraceOne;
                 tracePacket.EncodingRotateHeadTrace = EncodingRotateHeadTrace;
-                tracePacket.EncodingRotateTorsoTrace = EncodingRotateTorsoTrace;
-                tracePacket.StationaryHeadTraceTwo = StationaryHeadTraceTwo;
-                tracePacket.StationaryTorsoTraceTwo = StationaryTorsoTraceTwo;
+                tracePacket.EncodingRotateTorsoTrace = EncodingRotateTorsoTrace;                
+                tracePacket.PassiveEncodeHeadTrace = PassiveEncodeHeadTrace;
+                tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;          
                 tracePacket.ResponseRotationHeadTrace = ResponseRotationHeadTrace;
                 tracePacket.ResponseRotationTorsoTrace = ResponseRotationTorsoTrace;
-                tracePacket.ImagineWalkingHeadTrace = ImagineWalkingHeadTrace;
-                tracePacket.ImagineWalkingTorsoTrace = ImagineWalkingTorsoTrace;
-                tracePacket.StationaryHeadTraceThree = StationaryHeadTraceThree;
-                tracePacket.StationaryTorsoTraceThree = StationaryTorsoTraceThree;
-                tracePacket.PassiveEncodeHeadTrace = PassiveEncodeHeadTrace;
-                tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;
                 tracePacket.PassiveProdHeadTrace = PassiveProdHeadTrace;
                 tracePacket.PassiveProdTorsoTrace = PassiveProdTorsoTrace;
+                tracePacket.StationaryHeadTraceTwo = StationaryHeadTraceTwo;
+                tracePacket.StationaryTorsoTraceTwo = StationaryTorsoTraceTwo;
+                tracePacket.ImagineWalkingHeadTrace = ImagineWalkingHeadTrace;
+                tracePacket.ImagineWalkingTorsoTrace = ImagineWalkingTorsoTrace;                   
+                tracePacket.StationaryHeadTraceThree = StationaryHeadTraceThree;
+                tracePacket.StationaryTorsoTraceThree = StationaryTorsoTraceThree;
                 tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
                 tracePacket.CloseEyesTorsoTrace = CloseEyesTorsoTrace;
+
+                % ===== EXTRACT PAUSED TRACES FROM BUFFER =====
+                global PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
+                if ~isempty(PAUSED_MOTION_BUFFER.frames)
+                    [pausedHead, pausedTorso] = OptiTrackBridge.ExtractPausedTraces();
+                    
+                    % Store in correct variables based on event type
+                    switch PAUSED_EVENT_TYPE
+                        case 'PhysicalWalk'
+                            PausedPhysicallyWalkHeadTrace = pausedHead;
+                            PausedPhysicallyWalkTorsoTrace = pausedTorso;
+                        case 'EncodingRotate'
+                            PausedEncodingRotateHeadTrace = pausedHead;
+                            PausedEncodingRotateTorsoTrace = pausedTorso;
+                        case 'ResponseRotation'
+                            PausedResponseRotationHeadTrace = pausedHead;
+                            PausedResponseRotationTorsoTrace = pausedTorso;
+                        case 'ImagineWalk'
+                            PausedImagineWalkingHeadTrace = pausedHead;
+                            PausedImagineWalkingTorsoTrace = pausedTorso;
+                    end
+                end
+                % =============================================
+
+                % ===== ADD PAUSED TRACES TO PACKET =====
+                tracePacket.PausedPhysicallyWalkHeadTrace = PausedPhysicallyWalkHeadTrace;
+                tracePacket.PausedPhysicallyWalkTorsoTrace = PausedPhysicallyWalkTorsoTrace;
+                tracePacket.PausedEncodingRotateHeadTrace = PausedEncodingRotateHeadTrace;
+                tracePacket.PausedEncodingRotateTorsoTrace = PausedEncodingRotateTorsoTrace;
+                tracePacket.PausedResponseRotationHeadTrace = PausedResponseRotationHeadTrace;
+                tracePacket.PausedResponseRotationTorsoTrace = PausedResponseRotationTorsoTrace;
+                tracePacket.PausedImagineWalkingHeadTrace = PausedImagineWalkingHeadTrace;
+                tracePacket.PausedImagineWalkingTorsoTrace = PausedImagineWalkingTorsoTrace;
+                % ========================================
 
                 % Attach the traces and move to the next empty slot
                 MasterData(masterIdx).Traces = tracePacket;
@@ -841,24 +877,60 @@ WaitSecs(0.5);
                 tracePacket.OpenEyesTorsoTrace = OpenEyesTorsoTrace;
                 tracePacket.PhysicallyWalkHeadTrace = PhysicallyWalkHeadTrace;
                 tracePacket.PhysicallyWalkTorsoTrace = PhysicallyWalkTorsoTrace;
+                tracePacket.PassiveWalkHeadTrace = PassiveWalkHeadTrace;
+                tracePacket.PassiveWalkTorsoTrace = PassiveWalkTorsoTrace;
                 tracePacket.StationaryHeadTraceOne = StationaryHeadTraceOne;
                 tracePacket.StationaryTorsoTraceOne = StationaryTorsoTraceOne;
                 tracePacket.EncodingRotateHeadTrace = EncodingRotateHeadTrace;
-                tracePacket.EncodingRotateTorsoTrace = EncodingRotateTorsoTrace;
-                tracePacket.StationaryHeadTraceTwo = StationaryHeadTraceTwo;
-                tracePacket.StationaryTorsoTraceTwo = StationaryTorsoTraceTwo;
+                tracePacket.EncodingRotateTorsoTrace = EncodingRotateTorsoTrace;                
+                tracePacket.PassiveEncodeHeadTrace = PassiveEncodeHeadTrace;
+                tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;          
                 tracePacket.ResponseRotationHeadTrace = ResponseRotationHeadTrace;
                 tracePacket.ResponseRotationTorsoTrace = ResponseRotationTorsoTrace;
-                tracePacket.ImagineWalkingHeadTrace = ImagineWalkingHeadTrace;
-                tracePacket.ImagineWalkingTorsoTrace = ImagineWalkingTorsoTrace;
-                tracePacket.StationaryHeadTraceThree = StationaryHeadTraceThree;
-                tracePacket.StationaryTorsoTraceThree = StationaryTorsoTraceThree;
-                tracePacket.PassiveEncodeHeadTrace = PassiveEncodeHeadTrace;
-                tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;
                 tracePacket.PassiveProdHeadTrace = PassiveProdHeadTrace;
                 tracePacket.PassiveProdTorsoTrace = PassiveProdTorsoTrace;
+                tracePacket.StationaryHeadTraceTwo = StationaryHeadTraceTwo;
+                tracePacket.StationaryTorsoTraceTwo = StationaryTorsoTraceTwo;
+                tracePacket.ImagineWalkingHeadTrace = ImagineWalkingHeadTrace;
+                tracePacket.ImagineWalkingTorsoTrace = ImagineWalkingTorsoTrace;                   
+                tracePacket.StationaryHeadTraceThree = StationaryHeadTraceThree;
+                tracePacket.StationaryTorsoTraceThree = StationaryTorsoTraceThree;
                 tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
                 tracePacket.CloseEyesTorsoTrace = CloseEyesTorsoTrace;
+
+                % ===== EXTRACT PAUSED TRACES FROM BUFFER (FOR REDO) =====
+                global PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
+                if ~isempty(PAUSED_MOTION_BUFFER.frames)
+                    [pausedHead, pausedTorso] = OptiTrackBridge.ExtractPausedTraces();
+                    
+                    % Store in correct variables based on event type
+                    switch PAUSED_EVENT_TYPE
+                        case 'PhysicalWalk'
+                            PausedPhysicallyWalkHeadTrace = pausedHead;
+                            PausedPhysicallyWalkTorsoTrace = pausedTorso;
+                        case 'EncodingRotate'
+                            PausedEncodingRotateHeadTrace = pausedHead;
+                            PausedEncodingRotateTorsoTrace = pausedTorso;
+                        case 'ResponseRotation'
+                            PausedResponseRotationHeadTrace = pausedHead;
+                            PausedResponseRotationTorsoTrace = pausedTorso;
+                        case 'ImagineWalk'
+                            PausedImagineWalkingHeadTrace = pausedHead;
+                            PausedImagineWalkingTorsoTrace = pausedTorso;
+                    end
+                end
+                % ===========================================================
+
+                % ===== ADD PAUSED TRACES TO PACKET (FOR REDO) =====
+                tracePacket.PausedPhysicallyWalkHeadTrace = PausedPhysicallyWalkHeadTrace;
+                tracePacket.PausedPhysicallyWalkTorsoTrace = PausedPhysicallyWalkTorsoTrace;
+                tracePacket.PausedEncodingRotateHeadTrace = PausedEncodingRotateHeadTrace;
+                tracePacket.PausedEncodingRotateTorsoTrace = PausedEncodingRotateTorsoTrace;
+                tracePacket.PausedResponseRotationHeadTrace = PausedResponseRotationHeadTrace;
+                tracePacket.PausedResponseRotationTorsoTrace = PausedResponseRotationTorsoTrace;
+                tracePacket.PausedImagineWalkingHeadTrace = PausedImagineWalkingHeadTrace;
+                tracePacket.PausedImagineWalkingTorsoTrace = PausedImagineWalkingTorsoTrace;
+                % =====================================================
 
                 MasterData(masterIdx).Traces = tracePacket;
                 masterIdx = masterIdx + 1; 
@@ -875,8 +947,8 @@ WaitSecs(0.5);
                     play_sound_blocking(pahandle, audioData.Restart);
                     WaitSecs(2.0); 
                     
-                    continue; 
-                    
+                    continue;
+
                 else
                     rethrow(ME); % Normal MATLAB error handling
                 end

@@ -298,9 +298,27 @@ classdef OptiTrackBridge
             idx = 1;
 
             while true
+                global PAUSE_ACTIVE
                 [kd, ~, kc] = KbCheck;
                 if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                 if kd && kc(KbName('r')), error('Redo_Trial'); end 
+                % ===== PAUSE TOGGLE WITH MEG + EVENT LOGGING (NON-INTERRUPTING) =====
+                if kd && kc(KbName('p'))
+                    global TL t
+                    if ~PAUSE_ACTIVE
+                        % PAUSE: Log to MEG and OptiTrack
+                        PAUSE_ACTIVE = true;
+                        if ~isempty(TL), TL.pauseIndicatorStart(t); end
+                        OptiTrackBridge.startEvent(t, 'Pause');
+                    else
+                        % RESUME: Log to MEG and OptiTrack
+                        PAUSE_ACTIVE = false;
+                        OptiTrackBridge.stopEvent(t, 'Pause');
+                        if ~isempty(TL), TL.pauseIndicatorEnd(1, t, 'PauseResume'); end
+                    end
+                    WaitSecs(0.3);  % debounce
+                end
+                % ===================================================================
 
                 % Pull data in a single synchronized call
                 [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
@@ -334,8 +352,18 @@ classdef OptiTrackBridge
                     idx = idx + 1;                      
                 end
                 
-                msg = sprintf('Walk to Start\nDistance: %.2fm', distToCenter);
-                DrawFormattedText(win, msg, 'center', 'center', white);
+                % ===== DISPLAY: Check pause status =====
+                if PAUSE_ACTIVE
+                    pauseStatus = ' [PAUSED]';
+                    pauseColor = [255 255 0];
+                else
+                    pauseStatus = '';
+                    pauseColor = white;
+                end
+                % =========================================
+                
+                msg = sprintf('Walk to Start\nDistance: %.2fm%s', distToCenter, pauseStatus);
+                DrawFormattedText(win, msg, 'center', 'center', pauseColor);
                 
                 if inSemiCircle
                     color = [0 255 0];
@@ -347,11 +375,13 @@ classdef OptiTrackBridge
                 Screen('FillArc', win, color, centeredRect + [0 100 0 100], 270, 180);
                 Screen('Flip', win); 
 
-                if inSemiCircle
+                % ===== GOAL CHECK: Only advance if NOT paused =====
+                if ~PAUSE_ACTIVE && inSemiCircle
                     DrawFormattedText(win, 'Hold Position...', 'center', 'center', [0 255 0]);
                     Screen('Flip', win);
                     break;
                 end
+                % ==================================================
             end
             
             n = idx - 1; t = tData(1:n);
@@ -417,9 +447,27 @@ classdef OptiTrackBridge
                 KbReleaseWait;
                 
                 while true
+                    global PAUSE_ACTIVE
                     [kd, ~, kc] = KbCheck;
                     if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                     if kd && kc(KbName('r')), error('Redo_Trial'); end 
+                    % ===== PAUSE TOGGLE WITH MEG + EVENT LOGGING (NON-INTERRUPTING) =====
+                    if kd && kc(KbName('p'))
+                        global TL t
+                        if ~PAUSE_ACTIVE
+                            % PAUSE: Log to MEG and OptiTrack
+                            PAUSE_ACTIVE = true;
+                            if ~isempty(TL), TL.pauseIndicatorStart(t); end
+                            OptiTrackBridge.startEvent(t, 'Pause');
+                        else
+                            % RESUME: Log to MEG and OptiTrack
+                            PAUSE_ACTIVE = false;
+                            OptiTrackBridge.stopEvent(t, 'Pause');
+                            if ~isempty(TL), TL.pauseIndicatorEnd(1, t, 'PauseResume'); end
+                        end
+                        WaitSecs(0.3);  % debounce
+                    end
+                    % ===================================================================
                     
                     [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
                     
@@ -455,12 +503,23 @@ classdef OptiTrackBridge
                     accumulatedTurn = accumulatedTurn + delta; 
                     prevTorsoYaw = currTorsoYaw;
 
+                    % ===== DISPLAY: Check pause status =====
+                    if PAUSE_ACTIVE
+                        pauseStatus = ' [PAUSED]';
+                        pauseColor = [255 255 0];
+                    else
+                        pauseStatus = '';
+                        pauseColor = white;
+                    end
+                    % =========================================
+                    
                     remaining = targetDeg - abs(accumulatedTurn);
-                    msg = sprintf('Turn Body: %.1f / %.1f\nRemaining: %.1f', abs(accumulatedTurn), targetDeg, max(0, remaining));
-                    DrawFormattedText(win, msg, 'center', 'center', white);
+                    msg = sprintf('Turn Body: %.1f / %.1f\nRemaining: %.1f%s', abs(accumulatedTurn), targetDeg, max(0, remaining), pauseStatus);
+                    DrawFormattedText(win, msg, 'center', 'center', pauseColor);
                     Screen('Flip', win);
 
-                    if abs(accumulatedTurn) >= targetDeg
+                    % ===== GOAL CHECK: Only complete if NOT paused =====
+                    if ~PAUSE_ACTIVE && abs(accumulatedTurn) >= targetDeg
                         turnedLeftCorrectly  = strcmpi(dirCode, 'L') && (accumulatedTurn >= targetDeg);
                         turnedRightCorrectly = strcmpi(dirCode, 'R') && (accumulatedTurn <= -targetDeg);
                         
@@ -476,6 +535,7 @@ classdef OptiTrackBridge
                             break;
                         end
                     end
+                    % ===================================================
                 end
             end
             
@@ -532,9 +592,27 @@ classdef OptiTrackBridge
             KbReleaseWait;
 
             while true
+                global PAUSE_ACTIVE
                 [kd, ~, kc] = KbCheck;
                 if kd && any(kc(escKey)), error('User Quit'); end
                 if kd && any(kc(rKey)), error('Redo_Trial'); end 
+                % ===== PAUSE TOGGLE WITH MEG + EVENT LOGGING (NON-INTERRUPTING) =====
+                if kd && any(kc(KbName('p')))
+                    global TL t
+                    if ~PAUSE_ACTIVE
+                        % PAUSE: Log to MEG and OptiTrack
+                        PAUSE_ACTIVE = true;
+                        if ~isempty(TL), TL.pauseIndicatorStart(t); end
+                        OptiTrackBridge.startEvent(t, 'Pause');
+                    else
+                        % RESUME: Log to MEG and OptiTrack
+                        PAUSE_ACTIVE = false;
+                        OptiTrackBridge.stopEvent(t, 'Pause');
+                        if ~isempty(TL), TL.pauseIndicatorEnd(1, t, 'PauseResume'); end
+                    end
+                    WaitSecs(0.3);  % debounce
+                end
+                % ===================================================================
                 if kd && any(kc(targetKey)), break; end
                 
                 [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
@@ -644,6 +722,140 @@ classdef OptiTrackBridge
         end
 
         % ---------------------------------------------------------
+        % WAIT FOR REALIGNMENT (Stationary center check with traces)
+        % ---------------------------------------------------------
+        function [headTrace, torsoTrace] = WaitForRealignment(headID, torsoID, centerThreshold, requiredTime, win)
+            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
+            
+            if OP_BRIDGE_STATE.IsDummy
+                WaitSecs(requiredTime);
+                headTrace = OptiTrackBridge.EmptyTrace();
+                torsoTrace = OptiTrackBridge.EmptyTrace();
+                return;
+            end
+            
+            white = WhiteIndex(win);
+            isWarningOnScreen = false;
+            stationaryStartTime = GetSecs();
+            
+            maxSamples = 10000;
+            tData = nan(maxSamples, 1);
+            hxData = nan(maxSamples, 1); hyData = nan(maxSamples, 1); hzData = nan(maxSamples, 1);
+            hrollData = nan(maxSamples, 1); hpitchData = nan(maxSamples, 1); hyawData = nan(maxSamples, 1);
+            herrData = nan(maxSamples, 1);
+            txData = nan(maxSamples, 1); tyData = nan(maxSamples, 1); tzData = nan(maxSamples, 1);
+            trollData = nan(maxSamples, 1); tpitchData = nan(maxSamples, 1); tyawData = nan(maxSamples, 1);
+            terrData = nan(maxSamples, 1);
+            idx = 1;
+            
+            consecutiveNaNFrames = 0;
+            maxConsecutiveNaN = 50;
+            
+            while (GetSecs() - stationaryStartTime) < requiredTime
+                
+                [kd, ~, kc] = KbCheck;
+                if kd && kc(KbName('ESCAPE')), error('User Quit'); end
+                if kd && kc(KbName('r')), error('Redo_Trial'); end
+                
+                [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
+                
+                if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
+                    consecutiveNaNFrames = consecutiveNaNFrames + 1;
+                    if consecutiveNaNFrames > maxConsecutiveNaN
+                        error('Realignment_TrackingLost: Tracking lost for too long. Adjust markers or reposition.');
+                    end
+                    WaitSecs(0.01);
+                    continue;
+                end
+                
+                consecutiveNaNFrames = 0;
+                
+                if idx <= maxSamples
+                    if OP_BRIDGE_STATE.MotiveT0 > 0
+                        tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                    elseif ~isempty(OP_CONTINUOUS_BUFFER.frames) && length(OP_CONTINUOUS_BUFFER.frames) > 0
+                        tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.frames{1}.rawTimestamp;
+                    else
+                        tData(idx) = frameTimestamp;
+                    end
+                    hxData(idx) = currHeadPos(1); hyData(idx) = currHeadPos(2); hzData(idx) = currHeadPos(3);
+                    hrollData(idx) = currHeadEuler(1); hpitchData(idx) = currHeadEuler(2); hyawData(idx) = currHeadEuler(3);
+                    herrData(idx) = currHeadErr;
+                    txData(idx) = currTorsoPos(1); tyData(idx) = currTorsoPos(2); tzData(idx) = currTorsoPos(3);
+                    trollData(idx) = currTorsoEuler(1); tpitchData(idx) = currTorsoEuler(2); tyawData(idx) = currTorsoEuler(3);
+                    terrData(idx) = currTorsoErr;
+                    idx = idx + 1;
+                end
+                
+                distFromCenter = sqrt(currTorsoPos(1)^2 + currTorsoPos(3)^2);
+                
+                if distFromCenter > centerThreshold
+                    stationaryStartTime = GetSecs();
+                    if ~isWarningOnScreen
+                        DrawFormattedText(win, 'WARN PARTICIPANT: Please return to the center.', 'center', 'center', white);
+                        Screen('Flip', win);
+                        isWarningOnScreen = true;
+                    end
+                else
+                    if isWarningOnScreen
+                        Screen('Flip', win);
+                        isWarningOnScreen = false;
+                    end
+                end
+                
+                WaitSecs(0.01);
+            end
+            
+            n = idx - 1;
+            t = tData(1:n);
+            
+            headTrace.time = t; headTrace.x = hxData(1:n); headTrace.y = hyData(1:n); headTrace.z = hzData(1:n);
+            headTrace.roll = hrollData(1:n); headTrace.pitch = hpitchData(1:n); headTrace.yaw = hyawData(1:n); headTrace.error = herrData(1:n);
+            
+            torsoTrace.time = t; torsoTrace.x = txData(1:n); torsoTrace.y = tyData(1:n); torsoTrace.z = tzData(1:n);
+            torsoTrace.roll = trollData(1:n); torsoTrace.pitch = tpitchData(1:n); torsoTrace.yaw = tyawData(1:n); torsoTrace.error = terrData(1:n);
+        end
+
+        % ---------------------------------------------------------
+        % EXTRACT PAUSED TRACES FROM BUFFER (NON-BLOCKING PAUSE SYSTEM)
+        % ---------------------------------------------------------
+        function [headTrace, torsoTrace] = ExtractPausedTraces()
+            global PAUSED_MOTION_BUFFER
+            
+            if isempty(PAUSED_MOTION_BUFFER.frames)
+                headTrace = OptiTrackBridge.EmptyTrace();
+                torsoTrace = OptiTrackBridge.EmptyTrace();
+                return;
+            end
+            
+            n = length(PAUSED_MOTION_BUFFER.frames);
+            tData = nan(n, 1);
+            hxData = nan(n, 1); hyData = nan(n, 1); hzData = nan(n, 1);
+            hrollData = nan(n, 1); hpitchData = nan(n, 1); hyawData = nan(n, 1);
+            herrData = nan(n, 1);
+            txData = nan(n, 1); tyData = nan(n, 1); tzData = nan(n, 1);
+            trollData = nan(n, 1); tpitchData = nan(n, 1); tyawData = nan(n, 1);
+            terrData = nan(n, 1);
+            
+            for i = 1:n
+                frame = PAUSED_MOTION_BUFFER.frames{i};
+                tData(i) = frame.time;
+                hxData(i) = frame.headPos(1); hyData(i) = frame.headPos(2); hzData(i) = frame.headPos(3);
+                hrollData(i) = frame.headEuler(1); hpitchData(i) = frame.headEuler(2); hyawData(i) = frame.headEuler(3);
+                herrData(i) = frame.headErr;
+                txData(i) = frame.torsoPos(1); tyData(i) = frame.torsoPos(2); tzData(i) = frame.torsoPos(3);
+                trollData(i) = frame.torsoEuler(1); tpitchData(i) = frame.torsoEuler(2); tyawData(i) = frame.torsoEuler(3);
+                terrData(i) = frame.torsoErr;
+            end
+            
+            headTrace.time = tData; headTrace.x = hxData; headTrace.y = hyData; headTrace.z = hzData;
+            headTrace.roll = hrollData; headTrace.pitch = hpitchData; headTrace.yaw = hyawData; headTrace.error = herrData;
+            
+            torsoTrace.time = tData; torsoTrace.x = txData; torsoTrace.y = tyData; torsoTrace.z = tzData;
+            torsoTrace.roll = trollData; torsoTrace.pitch = tpitchData; torsoTrace.yaw = tyawData; torsoTrace.error = terrData;
+        end
+
+        % ---------------------------------------------------------
         % UNIFIED DATA EXTRACTION HELPER
         % ---------------------------------------------------------
         function [headPos, torsoPos, headEuler, torsoEuler, headErr, torsoErr, frameTimestamp] = GetDualData()
@@ -729,6 +941,34 @@ classdef OptiTrackBridge
                         OP_CONTINUOUS_BUFFER.frames{end+1} = frame;
                     end
                 end
+                
+                % ===== NEW: Append to paused motion buffer if pause is active =====
+                global PAUSE_ACTIVE PAUSED_MOTION_BUFFER
+                if PAUSE_ACTIVE && ~isempty(PAUSED_MOTION_BUFFER)
+                    if ~any(isnan(headPos)) && ~any(isnan(torsoPos))
+                        frame = struct();
+                        frame.rawTimestamp = frameTimestamp;
+                        frame.headPos = headPos;
+                        frame.torsoPos = torsoPos;
+                        frame.headEuler = headEuler;
+                        frame.torsoEuler = torsoEuler;
+                        frame.headErr = headErr;
+                        frame.torsoErr = torsoErr;
+                        
+                        if OP_BRIDGE_STATE.MotiveT0 > 0
+                            frame.time = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                        else
+                            if isempty(PAUSED_MOTION_BUFFER.frames)
+                                frame.time = 0;
+                            else
+                                frame.time = frameTimestamp - PAUSED_MOTION_BUFFER.frames{1}.rawTimestamp;
+                            end
+                        end
+                        
+                        PAUSED_MOTION_BUFFER.frames{end+1} = frame;
+                    end
+                end
+                % ==================================================================
                 
             catch ME
                 disp(['Data Extraction Error: ', ME.message]);

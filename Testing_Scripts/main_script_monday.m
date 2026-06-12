@@ -360,7 +360,11 @@ results = table();
         
         % Initialize paused motion buffer for this trial
         global PAUSED_MOTION_BUFFER
-        PAUSED_MOTION_BUFFER.frames = [];      
+        PAUSED_MOTION_BUFFER.frames = [];
+        
+        % Track whether pause was invoked during this trial
+        global PAUSE_CALLED
+        PAUSE_CALLED = false;
 
         while ~trialAccepted 
             
@@ -473,7 +477,12 @@ results = table();
                 walkTime = GetSecs() - walkStartTime; 
                 
                 % 5. Immediately tell them to stop
-                play_sound_blocking(pahandle, audioData.stop); 
+                play_sound_blocking(pahandle, audioData.stop);
+                
+                % Calculate horizontal plane distance from center at end of walk
+                % (Used for assessing accuracy: how close to origin they achieved)
+                headDistFromCenter = sqrt(currHeadPos(1)^2 + currHeadPos(3)^2);
+                torsoDistFromCenter = sqrt(currTorsoPos(1)^2 + currTorsoPos(3)^2); 
                 
                 if ~isempty(TL), TL.stopEvent(3, t, 'PhysWalk'); end
                 OptiTrackBridge.stopEvent(t, 'PhysWalk');
@@ -747,10 +756,10 @@ results = table();
                 %  Added missing comma after 'DistanceFromCent'
                 newRow = table(trueTrial, {participantPosition}, {dirCode}, {typeCode}, {qCode}, storedTargetDeg, targetDist,...
                     walkDistTorso, walkDistHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
-                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {statusStr}, ...
+                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, headDistFromCenter, torsoDistFromCenter, PAUSE_CALLED, {statusStr}, ...
                     'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
                     'WalkDistTorso','WalkDistHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
-                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'Status'});
+                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'PauseCalled', 'Status'});
                 
                 results = [results; newRow];
                 writetable(results, dataFile);
@@ -764,6 +773,9 @@ results = table();
                 MasterData(masterIdx).TargetDeg  = storedTargetDeg;
                 MasterData(masterIdx).TargetDist  = targetDist;
                 MasterData(masterIdx).TaskType   = typeCode;
+                MasterData(masterIdx).HeadDistFromCenter = headDistFromCenter;
+                MasterData(masterIdx).TorsoDistFromCenter = torsoDistFromCenter;
+                MasterData(masterIdx).PauseCalled = PAUSE_CALLED;
                 MasterData(masterIdx).Status     = statusStr;
 
                 % Create a sub-folder just for the traces
@@ -852,10 +864,10 @@ results = table();
 
                     newRow = table(trueTrial, {participantPosition}, {dirCode}, {typeCode}, {qCode}, storedTargetDeg, targetDist, ...
                         walkDistTorso, walkDistHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
-                        encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {statusStr}, ...
+                        encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, headDistFromCenter, torsoDistFromCenter, PAUSE_CALLED, {statusStr}, ...
                         'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
                         'WalkDistTorso','WalkDistHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
-                        'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'Status'});
+                        'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'PauseCalled', 'Status'});
                     
                     results = [results; newRow];
                     writetable(results, dataFile);
@@ -869,6 +881,9 @@ results = table();
                 MasterData(masterIdx).TargetDeg  = storedTargetDeg;
                 MasterData(masterIdx).TargetDist  = targetDist;
                 MasterData(masterIdx).TaskType   = typeCode;
+                MasterData(masterIdx).HeadDistFromCenter = headDistFromCenter;
+                MasterData(masterIdx).TorsoDistFromCenter = torsoDistFromCenter;
+                MasterData(masterIdx).PauseCalled = PAUSE_CALLED;
                 MasterData(masterIdx).Status     = statusStr;
 
                 % Create a sub-folder just for the traces

@@ -304,10 +304,11 @@ classdef OptiTrackBridge
                 if kd && kc(KbName('r')), error('Redo_Trial'); end 
                 % ===== PAUSE TOGGLE WITH MEG + EVENT LOGGING (NON-INTERRUPTING) =====
                 if kd && kc(KbName('p'))
-                    global TL t
+                    global TL t PAUSE_CALLED
                     if ~PAUSE_ACTIVE
                         % PAUSE: Log to MEG and OptiTrack
                         PAUSE_ACTIVE = true;
+                        PAUSE_CALLED = true;  % Mark that pause was invoked this trial
                         if ~isempty(TL), TL.pauseIndicatorStart(t); end
                         OptiTrackBridge.startEvent(t, 'Pause');
                     else
@@ -453,10 +454,11 @@ classdef OptiTrackBridge
                     if kd && kc(KbName('r')), error('Redo_Trial'); end 
                     % ===== PAUSE TOGGLE WITH MEG + EVENT LOGGING (NON-INTERRUPTING) =====
                     if kd && kc(KbName('p'))
-                        global TL t
+                        global TL t PAUSE_CALLED
                         if ~PAUSE_ACTIVE
                             % PAUSE: Log to MEG and OptiTrack
                             PAUSE_ACTIVE = true;
+                            PAUSE_CALLED = true;  % Mark that pause was invoked this trial
                             if ~isempty(TL), TL.pauseIndicatorStart(t); end
                             OptiTrackBridge.startEvent(t, 'Pause');
                         else
@@ -598,10 +600,11 @@ classdef OptiTrackBridge
                 if kd && any(kc(rKey)), error('Redo_Trial'); end 
                 % ===== PAUSE TOGGLE WITH MEG + EVENT LOGGING (NON-INTERRUPTING) =====
                 if kd && any(kc(KbName('p')))
-                    global TL t
+                    global TL t PAUSE_CALLED
                     if ~PAUSE_ACTIVE
                         % PAUSE: Log to MEG and OptiTrack
                         PAUSE_ACTIVE = true;
+                        PAUSE_CALLED = true;  % Mark that pause was invoked this trial
                         if ~isempty(TL), TL.pauseIndicatorStart(t); end
                         OptiTrackBridge.startEvent(t, 'Pause');
                     else

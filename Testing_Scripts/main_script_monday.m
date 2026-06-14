@@ -210,7 +210,7 @@ end
 % Global variables to track pause state
 global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
 PAUSE_ACTIVE = false;           % true when paused, false when running
-PAUSED_MOTION_BUFFER.frames = []; % Will store motion data during pause
+PAUSED_MOTION_BUFFER.frames = {}; % Will store motion data during pause
 PAUSED_EVENT_TYPE = '';         % Tracks which event is being paused
 % =========================================================
 
@@ -362,7 +362,7 @@ global t TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
         
         % Initialize paused motion buffer for this trial
         global PAUSED_MOTION_BUFFER
-        PAUSED_MOTION_BUFFER.frames = [];
+        PAUSED_MOTION_BUFFER.frames = {};
         
         % Track whether pause was invoked during this trial
         global PAUSE_CALLED
@@ -491,10 +491,12 @@ global t TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 
                 if ~isempty(PassiveWalkTorsoTrace.yaw)
                     % Calculate shortest path drift (handles 360-degree wrap around)
-                    initT = sqrt(PassiveWalkTorsoTrace.x(1)^2 + PassiveWalkTorsoTrace.z(1)^2);; finT = sqrt(PassiveWalkTorsoTrace.x(end)^2 + PassiveWalkTorsoTrace.z(end)^2);
+                    initT = sqrt(PassiveWalkTorsoTrace.x(1)^2 + PassiveWalkTorsoTrace.z(1)^2);
+                    finT = sqrt(PassiveWalkTorsoTrace.x(end)^2 + PassiveWalkTorsoTrace.z(end)^2);
                     encodeDriftTorso = finT - initT;
                     
-                    initH = sqrt(PassiveWalkHeadTrace.x(1)^2 + PassiveWalkHeadTrace.z(1)^2);; finH = sqrt(PassiveWalkHeadTrace.x(end)^2 + PassiveWalkHeadTrace.z(end)^2);
+                    initH = sqrt(PassiveWalkHeadTrace.x(1)^2 + PassiveWalkHeadTrace.z(1)^2);
+                    finH = sqrt(PassiveWalkHeadTrace.x(end)^2 + PassiveWalkHeadTrace.z(end)^2);
                     encodeDriftHead = finH - initH;
                 else
                     encodeDriftTorso = 0; encodeDriftHead = 0;

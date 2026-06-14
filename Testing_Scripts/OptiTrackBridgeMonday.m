@@ -256,7 +256,7 @@ classdef OptiTrackBridge
         % ---------------------------------------------------------
         % WAIT FOR WALK END / ORIGIN
         % ---------------------------------------------------------
-        function [distWalkedTorso, distWalkedHead, headTrace, torsoTrace] = WaitForWalkEnd(headID, torsoID, win, tolerance)
+        function [distWalkedTorso, distWalkedHead, headDistFromCenter, torsoDistFromCenter, headTrace, torsoTrace] = WaitForWalkEnd(headID, torsoID, win, tolerance)
             global OP_BRIDGE_STATE
             if nargin < 4, tolerance = 0.10; end 
             
@@ -395,6 +395,9 @@ classdef OptiTrackBridge
 
             distWalkedTorso = sqrt((currTorsoPos(1) - startTorsoPos(1))^2 + (currTorsoPos(3) - startTorsoPos(3))^2);
             distWalkedHead = sqrt((currHeadPos(1) - startHeadPos(1))^2 + (currHeadPos(3) - startHeadPos(3))^2);
+
+            headDistFromCenter = sqrt(currHeadPos(1)^2 + currHeadPos(3)^2);
+            torsoDistFromCenter = sqrt(currTorsoPos(1)^2 + currTorsoPos(3)^2);
         end
 
         % ---------------------------------------------------------

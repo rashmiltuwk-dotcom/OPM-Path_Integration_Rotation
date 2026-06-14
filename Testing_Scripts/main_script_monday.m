@@ -362,11 +362,12 @@ global t TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
         
         % Initialize paused motion buffer for this trial
         global PAUSED_MOTION_BUFFER
-        PAUSED_MOTION_BUFFER.frames = {};
         
-        % Track whether pause was invoked during this trial
-        global PAUSE_CALLED
+        % Reset pause state for this trial (guards against accumulation)
+        PAUSE_ACTIVE = false;
+        PAUSED_MOTION_BUFFER.frames = {};
         PAUSE_CALLED = false;
+        PAUSED_EVENT_TYPE = '';
 
         while ~trialAccepted 
             

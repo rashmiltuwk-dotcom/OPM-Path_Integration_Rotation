@@ -107,7 +107,7 @@ masterIdx = 1;
 
 % Initialize the custom TriggerLogger class. 
 % This creates a digital record of every pulse sent to the MEG room.
-global TL
+
 
 % If this code does not work, try uncommenting the line below and commenting out the try-catch block
 % try
@@ -348,6 +348,7 @@ results = table();
     wait_key('space');   % Custom function: wait for keyboard input
 
 % --- BEGIN TRIAL ITERATION ---
+global t TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
     for t = 1:size(trials, 1) % This will run exactly 8 times per run (1 BLOCK)
         
         % Make trial number and TriggerLogger accessible to event functions
@@ -471,7 +472,7 @@ results = table();
                 % 3. Track them until they hit the (0,0) coordinate
                 % UPDATED: Now capturing 'walkTraces' alongside distance
                 % NOTE: Pause checks run in background but don't interrupt data collection
-                [walkDistTorso, walkDistHead, PhysicallyWalkHeadTrace, PhysicallyWalkTorsoTrace] = OptiTrackBridge.WaitForWalkEnd(headID, torsoID, win);
+                [walkDistTorso, walkDistHead, headDistFromCenter, torsoDistFromCenter, PhysicallyWalkHeadTrace, PhysicallyWalkTorsoTrace] = OptiTrackBridge.WaitForWalkEnd(headID, torsoID, win);
                 
                 % 4. STOP THE TIMER: Record exactly how long it took
                 walkTime = GetSecs() - walkStartTime; 
@@ -479,10 +480,6 @@ results = table();
                 % 5. Immediately tell them to stop
                 play_sound_blocking(pahandle, audioData.stop);
                 
-                % Calculate horizontal plane distance from center at end of walk
-                % (Used for assessing accuracy: how close to origin they achieved)
-                headDistFromCenter = sqrt(currHeadPos(1)^2 + currHeadPos(3)^2);
-                torsoDistFromCenter = sqrt(currTorsoPos(1)^2 + currTorsoPos(3)^2); 
                 
                 if ~isempty(TL), TL.stopEvent(3, t, 'PhysWalk'); end
                 OptiTrackBridge.stopEvent(t, 'PhysWalk');

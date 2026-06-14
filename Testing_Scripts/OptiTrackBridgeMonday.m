@@ -804,8 +804,7 @@ classdef OptiTrackBridge
             terrData = nan(maxSamples, 1);
             idx = 1;
             
-            consecutiveNaNFrames = 0;
-            maxConsecutiveNaN = 50;
+
             
             while (GetSecs() - stationaryStartTime) < requiredTime
                 
@@ -816,15 +815,13 @@ classdef OptiTrackBridge
                 [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
                 
                 if any(isnan(currHeadPos)) || any(isnan(currTorsoPos))
-                    consecutiveNaNFrames = consecutiveNaNFrames + 1;
-                    if consecutiveNaNFrames > maxConsecutiveNaN
-                        error('Realignment_TrackingLost: Tracking lost for too long. Adjust markers or reposition.');
-                    end
+
+                    
                     WaitSecs(0.01);
                     continue;
                 end
                 
-                consecutiveNaNFrames = 0;
+
                 
                 if idx <= maxSamples
                     if OP_BRIDGE_STATE.MotiveT0 > 0

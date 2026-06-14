@@ -353,7 +353,7 @@ global t TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
     for t = 1:size(trials, 1) % This will run exactly 8 times per run (1 BLOCK)
         
         % Make trial number and TriggerLogger accessible to event functions
-        global t TL
+        global t TL trueTrial
 
     trueTrial = startRow + t - 1;
         
@@ -363,13 +363,14 @@ global t TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
         % Initialize paused motion buffer for this trial
         global PAUSED_MOTION_BUFFER
         
-        % Reset pause state for this trial (guards against accumulation)
-        PAUSE_ACTIVE = false;
-        PAUSED_MOTION_BUFFER.frames = {};
-        PAUSE_CALLED = false;
-        PAUSED_EVENT_TYPE = '';
 
-        while ~trialAccepted 
+        while ~trialAccepted
+
+            % Reset pause state for this trial (guards against accumulation)
+            PAUSE_ACTIVE = false;
+            PAUSED_MOTION_BUFFER.frames = {};
+            PAUSE_CALLED = false;
+            PAUSED_EVENT_TYPE = '';
             
             % 1. CRITICAL: PRE-ALLOCATE VARIABLES FIRST
             [walkDistTorso, walkDistHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...

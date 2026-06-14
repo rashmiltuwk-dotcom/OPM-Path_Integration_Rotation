@@ -333,7 +333,9 @@ results = table();
 % ---------------------------------------------------------
 % 4. MAIN LOOP (Trial Execution)
 % ---------------------------------------------------------
-
+    % Create cleanup object that ALWAYS executes when script exits
+    cleanup = onCleanup(@() GuaranteedCleanup());
+    
     try % [MATLAB] Safety "Net": If anything fails, it jumps to the catch block at the end.
 
     % --- START CONTINUOUS TRACKING ---
@@ -1091,4 +1093,76 @@ end
             end
         end
     end
+end
+
+function GuaranteedCleanup()
+    global TL PAUSED_MOTION_BUFFER PAUSE_ACTIVE PAUSED_EVENT_TYPE
+    
+    fprintf('\n>>> CLEANUP TRIGGERED (ESCAPE or ERROR) <<<\n');
+    
+    % 1. Extract any paused data BEFORE closing hardware
+    try
+        if ~isempty(PAUSED_MOTION_BUFFER) && ~isempty(PAUSED_MOTION_BUFFER.frames)
+            fprintf('Saving paused frames from interrupted trial...\n');
+        end
+    catch
+        % Ignore extraction errors during cleanup
     end
+    
+    % 2. Stop the polling timer (most critical)
+    try
+        OptiTrackBridge.StopContinuousCollection();
+        fprintf('✓ Continuous collection stopped\n');
+    catch
+        warning('Failed to stop continuous collection');
+    end
+    
+    % 3. Save continuous data
+    try
+        if ~isempty(continuousFile)
+            OptiTrackBridge.SaveContinuous(continuousFile);
+            fprintf('✓ Continuous data saved\n');
+        end
+    catch
+        warning('Failed to save continuous data');
+    end
+    
+    % 4. Close hardware
+    try
+        if ~isempty(TL), TL.close(); end
+        fprintf('✓ MEG trigger logger closed\n');
+    catch
+        warning('Failed to close trigger logger');
+    end
+    
+    % 5. Disconnect OptiTrack
+    try
+        OptiTrackBridge.Disconnect();
+        fprintf('✓ OptiTrack disconnected\n');
+    catch
+        warning('Failed to disconnect OptiTrack');
+    end
+    
+    % 6. Close audio
+    try
+        PsychPortAudio('Close');
+        fprintf('✓ Audio closed\n');
+    catch
+        warning('Failed to close audio');
+    end
+    
+    % 7. Close screen
+    try
+        Screen('CloseAll');
+        fprintf('✓ Screen closed\n');
+    catch
+        warning('Failed to close screen');
+    end
+    
+    % 8. Reset globals
+    clear global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
+    fprintf('✓ Globals reset\n');
+end
+% ========================================
+
+end 

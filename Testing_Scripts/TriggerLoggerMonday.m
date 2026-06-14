@@ -149,7 +149,7 @@ classdef TriggerLogger < handle
     
         % Log the ON state to the CSV
         timestamp = GetSecs - obj.expStartTime;
-        fprintf(obj.logFileID, '%.4f,%d,%s,1_7,255,ON\n', ...
+        fprintf(obj.logFileID, '%.4f,%d,%s,1_65,ON\n', ...
             timestamp, trialNum, 'PauseIndicator');
     
         % Brief 50ms hold so hardware registers the pulse

@@ -112,7 +112,8 @@ classdef OptiTrackBridge
             global OP_EVENT_LOG OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
             
             eventTime = 0;  % Default fallback
-            
+
+            if ~OP_BRIDGE_STATE.IsDummy && ~isempty(OP_BRIDGE_STATE.NatNetClient)
             data = OP_BRIDGE_STATE.NatNetClient.getFrame();
             if ~isempty(data) && ~isempty(data.Timestamp)
                 if OP_BRIDGE_STATE.MotiveT0 > 0
@@ -123,6 +124,7 @@ classdef OptiTrackBridge
                     firstFrameTime = OP_CONTINUOUS_BUFFER.time(1);
                     eventTime = double(data.Timestamp) - firstFrameTime;
                 end
+            end
             end
             
             i = length(OP_EVENT_LOG.time) + 1;
@@ -137,6 +139,7 @@ classdef OptiTrackBridge
             
             eventTime = 0;  % Default fallback
             
+            if ~OP_BRIDGE_STATE.IsDummy && ~isempty(OP_BRIDGE_STATE.NatNetClient)
             data = OP_BRIDGE_STATE.NatNetClient.getFrame();
             if ~isempty(data) && ~isempty(data.Timestamp)
                 if OP_BRIDGE_STATE.MotiveT0 > 0
@@ -147,6 +150,7 @@ classdef OptiTrackBridge
                     firstFrameTime = OP_CONTINUOUS_BUFFER.time(1);
                     eventTime = double(data.Timestamp) - firstFrameTime;
                 end
+            end
             end
             
             i = length(OP_EVENT_LOG.time) + 1;
@@ -320,6 +324,7 @@ classdef OptiTrackBridge
                     if kd && kc(KbName('x')), WaitSecs(0.3); break; end
                 end
                 distWalkedTorso = 2.0; distWalkedHead = 2.0;
+                headDistFromCenter = 0.0; torsoDistFromCenter = 0.0;
                 headTrace = OptiTrackBridge.EmptyTrace();
                 torsoTrace = OptiTrackBridge.EmptyTrace();
                 return;

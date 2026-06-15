@@ -1113,15 +1113,14 @@ end
 
             t2 = max(min(2.0 * (qw * qy - qz * qx), 1.0), -1.0);
             pitch = rad2deg(asin(t2));
-
-            t3 = 2.0 * (qw * qz + qx * qy);
+            t3 = 2.0 * (qw * qy - qz * qx);
             t4 = 1.0 - 2.0 * (qy * qy + qz * qz);
             yaw = mod(rad2deg(atan2(t3, t4)), 360);
         end
         
         function yaw = QuatToYaw(qw, qx, qy, qz)
-            t3 = 2.0 * (qw*qy - qz*qx);
-            t4 = 1.0 - 2.0 * (qy*qy + qz*qz);
+            t3 = 2.0 * (qw * qy - qz * qx);
+            t4 = 1.0 - 2.0 * (qy * qy + qz * qz);
             yaw = mod(rad2deg(atan2(t3, t4)), 360);
         end
     end

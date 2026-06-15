@@ -352,7 +352,7 @@ results = table();
 
 % --- BEGIN TRIAL ITERATION ---
 global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
-    for t = 1:size(trials, 1) % This will run exactly 8 times per run (1 BLOCK)
+    for trialIdx = 1:size(trials, 1) % This will run exactly 8 times per run (1 BLOCK)
         
         % Make trial number and TriggerLogger accessible to event functions
         global  TL trueTrial
@@ -982,7 +982,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 % ---------------------------------------------------------
                 % BLOCK BREAK EVERY 8 TRIALS
                 % ---------------------------------------------------------
-                if mod(t, 8) == 0   % fires when t == 8 (end of this block's 8 trials)
+                if mod(trialIdx, 8) == 0   % fires when t == 8 (end of this block's 8 trials)
                     blockLetter = char(64 + blockNum);
                     breakMsg = sprintf('End of Block %s.\n\nPlease take a moment to rest.\n\nResearcher: Press SPACE to continue.', blockLetter);
                     DrawFormattedText(win, breakMsg, 'center', 'center', [0 255 0]);

@@ -151,7 +151,7 @@ try
     [win, winRect] = Screen('OpenWindow', screenNumber, [0 0 0]);
 catch
     fprintf('Screen %d failed. Falling back to Screen 0.\n', screenNumber);
-    [win, winRect] = Screen('OpenWindow', 0, [0 0 0]);
+    [win, ~] = Screen('OpenWindow', 0, [0 0 0]);
 end
 
 % Set text properties
@@ -340,7 +340,7 @@ results = table();
 
     % --- START CONTINUOUS TRACKING ---
     % Begin background polling that captures every frame from now until experiment ends
-    OptiTrackBridge.StartContinuousCollection();
+     OptiTrackBridge.StartContinuousCollection();
 
 
     % --- THE "READY" SCREEN ---
@@ -1111,7 +1111,7 @@ function GuaranteedCleanup()
     % 2. Stop the polling timer (most critical)
     try
         OptiTrackBridge.StopContinuousCollection();
-        fprintf('✓ Continuous collection stopped\n');
+        fprintf('? Continuous collection stopped\n');
     catch
         warning('Failed to stop continuous collection');
     end
@@ -1120,7 +1120,7 @@ function GuaranteedCleanup()
     try
         if ~isempty(continuousFile)
             OptiTrackBridge.SaveContinuous(continuousFile);
-            fprintf('✓ Continuous data saved\n');
+            fprintf('? Continuous data saved\n');
         end
     catch
         warning('Failed to save continuous data');
@@ -1129,7 +1129,7 @@ function GuaranteedCleanup()
     % 4. Close hardware
     try
         if ~isempty(TL), TL.close(); end
-        fprintf('✓ MEG trigger logger closed\n');
+        fprintf('? MEG trigger logger closed\n');
     catch
         warning('Failed to close trigger logger');
     end
@@ -1137,7 +1137,7 @@ function GuaranteedCleanup()
     % 5. Disconnect OptiTrack
     try
         OptiTrackBridge.Disconnect();
-        fprintf('✓ OptiTrack disconnected\n');
+        fprintf('? OptiTrack disconnected\n');
     catch
         warning('Failed to disconnect OptiTrack');
     end
@@ -1145,7 +1145,7 @@ function GuaranteedCleanup()
     % 6. Close audio
     try
         PsychPortAudio('Close');
-        fprintf('✓ Audio closed\n');
+        fprintf('? Audio closed\n');
     catch
         warning('Failed to close audio');
     end
@@ -1153,12 +1153,12 @@ function GuaranteedCleanup()
     % 7. Close screen
     try
         Screen('CloseAll');
-        fprintf('✓ Screen closed\n');
+        fprintf('? Screen closed\n');
     catch
         warning('Failed to close screen');
     end
     
     % 8. Reset globals
     clear global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
-    fprintf('✓ Globals reset\n');
+    fprintf('? Globals reset\n');
 end

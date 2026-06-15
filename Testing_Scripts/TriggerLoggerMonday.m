@@ -16,41 +16,23 @@ classdef TriggerLogger < handle
     end
     
     methods
-        function obj = TriggerLogger(portAddress, subjectID)
-            % ---------------------------------------------------------
-            % CONSTRUCTOR: Runs once when the main script calls TL = TriggerLogger(...)
-            % ---------------------------------------------------------
-            
-            % --- 1. Initialize the physical MEG port ---
-            obj.ioObj = io64;           % Wake up the custom io64 driver
-            status = io64(obj.ioObj);   % Check if the driver successfully loaded
-            obj.address = portAddress;  % Store the port address
-            % NOTE: portAddress is passed in as hex2dec('378') = decimal 888 (standard LPT1).
-            % If triggers are not firing, check Device Manager → Ports (COM & LPT) for the
-            % correct address, and update the hex value passed into the constructor.
-            
-            % [SAFETY RESET] Immediately blast 0 Volts to all pins. 
-            % This clears any "ghost" 5V signals left over from a previous crashed run,
-            % ensuring the MEG machine has a clean slate to detect new triggers.
-            io64(obj.ioObj, obj.address, 0); 
-            
-            % --- 2. Initialize The Failsafe Log File ---
-            % Create a unique filename using the Participant ID and exact current time
-            logName = sprintf('Log_Subj%s_%s.csv', subjectID, datestr(now, 'yyyymmdd_HHMM'));
-            
-            % Open the file in 'a' (append) mode so we can continuously write to it
-            obj.logFileID = fopen(logName, 'a');
-            
-            % Write the top header row for the CSV columns
-            fprintf(obj.logFileID, 'SystemTime,TrialNum,EventName,TriggerChannel,PortValueSent,State\n');
-            
-            % --- 3. Start the Master Clock ---
-            % Grab the exact computer time right now. All future events will be 
-            % measured relative to this exact millisecond.
-            obj.expStartTime = GetSecs; 
-            
-            disp(['TriggerLogger Initialized. Channels 1-7 for events | Ch 8 Master Sync. Log saving to: ' logName]);
-        end
+        function obj = TriggerLogger(subjectID)
+    obj.address = hex2dec('3FF8');  % Correct address from your test script
+    
+    obj.ioObj = io64;
+    status = io64(obj.ioObj);
+    if status ~= 0
+        error('TriggerLogger:NoHardware', 'Failed to initialize io64.');
+    end
+    io64(obj.ioObj, obj.address, 0);  % safety reset
+    
+    logName = sprintf('Log_Subj%s_%s.csv', subjectID, datestr(now, 'yyyymmdd_HHMM'));
+    obj.logFileID = fopen(logName, 'a');
+    fprintf(obj.logFileID, 'SystemTime,TrialNum,EventName,TriggerChannel,PortValueSent,State\n');
+    obj.expStartTime = GetSecs;
+    
+    disp(['TriggerLogger Initialized. Log saving to: ' logName]);
+end
         
         function startEvent(obj, triggerChannel, trialNum, eventName)
             % ---------------------------------------------------------

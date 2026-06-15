@@ -959,7 +959,9 @@ classdef OptiTrackBridge
         % UNIFIED DATA EXTRACTION HELPER
         % ---------------------------------------------------------
         function [headPos, torsoPos, headEuler, torsoEuler, headErr, torsoErr, frameTimestamp] = GetDualData()
-            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
+        global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
+           
+
             
             if OP_BRIDGE_STATE.IsDummy
                 headPos = [0 0 0]; torsoPos = [0 0 0]; 
@@ -971,6 +973,10 @@ classdef OptiTrackBridge
             headPos = [NaN NaN NaN]; torsoPos = [NaN NaN NaN];
             headEuler = [NaN NaN NaN]; torsoEuler = [NaN NaN NaN];
             headErr = NaN; torsoErr = NaN; frameTimestamp = NaN;
+
+             if ~isstruct(OP_BRIDGE_STATE)
+                return;
+            end
             
             try
                 data = OP_BRIDGE_STATE.NatNetClient.getFrame();

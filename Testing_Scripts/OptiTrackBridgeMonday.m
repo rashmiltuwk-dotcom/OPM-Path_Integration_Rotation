@@ -88,7 +88,7 @@ classdef OptiTrackBridge
                 end
                 
             catch ME
-                warning('Connection Failed: %s', ME.message);
+                warning('OptiTrack:ConnectionFailed', 'Connection Failed: %s', ME.message);
                 OP_BRIDGE_STATE.IsDummy = true;
                 success = false;
             end

@@ -1045,6 +1045,7 @@ end
                 
             catch ME
                 disp(['Data Extraction Error: ', ME.message]);
+                disp(ME.getReport());
             end
         end
 

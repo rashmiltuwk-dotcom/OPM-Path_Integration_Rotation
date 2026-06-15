@@ -1095,7 +1095,7 @@ end
 end
 
 function GuaranteedCleanup()
-    global TL PAUSED_MOTION_BUFFER PAUSE_ACTIVE PAUSED_EVENT_TYPE
+    global TL PAUSED_MOTION_BUFFER PAUSE_ACTIVE PAUSED_EVENT_TYPE continuousFile
     
     fprintf('\n>>> CLEANUP TRIGGERED (ESCAPE or ERROR) <<<\n');
     

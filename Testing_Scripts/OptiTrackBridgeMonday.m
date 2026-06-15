@@ -988,26 +988,32 @@ classdef OptiTrackBridge
                 end
                 
                 for i = 1:data.RigidBody.Length
-                    rb = data.RigidBody(i);
-                    if rb.ID == OptiTrackBridge.HEAD_ID
-                        % Position is array [x, y, z]
-                        headPos = [double(rb.x), double(rb.y), double(rb.z)];
-                        qx = double(rb.qx); qy = double(rb.qy);
-                        qz = double(rb.qz); qw = double(rb.qw);
-                        [r, p, y] = OptiTrackBridge.QuatToEuler(qw, qx, qy, qz);
-                        headEuler = [r, p, y];
-                        headErr = double(rb.MeanError);
-                    elseif rb.ID == OptiTrackBridge.TORSO_ID
-                        % Position is array [x, y, z]
-                        torsoPos = [double(rb.x), double(rb.y), double(rb.z)];
-                        qx = double(rb.qx); qy = double(rb.qy);
-                        qz = double(rb.qz); qw = double(rb.qw);
+    rb = data.RigidBody(i);
+    if rb.ID == OptiTrackBridge.HEAD_ID
+        headPos = [double(rb.x), double(rb.y), double(rb.z)];
+        qx = double(rb.qx); qy = double(rb.qy);
+        qz = double(rb.qz); qw = double(rb.qw);
+        [r, p, y] = OptiTrackBridge.QuatToEuler(qw, qx, qy, qz);
+        headEuler = [r, p, y];
+        try
+            headErr = double(rb.MeanError);
+        catch
+            headErr = 0;
+        end
+    elseif rb.ID == OptiTrackBridge.TORSO_ID
+        torsoPos = [double(rb.x), double(rb.y), double(rb.z)];
+        qx = double(rb.qx); qy = double(rb.qy);
+        qz = double(rb.qz); qw = double(rb.qw);
+        [r, p, y] = OptiTrackBridge.QuatToEuler(qw, qx, qy, qz);
+        torsoEuler = [r, p, y];
+        try
+            torsoErr = double(rb.MeanError);
+        catch
+            torsoErr = 0;
+        end
+    end
+end
 
-                        [r, p, y] = OptiTrackBridge.QuatToEuler(qw, qx, qy, qz);
-                        torsoEuler = [r, p, y];
-                        torsoErr = double(rb.MeanError);
-                    end
-                end
                 
                 % ===== Append to paused motion buffer if pause is active =====
                 global PAUSE_ACTIVE PAUSED_MOTION_BUFFER

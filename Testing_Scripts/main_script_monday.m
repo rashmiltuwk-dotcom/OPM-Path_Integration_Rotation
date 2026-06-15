@@ -351,13 +351,13 @@ results = table();
     wait_key('space');   % Custom function: wait for keyboard input
 
 % --- BEGIN TRIAL ITERATION ---
-global t TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
+global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
     for t = 1:size(trials, 1) % This will run exactly 8 times per run (1 BLOCK)
         
         % Make trial number and TriggerLogger accessible to event functions
-        global t TL trueTrial
+        global  TL trueTrial
 
-    trueTrial = startRow + t - 1;
+    trueTrial = startRow + trialIdx - 1;
         
         trialAccepted = false; 
         attemptNum = 1; % Tracks how many times they have tried THIS trial
@@ -405,11 +405,11 @@ global t TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 % ---------------------------------------------------------
                 % [MATLAB] EXTRACT TRIAL METADATA
                 % ---------------------------------------------------------
-                participantPosition = trials{t,1}; %'LPos' (Left Side) or 'RPos'
-                dirCode    = trials{t,2}; % 'L' or 'R'
-                typeCode   = trials{t,3}; % 'I' (Imagine) or 'P' (Physical)
-                distCode   = trials{t,4}; % 'D1' to 'D4'
-                qCode      = trials{t,5}; % 'Q1' to 'Q4'
+                participantPosition = trials{trialIdx,1}; %'LPos' (Left Side) or 'RPos'
+                dirCode    = trials{trialIdx,2}; % 'L' or 'R'
+                typeCode   = trials{trialIdx,3}; % 'I' (Imagine) or 'P' (Physical)
+                distCode   = trials{trialIdx,4}; % 'D1' to 'D4'
+                qCode      = trials{trialIdx,5}; % 'Q1' to 'Q4'
 
                 targetDeg       = angleMap(qCode);       % e.g., 55 (used for OptiTrack stopping threshold)
                 storedTargetDeg = storedAngleMap(qCode); % e.g., 60 (used for the CSV and MasterData)
@@ -865,7 +865,7 @@ global t TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 if strcmp(ME.message, 'Redo_Trial')
                     
                     PsychPortAudio('Stop', pahandle); 
-                    if ~isempty(TL), TL.resetAllTriggers(t); end
+                    if ~isempty(TL), TL.resetAllTriggers(trialIdx); end
                     
                     statusStr = 'Aborted_Mid_Trial';
 
@@ -1095,7 +1095,7 @@ end
 end
 
 function GuaranteedCleanup()
-    global TL PAUSED_MOTION_BUFFER PAUSE_ACTIVE PAUSED_EVENT_TYPE continuousFile
+    global TL PAUSED_MOTION_BUFFER PAUSE_ACTIVE PAUSED_EVENT_TYPE
     
     fprintf('\n>>> CLEANUP TRIGGERED (ESCAPE or ERROR) <<<\n');
     

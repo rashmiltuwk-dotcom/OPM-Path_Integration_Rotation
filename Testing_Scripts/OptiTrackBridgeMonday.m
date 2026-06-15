@@ -325,7 +325,7 @@ classdef OptiTrackBridge
                     if kd && any(kc(KbName('p')))
                         if ~PAUSE_ACTIVE
                             PAUSE_ACTIVE = true;
-                            PAUSE_CALLED = true; 
+                            PAUSE_CALLED = "TRUE"; 
                             if ~isempty(TL), TL.pauseIndicatorStart(trueTrial); end
                             OptiTrackBridge.startEvent(trueTrial, 'Pause');
                             disp('DUMMY PAUSE: Activated'); 
@@ -377,7 +377,7 @@ classdef OptiTrackBridge
                     if ~PAUSE_ACTIVE
                         % PAUSE: Log to MEG and OptiTrack
                         PAUSE_ACTIVE = true;
-                        PAUSE_CALLED = true;  % Mark that pause was invoked this trial
+                        PAUSE_CALLED = "TRUE";
                         if ~isempty(TL), TL.pauseIndicatorStart(trueTrial); end
                         OptiTrackBridge.startEvent(trueTrial, 'Pause');
                     else
@@ -486,7 +486,7 @@ classdef OptiTrackBridge
                     if kd && any(kc(KbName('p')))
                         if ~PAUSE_ACTIVE
                             PAUSE_ACTIVE = true;
-                            PAUSE_CALLED = true; 
+                            PAUSE_CALLED = "TRUE";
                             if ~isempty(TL), TL.pauseIndicatorStart(trueTrial); end
                             OptiTrackBridge.startEvent(trueTrial, 'Pause');
                             disp('DUMMY PAUSE: Activated'); 
@@ -543,7 +543,7 @@ classdef OptiTrackBridge
                         if ~PAUSE_ACTIVE
                             % PAUSE: Log to MEG and OptiTrack
                             PAUSE_ACTIVE = true;
-                            PAUSE_CALLED = true;  % Mark that pause was invoked this trial
+                            PAUSE_CALLED = "TRUE";
                             if ~isempty(TL), TL.pauseIndicatorStart(trueTrial); end
                             OptiTrackBridge.startEvent(trueTrial, 'Pause');
                         else
@@ -660,7 +660,7 @@ classdef OptiTrackBridge
                     if kd && any(kc(KbName('p')))
                         if ~PAUSE_ACTIVE
                             PAUSE_ACTIVE = true;
-                            PAUSE_CALLED = true; 
+                            PAUSE_CALLED = "TRUE"; 
                             if ~isempty(TL), TL.pauseIndicatorStart(trueTrial); end
                             OptiTrackBridge.startEvent(trueTrial, 'Pause');
                             disp('DUMMY PAUSE: Activated'); 
@@ -704,7 +704,7 @@ classdef OptiTrackBridge
                     if ~PAUSE_ACTIVE
                         % PAUSE: Log to MEG and OptiTrack
                         PAUSE_ACTIVE = true;
-                        PAUSE_CALLED = true;  % Mark that pause was invoked this trial
+                        PAUSE_CALLED = "TRUE";
                         if ~isempty(TL), TL.pauseIndicatorStart(trueTrial); end
                         OptiTrackBridge.startEvent(trueTrial, 'Pause');
                     else
@@ -716,7 +716,7 @@ classdef OptiTrackBridge
                     WaitSecs(0.3);  % debounce
                 end
                 % ===================================================================
-                if kd && any(kc(targetKey)), break; end
+                if ~PAUSE_ACTIVE && kd && any(kc(targetKey)), break; end
                 
                 [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
                 

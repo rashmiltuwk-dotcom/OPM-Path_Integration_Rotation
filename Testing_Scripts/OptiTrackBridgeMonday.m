@@ -311,7 +311,7 @@ classdef OptiTrackBridge
         % WAIT FOR WALK END / ORIGIN
         % ---------------------------------------------------------
         function [distWalkedTorso, distWalkedHead, headDistFromCenter, torsoDistFromCenter, headTrace, torsoTrace] = WaitForWalkEnd(headID, torsoID, win, tolerance)
-            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
+            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial
             if nargin < 4, tolerance = 0.10; end 
             
             if OP_BRIDGE_STATE.IsDummy
@@ -321,7 +321,23 @@ classdef OptiTrackBridge
                     [kd, ~, kc] = KbCheck;
                     if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                     if kd && kc(KbName('r')), error('Redo_Trial'); end                        
-                    if kd && kc(KbName('x')), WaitSecs(0.3); break; end
+                    if ~PAUSE_ACTIVE && kd && kc(KbName('x')), WaitSecs(0.3); break; end
+                    if kd && any(kc(KbName('p')))
+                        if ~PAUSE_ACTIVE
+                            PAUSE_ACTIVE = true;
+                            PAUSE_CALLED = true; 
+                            if ~isempty(TL), TL.pauseIndicatorStart(trueTrial); end
+                            OptiTrackBridge.startEvent(trueTrial, 'Pause');
+                            disp('DUMMY PAUSE: Activated'); 
+                        else
+                            PAUSE_ACTIVE = false;
+                            OptiTrackBridge.stopEvent(trueTrial, 'Pause');
+                            if ~isempty(TL), TL.pauseIndicatorEnd(1, trueTrial, 'PauseResume'); end
+                            disp('DUMMY PAUSE: Deactivated');
+                        end
+                        WaitSecs(0.3);  % debounce
+                    end
+                    
                 end
                 distWalkedTorso = 2.0; distWalkedHead = 2.0;
                 headDistFromCenter = 0.0; torsoDistFromCenter = 0.0;
@@ -353,13 +369,11 @@ classdef OptiTrackBridge
             idx = 1;
 
             while true
-                global PAUSE_ACTIVE
                 [kd, ~, kc] = KbCheck;
                 if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                 if kd && kc(KbName('r')), error('Redo_Trial'); end 
                 % ===== PAUSE TOGGLE WITH MEG + EVENT LOGGING (NON-INTERRUPTING) =====
                 if kd && kc(KbName('p'))
-                    global TL t PAUSE_CALLED trueTrial
                     if ~PAUSE_ACTIVE
                         % PAUSE: Log to MEG and OptiTrack
                         PAUSE_ACTIVE = true;
@@ -459,7 +473,7 @@ classdef OptiTrackBridge
         % WAIT FOR ROTATION DUAL
         % ---------------------------------------------------------
         function [startHead, startTorso, finalHead, finalTorso, headTrace, torsoTrace] = WaitForRotationDual(headID, torsoID, targetDeg, win, dirCode)
-            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
+            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial
             
             if OP_BRIDGE_STATE.IsDummy
                 DrawFormattedText(win, 'DUMMY MODE: Press "x" to simulate turning.', 'center', 'center', [255 255 0]);
@@ -468,7 +482,22 @@ classdef OptiTrackBridge
                     [kd, ~, kc] = KbCheck;
                     if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                     if kd && kc(KbName('r')), error('Redo_Trial'); end
-                    if kd && kc(KbName('x')), WaitSecs(0.3); break; end
+                    if ~PAUSE_ACTIVE && kd && kc(KbName('x')), WaitSecs(0.3); break; end
+                    if kd && any(kc(KbName('p')))
+                        if ~PAUSE_ACTIVE
+                            PAUSE_ACTIVE = true;
+                            PAUSE_CALLED = true; 
+                            if ~isempty(TL), TL.pauseIndicatorStart(trueTrial); end
+                            OptiTrackBridge.startEvent(trueTrial, 'Pause');
+                            disp('DUMMY PAUSE: Activated'); 
+                        else
+                            PAUSE_ACTIVE = false;
+                            OptiTrackBridge.stopEvent(trueTrial, 'Pause');
+                            if ~isempty(TL), TL.pauseIndicatorEnd(1, trueTrial, 'PauseResume'); end
+                            disp('DUMMY PAUSE: Deactivated');
+                        end
+                        WaitSecs(0.3);  % debounce
+                    end
                 end
                 startHead = 0; startTorso = 0; finalHead = targetDeg; finalTorso = targetDeg;
                 headTrace = OptiTrackBridge.EmptyTrace();
@@ -506,13 +535,11 @@ classdef OptiTrackBridge
                 KbReleaseWait;
                 
                 while true
-                    global PAUSE_ACTIVE
                     [kd, ~, kc] = KbCheck;
                     if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                     if kd && kc(KbName('r')), error('Redo_Trial'); end 
                     % ===== PAUSE TOGGLE WITH MEG + EVENT LOGGING (NON-INTERRUPTING) =====
                     if kd && kc(KbName('p'))
-                        global TL t PAUSE_CALLED trueTrial
                         if ~PAUSE_ACTIVE
                             % PAUSE: Log to MEG and OptiTrack
                             PAUSE_ACTIVE = true;
@@ -614,7 +641,7 @@ classdef OptiTrackBridge
         % RECORD UNTIL KEY
         % ---------------------------------------------------------
         function [finalHead, finalTorso, headTrace, torsoTrace] = RecordUntilKey(headID, torsoID, keyName, win)
-            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
+            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial
             
             targetKey = KbName(keyName);
             escKey = KbName('ESCAPE');
@@ -627,7 +654,24 @@ classdef OptiTrackBridge
                     [kd, ~, kc] = KbCheck;
                     if kd && any(kc(escKey)), error('User Quit'); end
                     if kd && any(kc(rKey)), error('Redo_Trial'); end
-                    if kd && (any(kc(targetKey)) || any(kc(xKey))), WaitSecs(0.3); break; end
+                    if ~PAUSE_ACTIVE && kd && (any(kc(targetKey)) || any(kc(xKey)))
+                        WaitSecs(0.3); break; 
+                    end
+                    if kd && any(kc(KbName('p')))
+                        if ~PAUSE_ACTIVE
+                            PAUSE_ACTIVE = true;
+                            PAUSE_CALLED = true; 
+                            if ~isempty(TL), TL.pauseIndicatorStart(trueTrial); end
+                            OptiTrackBridge.startEvent(trueTrial, 'Pause');
+                            disp('DUMMY PAUSE: Activated'); 
+                        else
+                            PAUSE_ACTIVE = false;
+                            OptiTrackBridge.stopEvent(trueTrial, 'Pause');
+                            if ~isempty(TL), TL.pauseIndicatorEnd(1, trueTrial, 'PauseResume'); end
+                            disp('DUMMY PAUSE: Deactivated');
+                        end
+                        WaitSecs(0.3);  % debounce
+                    end
                 end
                 finalHead = 0; finalTorso = 0;
                 headTrace = OptiTrackBridge.EmptyTrace(); torsoTrace = OptiTrackBridge.EmptyTrace();
@@ -652,13 +696,11 @@ classdef OptiTrackBridge
             KbReleaseWait;
 
             while true
-                global PAUSE_ACTIVE
                 [kd, ~, kc] = KbCheck;
                 if kd && any(kc(escKey)), error('User Quit'); end
                 if kd && any(kc(rKey)), error('Redo_Trial'); end 
                 % ===== PAUSE TOGGLE WITH MEG + EVENT LOGGING (NON-INTERRUPTING) =====
                 if kd && any(kc(KbName('p')))
-                    global TL t PAUSE_CALLED trueTrial
                     if ~PAUSE_ACTIVE
                         % PAUSE: Log to MEG and OptiTrack
                         PAUSE_ACTIVE = true;

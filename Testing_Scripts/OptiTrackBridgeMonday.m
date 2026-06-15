@@ -991,23 +991,18 @@ classdef OptiTrackBridge
                     rb = data.RigidBody(i);
                     if rb.ID == OptiTrackBridge.HEAD_ID
                         % Position is array [x, y, z]
-                        headPos = [double(rb.Position(1)), double(rb.Position(2)), double(rb.Position(3))];
-                        % Orientation is array [qx, qy, qz, qw]
-                        qx = double(rb.Orientation(1));
-                        qy = double(rb.Orientation(2));
-                        qz = double(rb.Orientation(3));
-                        qw = double(rb.Orientation(4));
+                        headPos = [double(rb.x), double(rb.y), double(rb.z)];
+                        qx = double(rb.qx); qy = double(rb.qy);
+                        qz = double(rb.qz); qw = double(rb.qw);
                         [r, p, y] = OptiTrackBridge.QuatToEuler(qw, qx, qy, qz);
                         headEuler = [r, p, y];
                         headErr = double(rb.MeanError);
                     elseif rb.ID == OptiTrackBridge.TORSO_ID
                         % Position is array [x, y, z]
-                        torsoPos = [double(rb.Position(1)), double(rb.Position(2)), double(rb.Position(3))];
-                        % Orientation is array [qx, qy, qz, qw]
-                        qx = double(rb.Orientation(1));
-                        qy = double(rb.Orientation(2));
-                        qz = double(rb.Orientation(3));
-                        qw = double(rb.Orientation(4));
+                        torsoPos = [double(rb.x), double(rb.y), double(rb.z)];
+                        qx = double(rb.qx); qy = double(rb.qy);
+                        qz = double(rb.qz); qw = double(rb.qw);
+
                         [r, p, y] = OptiTrackBridge.QuatToEuler(qw, qx, qy, qz);
                         torsoEuler = [r, p, y];
                         torsoErr = double(rb.MeanError);
@@ -1063,12 +1058,10 @@ classdef OptiTrackBridge
                     rb = data.RigidBody(i);
                     if rb.ID == rbID
                         % Position is array [x, y, z]
-                        pos = [double(rb.Position(1)), double(rb.Position(2)), double(rb.Position(3))];
-                        % Orientation is array [qx, qy, qz, qw]
-                        qx = double(rb.Orientation(1));
-                        qy = double(rb.Orientation(2));
-                        qz = double(rb.Orientation(3));
-                        qw = double(rb.Orientation(4));
+                        pos = [double(rb.x), double(rb.y), double(rb.z)];
+                        qx = double(rb.qx); qy = double(rb.qy);
+                        qz = double(rb.qz); qw = double(rb.qw);
+
                         [r, p, y] = OptiTrackBridge.QuatToEuler(qw, qx, qy, qz);
                         euler = [r, p, y];
                         err = double(rb.MeanError);

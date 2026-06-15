@@ -371,7 +371,7 @@ global t TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
             % Reset pause state for this trial (guards against accumulation)
             PAUSE_ACTIVE = false;
             PAUSED_MOTION_BUFFER.frames = {};
-            PAUSE_CALLED = false;
+            PAUSE_CALLED = "FALSE";
             PAUSED_EVENT_TYPE = '';
             
             % 1. CRITICAL: PRE-ALLOCATE VARIABLES FIRST

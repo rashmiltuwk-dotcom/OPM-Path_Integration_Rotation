@@ -60,7 +60,6 @@ end
 fprintf('\n================ ROTATION SPEED RESULTS ================\n');
 fprintf('N = %d trials\n', N);
 
-% --- Print Encoding Results ---
 fprintf('\n--- ENCODING ROTATION -----------------------------------------------------\n');
 fprintf('%-44s  %6s  %6s  %6s  %6s  %6s\n', 'Metric', 'N', 'Mean', 'SD', 'Min', 'Max');
 print_row('Enc Peak Speed — Head  (deg/s)',  [metrics.Enc_PeakSpeedHead]);
@@ -68,7 +67,6 @@ print_row('Enc Peak Speed — Torso (deg/s)',  [metrics.Enc_PeakSpeedTorso]);
 print_row('Enc Mean Speed — Head  (deg/s)',  [metrics.Enc_MeanSpeedHead]);
 print_row('Enc Mean Speed — Torso (deg/s)',  [metrics.Enc_MeanSpeedTorso]);
 
-% --- Print Response Results ---
 fprintf('\n--- RESPONSE ROTATION -----------------------------------------------------\n');
 fprintf('%-44s  %6s  %6s  %6s  %6s  %6s\n', 'Metric', 'N', 'Mean', 'SD', 'Min', 'Max');
 print_row('Res Peak Speed — Head  (deg/s)',  [metrics.Res_PeakSpeedHead]);
@@ -77,61 +75,30 @@ print_row('Res Mean Speed — Head  (deg/s)',  [metrics.Res_MeanSpeedHead]);
 print_row('Res Mean Speed — Torso (deg/s)',  [metrics.Res_MeanSpeedTorso]);
 fprintf('---------------------------------------------------------------------------\n');
 
-% Save final combined table
 assignin('base', 'RotationSpeedTable', struct2table(metrics));
 
 %% --- STEP 4: VELOCITY OVER TIME VISUALIZATION ----------
 figure('Name', 'Rotation Velocity Over Time', 'NumberTitle', 'off', 'Position', [100 100 1400 900]);
 set(gcf, 'PaperPositionMode', 'auto');
 
-enc_head_traces = {};
+enc_head_traces  = {};
 enc_torso_traces = {};
-res_head_traces = {};
+res_head_traces  = {};
 res_torso_traces = {};
 
 for i = 1:N
     tr = subset(i);
-    if ~isempty(tr.Traces.EncodingRotateHeadTrace) && isfield(tr.Traces.EncodingRotateHeadTrace, 'yaw')
-        enc_head_traces{end+1} = tr.Traces.EncodingRotateHeadTrace;
-    end
-    if ~isempty(tr.Traces.EncodingRotateTorsoTrace) && isfield(tr.Traces.EncodingRotateTorsoTrace, 'yaw')
-        enc_torso_traces{end+1} = tr.Traces.EncodingRotateTorsoTrace;
-    end
-    if ~isempty(tr.Traces.ResponseRotationHeadTrace) && isfield(tr.Traces.ResponseRotationHeadTrace, 'yaw')
-        res_head_traces{end+1} = tr.Traces.ResponseRotationHeadTrace;
-    end
-    if ~isempty(tr.Traces.ResponseRotationTorsoTrace) && isfield(tr.Traces.ResponseRotationTorsoTrace, 'yaw')
-        res_torso_traces{end+1} = tr.Traces.ResponseRotationTorsoTrace;
-    end
+    if ~isempty(tr.Traces.EncodingRotateHeadTrace)    && isfield(tr.Traces.EncodingRotateHeadTrace,    'yaw'), enc_head_traces{end+1}  = tr.Traces.EncodingRotateHeadTrace;    end
+    if ~isempty(tr.Traces.EncodingRotateTorsoTrace)   && isfield(tr.Traces.EncodingRotateTorsoTrace,   'yaw'), enc_torso_traces{end+1} = tr.Traces.EncodingRotateTorsoTrace;   end
+    if ~isempty(tr.Traces.ResponseRotationHeadTrace)  && isfield(tr.Traces.ResponseRotationHeadTrace,  'yaw'), res_head_traces{end+1}  = tr.Traces.ResponseRotationHeadTrace;  end
+    if ~isempty(tr.Traces.ResponseRotationTorsoTrace) && isfield(tr.Traces.ResponseRotationTorsoTrace, 'yaw'), res_torso_traces{end+1} = tr.Traces.ResponseRotationTorsoTrace; end
 end
 
-% --- Encoding Head ---
-subplot(2, 2, 1);
-plot_velocity_traces(enc_head_traces, 'Encoding — Head Rotation Velocity');
-ylabel('Velocity (deg/s)', 'FontSize', 11);
-grid on;
+subplot(2,2,1); plot_velocity_traces(enc_head_traces,  'Encoding — Head Rotation Velocity');   ylabel('Velocity (deg/s)', 'FontSize', 11); grid on;
+subplot(2,2,2); plot_velocity_traces(enc_torso_traces, 'Encoding — Torso Rotation Velocity');  ylabel('Velocity (deg/s)', 'FontSize', 11); grid on;
+subplot(2,2,3); plot_velocity_traces(res_head_traces,  'Response — Head Rotation Velocity');   xlabel('Time (s)', 'FontSize', 11); ylabel('Velocity (deg/s)', 'FontSize', 11); grid on;
+subplot(2,2,4); plot_velocity_traces(res_torso_traces, 'Response — Torso Rotation Velocity');  xlabel('Time (s)', 'FontSize', 11); ylabel('Velocity (deg/s)', 'FontSize', 11); grid on;
 
-% --- Encoding Torso ---
-subplot(2, 2, 2);
-plot_velocity_traces(enc_torso_traces, 'Encoding — Torso Rotation Velocity');
-ylabel('Velocity (deg/s)', 'FontSize', 11);
-grid on;
-
-% --- Response Head ---
-subplot(2, 2, 3);
-plot_velocity_traces(res_head_traces, 'Response — Head Rotation Velocity');
-xlabel('Time (s)', 'FontSize', 11);
-ylabel('Velocity (deg/s)', 'FontSize', 11);
-grid on;
-
-% --- Response Torso ---
-subplot(2, 2, 4);
-plot_velocity_traces(res_torso_traces, 'Response — Torso Rotation Velocity');
-xlabel('Time (s)', 'FontSize', 11);
-ylabel('Velocity (deg/s)', 'FontSize', 11);
-grid on;
-
-% Improve spacing
 sgtitle('Rotation Velocity Over Time (All Trials)', 'FontSize', 13, 'FontWeight', 'bold');
 pause(0.1);
 
@@ -147,24 +114,20 @@ function spd = compute_peak_yaw_speed(trace)
     dt = diff(trace.time(:));
     dy = diff(trace.yaw(:));
     dt(dt <= 0) = NaN;
-    spd = max(abs(dy ./ dt), [], 'omitnan');
+    raw = abs(dy ./ dt);
+    % Clamp to physiologically plausible range (humans cannot exceed ~400 deg/s)
+    raw(raw > 400) = NaN;
+    spd = max(raw, [], 'omitnan');
 end
 
 function spd = compute_mean_yaw_speed(trace)
     if isempty(trace) || ~isfield(trace, 'yaw') || ~isfield(trace, 'time') || numel(trace.yaw) < 2
         spd = NaN; return;
     end
-    
-    % 1. Calculate total degrees rotated safely handling zig-zags
-    dy = diff(trace.yaw(:));
-    total_rotation = sum(abs(dy)); 
-    
-    % 2. Calculate total time securely avoiding cumulative float errors
+    dy  = diff(trace.yaw(:));
     dur = trace.time(end) - trace.time(1);
-    
-    % 3. Calculate true average speed
     if dur <= 0, spd = NaN; return; end
-    spd = total_rotation / dur;
+    spd = sum(abs(dy)) / dur;
 end
 
 function print_row(label, vals)
@@ -176,46 +139,43 @@ end
 function plot_velocity_traces(traces, title_str)
     if isempty(traces)
         text(0.5, 0.5, 'No data available', 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle');
-        title(title_str, 'FontSize', 11);
-        return;
+        title(title_str, 'FontSize', 11); return;
     end
-    
+
     hold on;
     colors = lines(numel(traces));
-    
+
     for i = 1:numel(traces)
         trace = traces{i};
         if isempty(trace) || ~isfield(trace, 'yaw') || ~isfield(trace, 'time') || numel(trace.yaw) < 2
             continue;
         end
-        
+
         time = trace.time(:);
-        yaw = trace.yaw(:);
-        
-        % Convert time to seconds if it appears to be in milliseconds
-        if max(time) > 100  % If max time > 100, likely in milliseconds
-            time = time / 1000;
-        end
-        
-        % Compute velocity as derivative of yaw angle
+        yaw  = trace.yaw(:);
+        time = time - time(1);  % normalise to start at 0
+
         dt = diff(time);
         dy = diff(yaw);
+
         velocity = dy ./ dt;
+        % Clamp to physiologically plausible range (humans cannot exceed ~400 deg/s)
+        velocity(abs(velocity) > 400) = NaN;
+
         time_vel = time(1:end-1);
-        
-        plot(time_vel, velocity, 'Color', colors(i, :), 'LineWidth', 1.5, 'DisplayName', sprintf('Trial %d', i), 'Marker', 'none');
+        plot(time_vel, velocity, 'Color', colors(i,:), 'LineWidth', 1.5, ...
+            'DisplayName', sprintf('Trial %d', i), 'Marker', 'none');
     end
-    
+
     hold off;
     title(title_str, 'FontSize', 11);
     xlabel('Time (s)', 'FontSize', 10);
-    
-    % Set reasonable limits for visibility
+
     ax = gca;
-    ax.XLim = [0 5];  % 0 to 5 seconds as specified
-    ax.XTick = 0:1:5;  % Tick every 1 second
-    
+    ax.XLim  = [0 5];
+    ax.XTick = 0:1:5;
+
     if numel(traces) > 1
-        legend('Location', 'best', 'FontSize', 9);
+    legend('Location', 'none', 'Position', [0.45 0.45 0.1 0.1], 'FontSize', 9);
     end
 end

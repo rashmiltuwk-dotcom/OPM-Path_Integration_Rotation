@@ -16,41 +16,23 @@ classdef TriggerLogger < handle
     end
     
     methods
-        function obj = TriggerLogger(portAddress, subjectID)
-            % ---------------------------------------------------------
-            % CONSTRUCTOR: Runs once when the main script calls TL = TriggerLogger(...)
-            % ---------------------------------------------------------
-            
-            % --- 1. Initialize the physical MEG port ---
-            obj.ioObj = io64;           % Wake up the custom io64 driver
-            status = io64(obj.ioObj);   % Check if the driver successfully loaded
-            obj.address = portAddress;  % Store the port address
-            % NOTE: portAddress is passed in as hex2dec('378') = decimal 888 (standard LPT1).
-            % If triggers are not firing, check Device Manager → Ports (COM & LPT) for the
-            % correct address, and update the hex value passed into the constructor.
-            
-            % [SAFETY RESET] Immediately blast 0 Volts to all pins. 
-            % This clears any "ghost" 5V signals left over from a previous crashed run,
-            % ensuring the MEG machine has a clean slate to detect new triggers.
-            io64(obj.ioObj, obj.address, 0); 
-            
-            % --- 2. Initialize The Failsafe Log File ---
-            % Create a unique filename using the Participant ID and exact current time
-            logName = sprintf('Log_Subj%s_%s.csv', subjectID, datestr(now, 'yyyymmdd_HHMM'));
-            
-            % Open the file in 'a' (append) mode so we can continuously write to it
-            obj.logFileID = fopen(logName, 'a');
-            
-            % Write the top header row for the CSV columns
-            fprintf(obj.logFileID, 'SystemTime,TrialNum,EventName,TriggerChannel,PortValueSent,State\n');
-            
-            % --- 3. Start the Master Clock ---
-            % Grab the exact computer time right now. All future events will be 
-            % measured relative to this exact millisecond.
-            obj.expStartTime = GetSecs; 
-            
-            disp(['TriggerLogger Initialized. Channels 1-7 for events | Ch 8 Master Sync. Log saving to: ' logName]);
-        end
+        function obj = TriggerLogger(subjectID)
+    obj.address = hex2dec('3FF8');  % Correct address from your test script
+    
+    obj.ioObj = io64;
+    status = io64(obj.ioObj);
+    if status ~= 0
+        error('TriggerLogger:NoHardware', 'Failed to initialize io64.');
+    end
+    io64(obj.ioObj, obj.address, 0);  % safety reset
+    
+    logName = sprintf('Log_Subj%s_%s.csv', subjectID, datestr(now, 'yyyymmdd_HHMM'));
+    obj.logFileID = fopen(logName, 'a');
+    fprintf(obj.logFileID, 'SystemTime,TrialNum,EventName,TriggerChannel,PortValueSent,State\n');
+    obj.expStartTime = GetSecs;
+    
+    disp(['TriggerLogger Initialized. Log saving to: ' logName]);
+end
         
         function startEvent(obj, triggerChannel, trialNum, eventName)
             % ---------------------------------------------------------
@@ -131,6 +113,57 @@ classdef TriggerLogger < handle
             GetSecs - obj.expStartTime, trialNum, 'AbortReset');
         end
 
+        % ---------------------------------------------------------
+        % PAUSE START: Fires a 50ms pulse to mark the beginning of a pause;
+        % this indicate when the experiment is appropriately paused.
+
+        % The function is queued by a keyboard input (P for PAUSE) in the main 
+        % code (not done here).
+        
+        % ---------------------------------------------------------
+        function pauseIndicatorStart(obj, trialNum)
+        % Sets the channel value to 65
+        NotedChannels = 65;
+    
+    
+        % Fire the specific channels HIGH
+        io64(obj.ioObj, obj.address, NotedChannels);
+    
+        % Log the ON state to the CSV
+        timestamp = GetSecs - obj.expStartTime;
+        fprintf(obj.logFileID, '%.4f,%d,%s,1_65,ON\n', ...
+            timestamp, trialNum, 'PauseIndicator');
+    
+        % Brief 50ms hold so hardware registers the pulse
+        WaitSecs(0.05);
+    
+        % Drop channels back to LOW (0V)
+        io64(obj.ioObj, obj.address, 0);
+        
+        % Log the OFF state to the CSV
+        fprintf(obj.logFileID, '%.4f,%d,%s,1_7,0,OFF\n', ...
+            GetSecs - obj.expStartTime, trialNum, 'PauseIndicator');
+        end
+
+        function pauseIndicatorEnd(obj, triggerChannel, trialNum, eventName)
+            % ---------------------------------------------------------
+            % PAUSE END: Logs the resumption of the trial to the CSV
+            % Note: Sends a 0V signal to the hardware
+            % ---------------------------------------------------------
+            
+            % --- 1. Send physical TTL LOW ---
+            % Commands the port to 0 (acts as a safeguard to ensure pins are off)
+            io64(obj.ioObj, obj.address, 0); 
+            
+            % --- 2. Write to CSV Log ---
+            % Note exactly when the pause ended in the backup file.
+            timestamp = GetSecs - obj.expStartTime;
+            fprintf(obj.logFileID, '%.4f,%d,%s,%d,0,OFF\n', ...
+                timestamp, trialNum, eventName, triggerChannel);
+        end
+
+
+        
         function close(obj)
             % ---------------------------------------------------------
             % CLEANUP: Runs safely at the end of the experiment or during a crash

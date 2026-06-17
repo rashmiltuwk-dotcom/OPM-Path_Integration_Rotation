@@ -29,13 +29,13 @@ classdef TriggerLogger < handle
     
     logName = sprintf('Log_Subj%s_%s.csv', subjectID, datestr(now, 'yyyymmdd_HHMM'));
     obj.logFileID = fopen(logName, 'a');
-    fprintf(obj.logFileID, 'SystemTime,TrialNum,EventName,TriggerChannel,PortValueSent,State\n');
+    fprintf(obj.logFileID, 'SystemTime,trueTrial,EventName,TriggerChannel,PortValueSent,State\n');
     obj.expStartTime = GetSecs;
     
     disp(['TriggerLogger Initialized. Log saving to: ' logName]);
 end
         
-        function startEvent(obj, triggerChannel, trialNum, eventName)
+        function startEvent(obj, triggerChannel, trueTrial, eventName)
             % ---------------------------------------------------------
             % START EVENT: Sends 5V to the MEG and writes "ON" to the CSV
             % ---------------------------------------------------------
@@ -65,10 +65,10 @@ end
             
             % Write the data row. '%.4f' means print the time with 4 decimal places (sub-millisecond precision).
             fprintf(obj.logFileID, '%.4f,%d,%s,%d,%d,ON\n', ...
-                timestamp, trialNum, eventName, triggerChannel, outValue);
+                timestamp, trueTrial, eventName, triggerChannel, outValue);
         end
         
-        function stopEvent(obj, triggerChannel, trialNum, eventName)
+        function stopEvent(obj, triggerChannel, trueTrial, eventName)
             % ---------------------------------------------------------
             % STOP EVENT: Drops the MEG pins to 0V and writes "OFF" to the CSV
             % ---------------------------------------------------------
@@ -82,10 +82,10 @@ end
             % Note exactly when the pulse ended in our backup file.
             timestamp = GetSecs - obj.expStartTime;
             fprintf(obj.logFileID, '%.4f,%d,%s,%d,0,OFF\n', ...
-                timestamp, trialNum, eventName, triggerChannel);
+                timestamp, trueTrial, eventName, triggerChannel);
         end
 
-        function resetAllTriggers(obj, trialNum)
+        function resetAllTriggers(obj, trueTrial)
         % ---------------------------------------------------------
         % RESET ALL TRIGGERS: Fires all channels 1-7 together, then drops to 0
         % Creates a clear "abort marker" pulse visible in the MEG data
@@ -103,7 +103,7 @@ end
         % Log it
         timestamp = GetSecs - obj.expStartTime;
         fprintf(obj.logFileID, '%.4f,%d,%s,ALL,255,ON\n', ...
-            timestamp, trialNum, 'AbortReset');
+            timestamp, trueTrial, 'AbortReset');
     
         % Brief hold so hardware registers the pulse
         WaitSecs(0.05);
@@ -111,7 +111,7 @@ end
         % Drop all channels to LOW
         io64(obj.ioObj, obj.address, 0);
         fprintf(obj.logFileID, '%.4f,%d,%s,ALL,0,OFF\n', ...
-            GetSecs - obj.expStartTime, trialNum, 'AbortReset');
+            GetSecs - obj.expStartTime, trueTrial, 'AbortReset');
         end
 
 
@@ -124,7 +124,7 @@ end
         % The function is queued by a keyboard input (P for PAUSE) in the main
         % code (not done here).
         % ---------------------------------------------------------
-        function pauseIndicatorStart(obj, trialNum)
+        function pauseIndicatorStart(obj, trueTrial)
             % --- 1. Save current port state ---
             % Read back whatever is currently active on the port so we can
             % restore it when the experiment resumes.
@@ -137,11 +137,11 @@ end
             % --- 3. Write to CSV Log ---
             timestamp = GetSecs - obj.expStartTime;
             fprintf(obj.logFileID, '%.4f,%d,%s,%d,%d,ON\n', ...
-                timestamp, trialNum, 'PauseIndicator', 65, 65);
+                timestamp, trueTrial, 'PauseIndicator', 65, 65);
         end
 
 
-        function pauseIndicatorEnd(obj, trialNum)
+        function pauseIndicatorEnd(obj, trueTrial)
             % ---------------------------------------------------------
             % PAUSE END: Restores the port to its pre-pause state and logs resumption.
             % Sending prePauseValue (rather than 0) ensures any event channel
@@ -154,7 +154,7 @@ end
             % --- 2. Write to CSV Log ---
             timestamp = GetSecs - obj.expStartTime;
             fprintf(obj.logFileID, '%.4f,%d,%s,%d,0,OFF\n', ...
-                timestamp, trialNum, 'PauseIndicator', 65);
+                timestamp, trueTrial, 'PauseIndicator', 65);
         end
 
 

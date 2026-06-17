@@ -124,7 +124,7 @@ end
         % The function is queued by a keyboard input (P for PAUSE) in the main
         % code (not done here).
         % ---------------------------------------------------------
-        function pauseIndicatorStart(obj, trueTrial)
+        function pauseIndicatorStart(obj, triggerChannel, trueTrial, eventName)
             % --- 1. Save current port state ---
             % Read back whatever is currently active on the port so we can
             % restore it when the experiment resumes.
@@ -141,7 +141,7 @@ end
         end
 
 
-        function pauseIndicatorEnd(obj, trueTrial)
+        function pauseIndicatorEnd(obj, triggerChannel, trueTrial, eventName)
             % ---------------------------------------------------------
             % PAUSE END: Restores the port to its pre-pause state and logs resumption.
             % Sending prePauseValue (rather than 0) ensures any event channel

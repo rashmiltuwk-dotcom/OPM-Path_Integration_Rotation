@@ -13,6 +13,7 @@ classdef TriggerLogger < handle
         % [DATA BACKUP SETUP]
         logFileID       % The open ID handle for the CSV text file
         expStartTime    % The absolute baseline time (T=0) to calculate precise relative timestamps
+        prePauseValue   % Stores the active port state before a pause, so it can be restored on resume
     end
     
     methods
@@ -113,53 +114,47 @@ end
             GetSecs - obj.expStartTime, trialNum, 'AbortReset');
         end
 
-        % ---------------------------------------------------------
-        % PAUSE START: Fires a 50ms pulse to mark the beginning of a pause;
-        % this indicate when the experiment is appropriately paused.
 
-        % The function is queued by a keyboard input (P for PAUSE) in the main 
+        % ---------------------------------------------------------
+        % PAUSE START: Fires a pulse to mark the beginning of a pause.
+        % Saves the current port state first so it can be restored on resume,
+        % preventing any active event channel from being wiped when the
+        % pause fires mid-trial.
+        %
+        % The function is queued by a keyboard input (P for PAUSE) in the main
         % code (not done here).
-        
         % ---------------------------------------------------------
         function pauseIndicatorStart(obj, trialNum)
-        % Sets the channel value to 65
-        NotedChannels = 65;
-    
-    
-        % Fire the specific channels HIGH
-        io64(obj.ioObj, obj.address, NotedChannels);
-    
-        % Log the ON state to the CSV
-        timestamp = GetSecs - obj.expStartTime;
-        fprintf(obj.logFileID, '%.4f,%d,%s,1_65,ON\n', ...
-            timestamp, trialNum, 'PauseIndicator');
-    
-        % Brief 50ms hold so hardware registers the pulse
-        WaitSecs(0.05);
-    
-        % Drop channels back to LOW (0V)
-        io64(obj.ioObj, obj.address, 0);
-        
-        % Log the OFF state to the CSV
-        fprintf(obj.logFileID, '%.4f,%d,%s,1_7,0,OFF\n', ...
-            GetSecs - obj.expStartTime, trialNum, 'PauseIndicator');
+            % --- 1. Save current port state ---
+            % Read back whatever is currently active on the port so we can
+            % restore it when the experiment resumes.
+            obj.prePauseValue = io64(obj.ioObj, obj.address);
+
+            % --- 2. Send pause marker HIGH ---
+            % Value 65 = Channel 1 (bit 0) + Channel 7 (bit 6), marking pause onset.
+            io64(obj.ioObj, obj.address, 65);
+
+            % --- 3. Write to CSV Log ---
+            timestamp = GetSecs - obj.expStartTime;
+            fprintf(obj.logFileID, '%.4f,%d,%s,%d,%d,ON\n', ...
+                timestamp, trialNum, 'PauseIndicator', 65, 65);
         end
 
-        function pauseIndicatorEnd(obj, triggerChannel, trialNum, eventName)
+
+        function pauseIndicatorEnd(obj, trialNum)
             % ---------------------------------------------------------
-            % PAUSE END: Logs the resumption of the trial to the CSV
-            % Note: Sends a 0V signal to the hardware
+            % PAUSE END: Restores the port to its pre-pause state and logs resumption.
+            % Sending prePauseValue (rather than 0) ensures any event channel
+            % that was active when the pause was triggered is correctly restored.
             % ---------------------------------------------------------
-            
-            % --- 1. Send physical TTL LOW ---
-            % Commands the port to 0 (acts as a safeguard to ensure pins are off)
-            io64(obj.ioObj, obj.address, 0); 
-            
+
+            % --- 1. Restore pre-pause port state ---
+            io64(obj.ioObj, obj.address, obj.prePauseValue);
+
             % --- 2. Write to CSV Log ---
-            % Note exactly when the pause ended in the backup file.
             timestamp = GetSecs - obj.expStartTime;
             fprintf(obj.logFileID, '%.4f,%d,%s,%d,0,OFF\n', ...
-                timestamp, trialNum, eventName, triggerChannel);
+                timestamp, trialNum, 'PauseIndicator', 65);
         end
 
 

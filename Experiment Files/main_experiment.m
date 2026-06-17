@@ -746,11 +746,8 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 prodTurnAmount = actHead - actualHead;
                 prodTorsoTurn = actTorso - actualTorso;
 
-                % 2. Apply shortest-path correction to production (no direction constraint)
-                prodTurnAmount = mod(prodTurnAmount + 180, 360) - 180;
-                prodTorsoTurn = mod(prodTorsoTurn + 180, 360) - 180;
 
-                % 3. Fix the boundary crossing for encoding based on OptiTrack's layout
+                % 2. Fix the boundary crossing for encoding based on OptiTrack's layout
                 if strcmp(dirCode, 'L')
                 % OptiTrack: LEFT turns must be POSITIVE
                     if rawEncodeHead < 0, encodeTurnAmount = rawEncodeHead + 360; else, encodeTurnAmount = rawEncodeHead; end

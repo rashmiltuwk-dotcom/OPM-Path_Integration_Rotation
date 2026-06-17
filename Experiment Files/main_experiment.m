@@ -488,6 +488,8 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 
                 if ~isempty(TL), TL.stopEvent(3, trueTrial, 'PhysWalk'); end
                 OptiTrackBridge.stopEvent(trueTrial, 'PhysWalk');
+                [PausedPhysicallyWalkHeadTrace, PausedPhysicallyWalkTorsoTrace] = OptiTrackBridge.ExtractPausedTraces();
+                PAUSED_MOTION_BUFFER.frames = {};
                 
                 captureDuration = 0.5; % Record for 0.5 seconds after they stop
                 [PassiveWalkHeadTrace, PassiveWalkTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, captureDuration);
@@ -547,6 +549,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 
                 if ~isempty(TL), TL.stopEvent(2, trueTrial, 'Stationary'); end
                 OptiTrackBridge.stopEvent(trueTrial, 'Stationary');
+
                 % ---------------------------------------------------------
                 % EVENT 3: PHYSICAL ROTATION (Encoding)
                 % ---------------------------------------------------------
@@ -585,6 +588,10 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 % 5. END TRIGGER & STOP AUDIO (Immediate)
                 if ~isempty(TL), TL.stopEvent(4, trueTrial, 'PhysRotateEncoding'); end
                 OptiTrackBridge.stopEvent(trueTrial, 'PhysRotateEncoding');
+
+                [PausedEncodingRotateHeadTrace, PausedEncodingRotateTorsoTrace] = OptiTrackBridge.ExtractPausedTraces();
+                PAUSED_MOTION_BUFFER.frames = {};
+
                 % Immediate feedback: No delay between target hit and "Stop" sound
                 play_sound(pahandle, audioData.stop);
 
@@ -636,7 +643,8 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 % 5. END TRIGGER
                 if ~isempty(TL), TL.stopEvent(5, trueTrial, 'RotationProduction'); end
                 OptiTrackBridge.stopEvent(trueTrial, 'RotationProduction');
-                
+                [PausedResponseRotationHeadTrace, PausedResponseRotationTorsoTrace] = OptiTrackBridge.ExtractPausedTraces();
+                PAUSED_MOTION_BUFFER.frames = {};
                 
                 [PassiveProdHeadTrace, PassiveProdTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, captureDuration);
                 
@@ -691,6 +699,8 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 
                 if ~isempty(TL), TL.stopEvent(6, trueTrial, 'ImagineWalk'); end
                 OptiTrackBridge.stopEvent(trueTrial, 'ImagineWalk');
+                [PausedImagineWalkingHeadTrace, PausedImagineWalkingTorsoTrace] = OptiTrackBridge.ExtractPausedTraces();
+                PAUSED_MOTION_BUFFER.frames = {};
                 
                 % ---------------------------------------------------------
                 % THREE SECOND STATIONARY TIME PERIOD (IMAGINE STILL)
@@ -761,7 +771,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 %  Added missing comma after 'DistanceFromCent'
                 newRow = table(trueTrial, {participantPosition}, {dirCode}, {typeCode}, {qCode}, storedTargetDeg, targetDist,...
                     walkDistTorso, walkDistHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
-                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, headDistFromCenter, torsoDistFromCenter, PAUSE_CALLED, {statusStr}, ...
+                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, headDistFromCenter, torsoDistFromCenter, {PAUSE_CALLED}, {statusStr}, ...
                     'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
                     'WalkDistTorso','WalkDistHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
                     'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'PauseCalled', 'Status'});
@@ -813,28 +823,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 tracePacket.CloseEyesTorsoTrace = CloseEyesTorsoTrace;
 
 
-                % ===== EXTRACT PAUSED TRACES FROM BUFFER =====
-                global PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
-                if ~isempty(PAUSED_MOTION_BUFFER.frames)
-                    [pausedHead, pausedTorso] = OptiTrackBridge.ExtractPausedTraces();
-                    
-                    % Store in correct variables based on event type
-                    switch PAUSED_EVENT_TYPE
-                        case 'PhysicalWalk'
-                            PausedPhysicallyWalkHeadTrace = pausedHead;
-                            PausedPhysicallyWalkTorsoTrace = pausedTorso;
-                        case 'EncodingRotate'
-                            PausedEncodingRotateHeadTrace = pausedHead;
-                            PausedEncodingRotateTorsoTrace = pausedTorso;
-                        case 'ResponseRotation'
-                            PausedResponseRotationHeadTrace = pausedHead;
-                            PausedResponseRotationTorsoTrace = pausedTorso;
-                        case 'ImagineWalk'
-                            PausedImagineWalkingHeadTrace = pausedHead;
-                            PausedImagineWalkingTorsoTrace = pausedTorso;
-                    end
-                end
-                % =============================================
+
 
                 % ===== ADD PAUSED TRACES TO PACKET =====
                 tracePacket.PausedPhysicallyWalkHeadTrace = PausedPhysicallyWalkHeadTrace;
@@ -872,7 +861,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
 
                     newRow = table(trueTrial, {participantPosition}, {dirCode}, {typeCode}, {qCode}, storedTargetDeg, targetDist,...
                     walkDistTorso, walkDistHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
-                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, headDistFromCenter, torsoDistFromCenter, PAUSE_CALLED, {statusStr}, ...
+                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, headDistFromCenter, torsoDistFromCenter, {PAUSE_CALLED}, {statusStr}, ...
                     'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
                     'WalkDistTorso','WalkDistHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
                     'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'PauseCalled', 'Status'});
@@ -921,27 +910,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
                 tracePacket.CloseEyesTorsoTrace = CloseEyesTorsoTrace;
 
-                % ===== EXTRACT PAUSED TRACES FROM BUFFER (FOR REDO) =====
-                global PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
-                if ~isempty(PAUSED_MOTION_BUFFER.frames)
-                    [pausedHead, pausedTorso] = OptiTrackBridge.ExtractPausedTraces();
-                    
-                    % Store in correct variables based on event type
-                    switch PAUSED_EVENT_TYPE
-                        case 'PhysicalWalk'
-                            PausedPhysicallyWalkHeadTrace = pausedHead;
-                            PausedPhysicallyWalkTorsoTrace = pausedTorso;
-                        case 'EncodingRotate'
-                            PausedEncodingRotateHeadTrace = pausedHead;
-                            PausedEncodingRotateTorsoTrace = pausedTorso;
-                        case 'ResponseRotation'
-                            PausedResponseRotationHeadTrace = pausedHead;
-                            PausedResponseRotationTorsoTrace = pausedTorso;
-                        case 'ImagineWalk'
-                            PausedImagineWalkingHeadTrace = pausedHead;
-                            PausedImagineWalkingTorsoTrace = pausedTorso;
-                    end
-                end
+
                 % ===========================================================
 
                 % ===== ADD PAUSED TRACES TO PACKET (FOR REDO) =====

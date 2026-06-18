@@ -208,7 +208,7 @@ end
 
 % ===== PAUSE SYSTEM INITIALIZATION (NON-INTERRUPTING) =====
 % Global variables to track pause state
-global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
+global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE continuousFile
 PAUSE_ACTIVE = false;           % true when paused, false when running
 PAUSED_MOTION_BUFFER.frames = {}; % Will store motion data during pause
 PAUSED_EVENT_TYPE = '';         % Tracks which event is being paused
@@ -877,7 +877,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
 
                 % Create a sub-folder just for the traces
                 tracePacket = struct();
-                tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
+                                tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
                 tracePacket.CloseEyesTorsoTrace = CloseEyesTorsoTrace;
                 tracePacket.PhysicallyWalkHeadTrace = PhysicallyWalkHeadTrace;
                 tracePacket.PhysicallyWalkTorsoTrace = PhysicallyWalkTorsoTrace;
@@ -1053,7 +1053,7 @@ end
 end
 
 function GuaranteedCleanup()
-    global TL PAUSED_MOTION_BUFFER PAUSE_ACTIVE PAUSED_EVENT_TYPE
+    global TL PAUSED_MOTION_BUFFER PAUSE_ACTIVE PAUSED_EVENT_TYPE continuousFile
     
     fprintf('\n>>> CLEANUP TRIGGERED (ESCAPE or ERROR) <<<\n');
     
@@ -1069,7 +1069,7 @@ function GuaranteedCleanup()
     % 2. Stop the polling timer (most critical)
     try
         OptiTrackBridge.StopContinuousCollection();
-        fprintf('? Continuous collection stopped\n');
+        fprintf('Continuous collection stopped\n');
     catch
         warning('Failed to stop continuous collection');
     end
@@ -1078,7 +1078,7 @@ function GuaranteedCleanup()
     try
         if ~isempty(continuousFile)
             OptiTrackBridge.SaveContinuous(continuousFile);
-            fprintf('? Continuous data saved\n');
+            fprintf('Continuous data saved\n');
         end
     catch
         warning('Failed to save continuous data');
@@ -1087,7 +1087,7 @@ function GuaranteedCleanup()
     % 4. Close hardware
     try
         if ~isempty(TL), TL.close(); end
-        fprintf('? MEG trigger logger closed\n');
+        fprintf('MEG trigger logger closed\n');
     catch
         warning('Failed to close trigger logger');
     end
@@ -1095,7 +1095,7 @@ function GuaranteedCleanup()
     % 5. Disconnect OptiTrack
     try
         OptiTrackBridge.Disconnect();
-        fprintf('? OptiTrack disconnected\n');
+        fprintf('OptiTrack disconnected\n');
     catch
         warning('Failed to disconnect OptiTrack');
     end
@@ -1103,7 +1103,7 @@ function GuaranteedCleanup()
     % 6. Close audio
     try
         PsychPortAudio('Close');
-        fprintf('? Audio closed\n');
+        fprintf('Audio closed\n');
     catch
         warning('Failed to close audio');
     end
@@ -1111,12 +1111,12 @@ function GuaranteedCleanup()
     % 7. Close screen
     try
         Screen('CloseAll');
-        fprintf('? Screen closed\n');
+        fprintf('Screen closed\n');
     catch
         warning('Failed to close screen');
     end
     
     % 8. Reset globals
-    clear global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
-    fprintf('? Globals reset\n');
+    clear global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE continuousFile
+    fprintf('Globals reset\n');
 end

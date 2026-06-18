@@ -130,14 +130,17 @@ end
             % restore it when the experiment resumes.
             obj.prePauseValue = io64(obj.ioObj, obj.address);
 
-            % --- 2. Send pause marker HIGH ---
-            % Value 65 = Channel 1 (bit 0) + Channel 7 (bit 6), marking pause onset.
-            io64(obj.ioObj, obj.address, 65);
+                % --- 2. KEEPING OTHER FUNCTION ALIVE + ADD PAUSE MARKER ---
+            % Instead of replacing, combine: 
+            % prePauseValue keeps Ch3 + Ch8, we ADD Ch1 + Ch7 on top
+            pauseMarker = 65;  % Ch1 + Ch7
+            outValue = bitor(obj.prePauseValue, pauseMarker);
+            io64(obj.ioObj, obj.address, outValue);
 
             % --- 3. Write to CSV Log ---
             timestamp = GetSecs - obj.expStartTime;
             fprintf(obj.logFileID, '%.4f,%d,%s,%d,%d,ON\n', ...
-                timestamp, trueTrial, 'PauseIndicator', 65, 65);
+                timestamp, trueTrial, 'PauseIndicator', 65, outValue);
         end
 
 
@@ -153,8 +156,8 @@ end
 
             % --- 2. Write to CSV Log ---
             timestamp = GetSecs - obj.expStartTime;
-            fprintf(obj.logFileID, '%.4f,%d,%s,%d,0,OFF\n', ...
-                timestamp, trueTrial, 'PauseIndicator', 65);
+            fprintf(obj.logFileID, '%.4f,%d,%s,%d,%d,OFF\n', ...
+                timestamp, trueTrial, 'PauseIndicator', 65, obj.prePauseValue);
         end
 
 

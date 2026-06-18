@@ -983,7 +983,7 @@ classdef OptiTrackBridge
                 frameTimestamp = double(data.Timestamp);
                 
                 % Auto-detect Motive recording start (passive T0 capture)
-                if isfield(data, 'bRecording')
+                if (isprop(data, 'bRecording') || isfield(data, 'bRecording'))
                     if logical(data.bRecording) && OP_BRIDGE_STATE.MotiveT0 == 0
                         OP_BRIDGE_STATE.MotiveT0 = double(data.Timestamp);
                         fprintf('>>> Motive recording detected. T0 = %.6f\n', OP_BRIDGE_STATE.MotiveT0);

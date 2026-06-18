@@ -790,46 +790,43 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
 
                 % Create a sub-folder just for the traces
                 tracePacket = struct();
-                tracePacket.OpenEyesHeadTrace = OpenEyesHeadTrace;
-                tracePacket.OpenEyesTorsoTrace = OpenEyesTorsoTrace;
+
+                tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
+                tracePacket.CloseEyesTorsoTrace = CloseEyesTorsoTrace;
                 tracePacket.PhysicallyWalkHeadTrace = PhysicallyWalkHeadTrace;
                 tracePacket.PhysicallyWalkTorsoTrace = PhysicallyWalkTorsoTrace;
                 tracePacket.RealignHeadTrace = RealignHeadTrace;
                 tracePacket.RealignTorsoTrace = RealignTorsoTrace;
                 tracePacket.PassiveWalkHeadTrace = PassiveWalkHeadTrace;
                 tracePacket.PassiveWalkTorsoTrace = PassiveWalkTorsoTrace;
+                tracePacket.PausedPhysicallyWalkHeadTrace = PausedPhysicallyWalkHeadTrace;
+                tracePacket.PausedPhysicallyWalkTorsoTrace = PausedPhysicallyWalkTorsoTrace;
                 tracePacket.StationaryHeadTraceOne = StationaryHeadTraceOne;
                 tracePacket.StationaryTorsoTraceOne = StationaryTorsoTraceOne;
                 tracePacket.EncodingRotateHeadTrace = EncodingRotateHeadTrace;
                 tracePacket.EncodingRotateTorsoTrace = EncodingRotateTorsoTrace;                
                 tracePacket.PassiveEncodeHeadTrace = PassiveEncodeHeadTrace;
-                tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;          
+                tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;
+                tracePacket.PausedEncodingRotateHeadTrace = PausedEncodingRotateHeadTrace;
+                tracePacket.PausedEncodingRotateTorsoTrace = PausedEncodingRotateTorsoTrace;
                 tracePacket.ResponseRotationHeadTrace = ResponseRotationHeadTrace;
                 tracePacket.ResponseRotationTorsoTrace = ResponseRotationTorsoTrace;
                 tracePacket.PassiveProdHeadTrace = PassiveProdHeadTrace;
                 tracePacket.PassiveProdTorsoTrace = PassiveProdTorsoTrace;
+                tracePacket.PausedResponseRotationHeadTrace = PausedResponseRotationHeadTrace;
+                tracePacket.PausedResponseRotationTorsoTrace = PausedResponseRotationTorsoTrace;
                 tracePacket.StationaryHeadTraceTwo = StationaryHeadTraceTwo;
                 tracePacket.StationaryTorsoTraceTwo = StationaryTorsoTraceTwo;
                 tracePacket.ImagineWalkingHeadTrace = ImagineWalkingHeadTrace;
-                tracePacket.ImagineWalkingTorsoTrace = ImagineWalkingTorsoTrace;                   
+                tracePacket.ImagineWalkingTorsoTrace = ImagineWalkingTorsoTrace;
+                tracePacket.PausedImagineWalkingHeadTrace = PausedImagineWalkingHeadTrace;
+                tracePacket.PausedImagineWalkingTorsoTrace = PausedImagineWalkingTorsoTrace;                
                 tracePacket.StationaryHeadTraceThree = StationaryHeadTraceThree;
                 tracePacket.StationaryTorsoTraceThree = StationaryTorsoTraceThree;
-                tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
-                tracePacket.CloseEyesTorsoTrace = CloseEyesTorsoTrace;
+                tracePacket.OpenEyesHeadTrace = OpenEyesHeadTrace;
+                tracePacket.OpenEyesTorsoTrace = OpenEyesTorsoTrace;
 
 
-
-
-                % ===== ADD PAUSED TRACES TO PACKET =====
-                tracePacket.PausedPhysicallyWalkHeadTrace = PausedPhysicallyWalkHeadTrace;
-                tracePacket.PausedPhysicallyWalkTorsoTrace = PausedPhysicallyWalkTorsoTrace;
-                tracePacket.PausedEncodingRotateHeadTrace = PausedEncodingRotateHeadTrace;
-                tracePacket.PausedEncodingRotateTorsoTrace = PausedEncodingRotateTorsoTrace;
-                tracePacket.PausedResponseRotationHeadTrace = PausedResponseRotationHeadTrace;
-                tracePacket.PausedResponseRotationTorsoTrace = PausedResponseRotationTorsoTrace;
-                tracePacket.PausedImagineWalkingHeadTrace = PausedImagineWalkingHeadTrace;
-                tracePacket.PausedImagineWalkingTorsoTrace = PausedImagineWalkingTorsoTrace;
-                % ========================================
 
                 % Attach the traces and move to the next empty slot
                 MasterData(masterIdx).Traces = tracePacket;
@@ -880,43 +877,40 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
 
                 % Create a sub-folder just for the traces
                 tracePacket = struct();
-                tracePacket.OpenEyesHeadTrace = OpenEyesHeadTrace;
-                tracePacket.OpenEyesTorsoTrace = OpenEyesTorsoTrace;
+                tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
+                tracePacket.CloseEyesTorsoTrace = CloseEyesTorsoTrace;
                 tracePacket.PhysicallyWalkHeadTrace = PhysicallyWalkHeadTrace;
                 tracePacket.PhysicallyWalkTorsoTrace = PhysicallyWalkTorsoTrace;
+                tracePacket.RealignHeadTrace = RealignHeadTrace;
+                tracePacket.RealignTorsoTrace = RealignTorsoTrace;
                 tracePacket.PassiveWalkHeadTrace = PassiveWalkHeadTrace;
                 tracePacket.PassiveWalkTorsoTrace = PassiveWalkTorsoTrace;
+                tracePacket.PausedPhysicallyWalkHeadTrace = PausedPhysicallyWalkHeadTrace;
+                tracePacket.PausedPhysicallyWalkTorsoTrace = PausedPhysicallyWalkTorsoTrace;
                 tracePacket.StationaryHeadTraceOne = StationaryHeadTraceOne;
                 tracePacket.StationaryTorsoTraceOne = StationaryTorsoTraceOne;
                 tracePacket.EncodingRotateHeadTrace = EncodingRotateHeadTrace;
                 tracePacket.EncodingRotateTorsoTrace = EncodingRotateTorsoTrace;                
                 tracePacket.PassiveEncodeHeadTrace = PassiveEncodeHeadTrace;
-                tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;          
+                tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;
+                tracePacket.PausedEncodingRotateHeadTrace = PausedEncodingRotateHeadTrace;
+                tracePacket.PausedEncodingRotateTorsoTrace = PausedEncodingRotateTorsoTrace;
                 tracePacket.ResponseRotationHeadTrace = ResponseRotationHeadTrace;
                 tracePacket.ResponseRotationTorsoTrace = ResponseRotationTorsoTrace;
                 tracePacket.PassiveProdHeadTrace = PassiveProdHeadTrace;
                 tracePacket.PassiveProdTorsoTrace = PassiveProdTorsoTrace;
+                tracePacket.PausedResponseRotationHeadTrace = PausedResponseRotationHeadTrace;
+                tracePacket.PausedResponseRotationTorsoTrace = PausedResponseRotationTorsoTrace;
                 tracePacket.StationaryHeadTraceTwo = StationaryHeadTraceTwo;
                 tracePacket.StationaryTorsoTraceTwo = StationaryTorsoTraceTwo;
                 tracePacket.ImagineWalkingHeadTrace = ImagineWalkingHeadTrace;
-                tracePacket.ImagineWalkingTorsoTrace = ImagineWalkingTorsoTrace;                   
+                tracePacket.ImagineWalkingTorsoTrace = ImagineWalkingTorsoTrace;
+                tracePacket.PausedImagineWalkingHeadTrace = PausedImagineWalkingHeadTrace;
+                tracePacket.PausedImagineWalkingTorsoTrace = PausedImagineWalkingTorsoTrace;                
                 tracePacket.StationaryHeadTraceThree = StationaryHeadTraceThree;
                 tracePacket.StationaryTorsoTraceThree = StationaryTorsoTraceThree;
-                tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
-                tracePacket.CloseEyesTorsoTrace = CloseEyesTorsoTrace;
-
-
-                % ===========================================================
-
-                % ===== ADD PAUSED TRACES TO PACKET (FOR REDO) =====
-                tracePacket.PausedPhysicallyWalkHeadTrace = PausedPhysicallyWalkHeadTrace;
-                tracePacket.PausedPhysicallyWalkTorsoTrace = PausedPhysicallyWalkTorsoTrace;
-                tracePacket.PausedEncodingRotateHeadTrace = PausedEncodingRotateHeadTrace;
-                tracePacket.PausedEncodingRotateTorsoTrace = PausedEncodingRotateTorsoTrace;
-                tracePacket.PausedResponseRotationHeadTrace = PausedResponseRotationHeadTrace;
-                tracePacket.PausedResponseRotationTorsoTrace = PausedResponseRotationTorsoTrace;
-                tracePacket.PausedImagineWalkingHeadTrace = PausedImagineWalkingHeadTrace;
-                tracePacket.PausedImagineWalkingTorsoTrace = PausedImagineWalkingTorsoTrace;
+                tracePacket.OpenEyesHeadTrace = OpenEyesHeadTrace;
+                tracePacket.OpenEyesTorsoTrace = OpenEyesTorsoTrace;
                 % =====================================================
 
                 MasterData(masterIdx).Traces = tracePacket;

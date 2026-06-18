@@ -375,9 +375,9 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
             PAUSED_EVENT_TYPE = '';
             
             % 1. CRITICAL: PRE-ALLOCATE VARIABLES FIRST
-            [walkDistTorso, walkDistHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
+            [walkDistTorso, walkDistHead, headDistFromCenter, torsoDistFromCenter, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
              actHead, actTorso, rt_Rot, imagineWalkTime, encodeTurnAmount,encodeTorsoTurn, prodTurnAmount, prodTorsoTurn, ...
-             encodeDriftHead, encodeDriftTorso, prodDriftHead, prodDriftTorso, headDistFromCenter, torsoDistFromCenter] = deal(NaN);
+             encodeDriftHead, encodeDriftTorso, prodDriftHead, prodDriftTorso, ] = deal(NaN);
             rank = ''; % Reset rank
             
             [OpenEyesHeadTrace, OpenEyesTorsoTrace, ...
@@ -498,13 +498,13 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                     % Calculate shortest path drift (handles 360-degree wrap around)
                     initT = sqrt(PassiveWalkTorsoTrace.x(1)^2 + PassiveWalkTorsoTrace.z(1)^2);
                     finT = sqrt(PassiveWalkTorsoTrace.x(end)^2 + PassiveWalkTorsoTrace.z(end)^2);
-                    encodeDriftTorso = finT - initT;
+                    walkDriftTorso = finT - initT;
                     
                     initH = sqrt(PassiveWalkHeadTrace.x(1)^2 + PassiveWalkHeadTrace.z(1)^2);
                     finH = sqrt(PassiveWalkHeadTrace.x(end)^2 + PassiveWalkHeadTrace.z(end)^2);
-                    encodeDriftHead = finH - initH;
+                    walkDriftHead = finH - initH;
                 else
-                    encodeDriftTorso = 0; encodeDriftHead = 0;
+                    walkDriftTorso = 0; walkDriftHead = 0;
                 end 
 
                 % ---------------------------------------------------------
@@ -601,10 +601,10 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 if ~isempty(PassiveEncodeTorsoTrace.yaw)
                     % Calculate shortest path drift (handles 360-degree wrap around)
                     initT = PassiveEncodeTorsoTrace.yaw(1); finT = PassiveEncodeTorsoTrace.yaw(end);
-                    encodeDriftTorso = mod((finT - initT) + 180, 360) - 180;
+                    encodeDriftTorso = finT - initT;
                     
                     initH = PassiveEncodeHeadTrace.yaw(1); finH = PassiveEncodeHeadTrace.yaw(end);
-                    encodeDriftHead = mod((finH - initH) + 180, 360) - 180;
+                    encodeDriftHead = finH - initH;
                 else
                     encodeDriftTorso = 0; encodeDriftHead = 0;
                 end 
@@ -650,10 +650,10 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 
                 if ~isempty(PassiveProdTorsoTrace.yaw)
                     initT = PassiveProdTorsoTrace.yaw(1); finT = PassiveProdTorsoTrace.yaw(end);
-                    prodDriftTorso = mod((finT - initT) + 180, 360) - 180;
+                    prodDriftTorso = finT - initT;
                     
                     initH = PassiveProdHeadTrace.yaw(1); finH = PassiveProdHeadTrace.yaw(end);
-                    prodDriftHead = mod((finH - initH) + 180, 360) - 180;
+                    prodDriftHead = finH - initH;
                 else
                     prodDriftTorso = 0; prodDriftHead = 0;
                 end
@@ -767,11 +767,11 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
 
                 %  Added missing comma after 'DistanceFromCent'
                 newRow = table(trueTrial, {participantPosition}, {dirCode}, {typeCode}, {qCode}, storedTargetDeg, targetDist,...
-                    walkDistTorso, walkDistHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
-                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, headDistFromCenter, torsoDistFromCenter, {PAUSE_CALLED}, {statusStr}, ...
+                    walkDistTorso, walkDistHead, headDistFromCenter, torsoDistFromCenter,  walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
+                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {PAUSE_CALLED}, {statusStr}, ...
                     'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
-                    'WalkDistTorso','WalkDistHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
-                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'PauseCalled', 'Status'});
+                    'WalkDistTorso','WalkDistHead', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
+                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled', 'Status'});
                 
                 results = [results; newRow];
                 writetable(results, dataFile);
@@ -857,11 +857,11 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
 
 
                     newRow = table(trueTrial, {participantPosition}, {dirCode}, {typeCode}, {qCode}, storedTargetDeg, targetDist,...
-                    walkDistTorso, walkDistHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
-                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, headDistFromCenter, torsoDistFromCenter, {PAUSE_CALLED}, {statusStr}, ...
+                    walkDistTorso, walkDistHead, headDistFromCenter, torsoDistFromCenter,  walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
+                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {PAUSE_CALLED}, {statusStr}, ...
                     'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
-                    'WalkDistTorso','WalkDistHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
-                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'PauseCalled', 'Status'});
+                    'WalkDistTorso','WalkDistHead', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
+                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled', 'Status'});
                 
                     results = [results; newRow];
                     writetable(results, dataFile);

@@ -9,11 +9,12 @@ spm('defaults','EEG') % External function (SPM12): Initializes SPM defaults spec
  
 cd('C:/Users/ucjvmtu/Downloads/spm12'); % MATLAB built-in function: Changes the current working directory.
 S= [];
-S.data = 'log-run-003_array1.lvm';
+S.data = 'triggers-run-006_array1.lvm';
 D1 = spm_opm_create(S); % External function (SPM12): Reads OPM data and creates an SPM M/EEG object.
  
 figure() % MATLAB built-in function: Opens a new blank figure window.
-channels = [6,7,9,8,10,2,3,4];
+channels = [5, 8, 6, 9, 2, 10, 7, 3];
+
 labels = {'Close Eyes', 'Stationary', 'Physical Walk', 'Encoding Rot', ...
           'Imagine Walk', 'Response Rot', 'Open Eyes', 'Master Sync'};
           

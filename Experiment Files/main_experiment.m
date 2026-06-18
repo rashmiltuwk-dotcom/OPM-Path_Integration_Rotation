@@ -342,6 +342,9 @@ results = table();
     % Begin background polling that captures every frame from now until experiment ends
      OptiTrackBridge.StartContinuousCollection();
 
+    % Mark time zero when experiment begins (Uncomment out the Line Below and Change Trigger Code on Motive Computer if bRecording does not work)
+    %OptiTrackBridge.MarkTimeZero();
+
 
     % --- THE "READY" SCREEN ---
     % Standard: Provide a clear starting point for the participant.

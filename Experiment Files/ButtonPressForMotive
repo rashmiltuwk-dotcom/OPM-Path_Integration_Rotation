@@ -1,0 +1,51 @@
+%Copyright © 2018 Naturalpoint
+% Modified by Stephanie Mellor 2022
+% Line Added by Rashmil Tufail for Rotation Task 2026
+%
+%Licensed under the Apache License, Version 2.0 (the "License");
+%you may not use this file except in compliance with the License.
+%You may obtain a copy of the License at
+%
+%http://www.apache.org/licenses/LICENSE-2.0
+%
+%Unless required by applicable law or agreed to in writing, software
+%distributed under the License is distributed on an "AS IS" BASIS,
+%WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%See the License for the specific language governing permissions and
+%limitations under the License.
+%% Trigger OptiTrack with Matlab
+% Connect to optitrack
+addpath(genpath('C:\Users\omotion\Documents\NatNetSDK'));
+natnetclient = natnet;
+% natnetclient.HostIP = '127.0.0.1';
+% natnetclient.ClientIP = '127.0.0.1';
+natnetclient.HostIP = '128.40.164.130'; % use these ones if not using local host
+natnetclient.ClientIP = '128.40.164.130';
+natnetclient.ConnectionType = 'Multicast';
+natnetclient.connect;
+if ( natnetclient.IsConnected == 0 )
+fprintf( 'Client failed to connect\n' )
+fprintf( '\tMake sure the host is connected to the network\n' )
+fprintf( '\tand that the host and client IP addresses are correct\n\n' )
+return
+end
+% Connect to NI trigger box
+s = daq.createSession('ni');
+addDigitalChannel(s, 'Dev1', 'Port0/Line0', 'OutputOnly' );
+%% User input
+% Wait for button press
+fprintf('Press any key to trigger optitrack\n');
+pause;
+% Start optitrack recording
+natnetclient.startRecord();
+% Send trigger to OPMs
+outputSingleScan(s,1);
+% IMMEDIATELY lock the timestamp in the bridge
+OptiTrackBridge.MarkTimeZero();
+% Wait for button press
+fprintf('Press any key to stop optitrack recording\n');
+pause;
+% Stop optitrack recording
+natnetclient.stopRecord();
+% Stop trigger to OPMs
+outputSingleScan(s,0)

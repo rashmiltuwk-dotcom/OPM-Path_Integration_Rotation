@@ -793,7 +793,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 MasterData(masterIdx).TaskType   = typeCode;
                 MasterData(masterIdx).PauseCalled = PAUSE_CALLED;
                 MasterData(masterIdx).Status     = statusStr;
-                MasterData(masterIdx).IncorrectRotation = 7;
+                MasterData(masterIdx).IncorrectRotation = OP_EVENT_LOG.incorrectRotation;
 
                 % Create a sub-folder just for the traces
                 tracePacket = struct();

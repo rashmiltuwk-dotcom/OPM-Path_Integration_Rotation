@@ -312,7 +312,7 @@ classdef OptiTrackBridge
         % ---------------------------------------------------------
         function [distWalkedTorso, distWalkedHead, headDistFromCenter, torsoDistFromCenter, headTrace, torsoTrace] = WaitForWalkEnd(headID, torsoID, win, tolerance)
             global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial
-            if nargin < 4, tolerance = 0.10; end 
+            if nargin < 4, tolerance = 0.50; end 
             
             if OP_BRIDGE_STATE.IsDummy
                 DrawFormattedText(win, 'DUMMY MODE: Press "x" to simulate walking.', 'center', 'center', [255 255 0]);
@@ -607,22 +607,32 @@ classdef OptiTrackBridge
 
                     % ===== GOAL CHECK: Only complete if NOT paused =====
                     if ~PAUSE_ACTIVE && abs(accumulatedTurn) >= targetDeg
-                        turnedLeftCorrectly  = strcmpi(dirCode, 'L') && (accumulatedTurn >= targetDeg);
-                        turnedRightCorrectly = strcmpi(dirCode, 'R') && (accumulatedTurn <= -targetDeg);
+                        turnedLeftCorrectly  = strcmpi(dirCode, 'L') && (accumulatedTurn >= 45);
+                        turnedRightCorrectly = strcmpi(dirCode, 'R') && (accumulatedTurn <= -45);
                         
                         if turnedLeftCorrectly || turnedRightCorrectly
                             DrawFormattedText(win, 'DONE! STOP.', 'center', 'center', [0 255 0]);
                             Screen('Flip', win);
                             rotationCorrect = true;
-                            break;
+                            break; % Exit the main while true loop
                         else
-                            DrawFormattedText(win, 'INCORRECT DIRECTION\nTrying again...', 'center', 'center', [255 0 0]);
+                            DrawFormattedText(win, 'INCORRECT DIRECTION\nPress SPACE to try again.', 'center', 'center', [255 0 0]);
                             Screen('Flip', win);
-                            WaitSecs(2.0);
-                            break;
-                        end
+                            
+                            % Wait for Space Bar
+                            while true
+                                [kd, ~, kc] = KbCheck;
+                                if kd && kc(KbName('space'))
+                                    % RESET REFERENCE POINTS ONLY
+                                    accumulatedTurn = 0;
+                                    prevTorsoYaw = currTorsoYaw; 
+                                    break; % Exit the space-bar wait loop
+                                end
+                                if kd && kc(KbName('ESCAPE')), error('User Quit'); end
+                                WaitSecs(0.01);
+                            end
+                        end 
                     end
-                    % ===================================================
                 end
             end
             
@@ -1052,7 +1062,7 @@ end
                 % ==============================================================
                 
             catch ME
-                disp(['Data Extraction Error: ', ME.message]);
+ 
             end
         end
 

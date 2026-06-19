@@ -45,7 +45,7 @@ end
         io64(obj.ioObj, obj.address, 255);
         % Log it
         timestamp = GetSecs - obj.expStartTime;
-        fprintf(obj.logFileID, '%.4f,%d,%s,ALL,255,ON\n', ...
+        fprintf(obj.logFileID, '%.4f,%s,ALL,255,ON\n', ...
             timestamp, 'ExperimentStart');
     
         % Brief hold so hardware registers the pulse
@@ -53,7 +53,7 @@ end
     
         % Drop all channels to LOW
         io64(obj.ioObj, obj.address, 0);
-        fprintf(obj.logFileID, '%.4f,%d,%s,ALL,0,OFF\n', ...
+        fprintf(obj.logFileID, '%.4f,%s,ALL,0,OFF\n', ...
             GetSecs - obj.expStartTime, 'ExperimentStart');
         end
 

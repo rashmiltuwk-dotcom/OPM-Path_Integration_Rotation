@@ -1125,4 +1125,4 @@ function GuaranteedCleanup()
     % 8. Reset globals
     clear global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE continuousFile
     fprintf('Globals reset\n');
-end
+end   

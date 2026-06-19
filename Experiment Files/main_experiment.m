@@ -352,6 +352,7 @@ results = table();
         'center', 'center', white);
     Screen('Flip', win); % Push the text to the actual monitor
     wait_key('space');   % Custom function: wait for keyboard input
+    if ~isempty(TL), TL.callExperimentStart( ); end
 
 % --- BEGIN TRIAL ITERATION ---
 global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
@@ -359,7 +360,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
         
         % Make trial number and TriggerLogger accessible to event functions
         global  TL trueTrial
-
+ 
     trueTrial = startRow + trialIdx - 1;
         
         trialAccepted = false; 
@@ -1101,7 +1102,7 @@ function GuaranteedCleanup()
         fprintf('OptiTrack disconnected\n');
     catch
         warning('Failed to disconnect OptiTrack');
-    end
+    end 
     
     % 6. Close audio
     try

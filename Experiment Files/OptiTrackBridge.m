@@ -108,6 +108,19 @@ classdef OptiTrackBridge
         % =================================================================
         % EVENT LOGGING
         % =================================================================
+        function MarkTimeZero()
+        global OP_BRIDGE_STATE
+        if ~isempty(OP_BRIDGE_STATE) && ~isempty(OP_BRIDGE_STATE.NatNetClient)
+            data = OP_BRIDGE_STATE.NatNetClient.getFrame();
+            if ~isempty(data)
+                % Lock the reference time to the current Motive frame
+                OP_BRIDGE_STATE.MotiveT0 = double(data.Timestamp);
+                fprintf('>>> MotiveT0 reference set: %.15f\n', OP_BRIDGE_STATE.MotiveT0);
+            end
+        end
+    end
+
+        
         function startEvent(trialNum, eventName)
             global OP_EVENT_LOG OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
             
@@ -312,7 +325,7 @@ classdef OptiTrackBridge
         % ---------------------------------------------------------
         function [distWalkedTorso, distWalkedHead, headDistFromCenter, torsoDistFromCenter, headTrace, torsoTrace] = WaitForWalkEnd(headID, torsoID, win, tolerance)
             global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial
-            if nargin < 4, tolerance = 0.50; end 
+            if nargin < 4, tolerance = 0.10; end 
             
             if OP_BRIDGE_STATE.IsDummy
                 DrawFormattedText(win, 'DUMMY MODE: Press "x" to simulate walking.', 'center', 'center', [255 255 0]);
@@ -598,13 +611,8 @@ classdef OptiTrackBridge
                         pauseStatus = '';
                         pauseColor = white;
                     end
-                    % =========================================
-                    
-                    remaining = targetDeg - abs(accumulatedTurn);
-                    msg = sprintf('Turn Body: %.1f / %.1f\nRemaining: %.1f%s', abs(accumulatedTurn), targetDeg, max(0, remaining), pauseStatus);
-                    DrawFormattedText(win, msg, 'center', 'center', pauseColor);
-                    Screen('Flip', win);
 
+                    
                     % ===== GOAL CHECK: Only complete if NOT paused =====
                     if ~PAUSE_ACTIVE && abs(accumulatedTurn) >= targetDeg
                         turnedLeftCorrectly  = strcmpi(dirCode, 'L') && (accumulatedTurn >= 45);
@@ -993,12 +1001,7 @@ classdef OptiTrackBridge
                 frameTimestamp = double(data.Timestamp);
                 
                 % Auto-detect Motive recording start (passive T0 capture)
-                if (isprop(data, 'bRecording') || isfield(data, 'bRecording'))
-                    if logical(data.bRecording) && OP_BRIDGE_STATE.MotiveT0 == 0
-                        OP_BRIDGE_STATE.MotiveT0 = double(data.Timestamp);
-                        fprintf('>>> Motive recording detected. T0 = %.6f\n', OP_BRIDGE_STATE.MotiveT0);
-                    end
-                end
+
                 
                 for i = 1:data.RigidBody.Length
     rb = data.RigidBody(i);
@@ -1062,7 +1065,7 @@ end
                 % ==============================================================
                 
             catch ME
- 
+                disp(['Data Extraction Error: ', ME.message]);
             end
         end
 

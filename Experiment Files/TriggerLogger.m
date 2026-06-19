@@ -35,6 +35,28 @@ classdef TriggerLogger < handle
     disp(['TriggerLogger Initialized. Log saving to: ' logName]);
 end
         
+        function callExperimentStart(obj)
+        % ---------------------------------------------------------
+        % RESET ALL TRIGGERS: Fires all channels 1-7 together, then drops to 0
+        % Creates a clear "abort marker" pulse visible in the MEG data
+        % ---------------------------------------------------------
+    
+        % Fire all channels HIGH
+        io64(obj.ioObj, obj.address, 255);
+        % Log it
+        timestamp = GetSecs - obj.expStartTime;
+        fprintf(obj.logFileID, '%.4f,%d,%s,ALL,255,ON\n', ...
+            timestamp, 'ExperimentStart');
+    
+        % Brief hold so hardware registers the pulse
+        WaitSecs(0.05);
+    
+        % Drop all channels to LOW
+        io64(obj.ioObj, obj.address, 0);
+        fprintf(obj.logFileID, '%.4f,%d,%s,ALL,0,OFF\n', ...
+            GetSecs - obj.expStartTime, 'ExperimentStart');
+        end
+
         function startEvent(obj, triggerChannel, trueTrial, eventName)
             % ---------------------------------------------------------
             % START EVENT: Sends 5V to the MEG and writes "ON" to the CSV

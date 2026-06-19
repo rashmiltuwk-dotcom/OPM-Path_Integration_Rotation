@@ -631,6 +631,7 @@ classdef OptiTrackBridge
                             while true
                                 [kd, ~, kc] = KbCheck;
                                 if kd && kc(KbName('space'))
+                                    Screen('Flip', win);
                                     % RESET REFERENCE POINTS ONLY
                                     accumulatedTurn = 0;
                                     prevTorsoYaw = currTorsoYaw; 

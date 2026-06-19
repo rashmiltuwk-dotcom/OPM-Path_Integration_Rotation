@@ -325,7 +325,7 @@ classdef OptiTrackBridge
         % ---------------------------------------------------------
         function [distWalkedTorso, distWalkedHead, headDistFromCenter, torsoDistFromCenter, headTrace, torsoTrace] = WaitForWalkEnd(headID, torsoID, win, tolerance)
             global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial
-            if nargin < 4, tolerance = 0.10; end 
+            if nargin < 4, tolerance = 0.50; end 
             
             if OP_BRIDGE_STATE.IsDummy
                 DrawFormattedText(win, 'DUMMY MODE: Press "x" to simulate walking.', 'center', 'center', [255 255 0]);
@@ -413,7 +413,7 @@ classdef OptiTrackBridge
                     continue; 
                 end
                 
-                zTarget = 0.05;
+                zTarget = -0.05;
                 distToCenter = sqrt(currHeadPos(1)^2 + (currHeadPos(3) - zTarget)^2);
                 inSemiCircle = (distToCenter < tolerance) && (currHeadPos(3) >= zTarget);
                 

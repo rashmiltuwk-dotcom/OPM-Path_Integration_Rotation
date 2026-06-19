@@ -1109,10 +1109,10 @@ end
         function [roll, pitch, yaw] = QuatToEuler(qw, qx, qy, qz)
             t0 = 2.0 * (qw * qx + qy * qz);
             t1 = 1.0 - 2.0 * (qx * qx + qy * qy);
-            roll = rad2deg(atan2(t0, t1));
+            roll = mod(rad2deg(atan2(t0, t1)), 360);
 
             t2 = max(min(2.0 * (qw * qy - qz * qx), 1.0), -1.0);
-            pitch = rad2deg(asin(t2));
+            pitch = mod(rad2deg(asin(t2)), 360);
             t3 = 2.0 * (qw * qy - qz * qx);
             t4 = 1.0 - 2.0 * (qy * qy + qz * qz);
             yaw = mod(rad2deg(atan2(t3, t4)), 360);

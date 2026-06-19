@@ -31,12 +31,14 @@ classdef OptiTrackBridge
             OP_BRIDGE_STATE.IsConnected = false;
             OP_BRIDGE_STATE.IsDummy = false;
             OP_BRIDGE_STATE.MotiveT0 = 0;
+            OP_EVENT_LOG.incorrectRotation = "FALSE"; 
             
             % Initialize event log
             OP_EVENT_LOG.time  = [];
             OP_EVENT_LOG.trial = [];
             OP_EVENT_LOG.event = {};
             OP_EVENT_LOG.state = {};
+            OP_EVENT_LOG.incorrectRotation = {};
 
             % Pre-allocate continuous buffer (high-performance arrays)
             nc = 500000;
@@ -171,6 +173,12 @@ classdef OptiTrackBridge
             OP_EVENT_LOG.trial(i) = trialNum;
             OP_EVENT_LOG.event{i} = eventName;
             OP_EVENT_LOG.state{i} = 'STOP';
+        end
+        
+        function RecordIncorrectRotation(trialNum)
+            global OP_EVENT_LOG
+            OP_EVENT_LOG.incorrectRotation = "TRUE";
+            fprintf('>>> Incorrect rotation recorded for trial %d\n', trialNum);
         end
 
         % =================================================================
@@ -628,12 +636,13 @@ classdef OptiTrackBridge
                             Screen('Flip', win);
                             
                             % Wait for Space Bar
+                            KbReleaseWait
                             while true
                                 [kd, ~, kc] = KbCheck;
                                 if kd && kc(KbName('space'))
                                     Screen('Flip', win);
                                     % RESET REFERENCE POINTS ONLY
-                                    accumulatedTurn = 0;
+                                    OptiTrackBridge.RecordIncorrectRotation(trueTrial);
                                     prevTorsoYaw = currTorsoYaw; 
                                     break; % Exit the space-bar wait loop
                                 end

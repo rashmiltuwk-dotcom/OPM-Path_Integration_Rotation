@@ -208,7 +208,7 @@ end
 
 % ===== PAUSE SYSTEM INITIALIZATION (NON-INTERRUPTING) =====
 % Global variables to track pause state
-global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE continuousFile
+global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE continuousFile OP_EVENT_LOG
 PAUSE_ACTIVE = false;           % true when paused, false when running
 PAUSED_MOTION_BUFFER.frames = {}; % Will store motion data during pause
 PAUSED_EVENT_TYPE = '';         % Tracks which event is being paused
@@ -342,8 +342,7 @@ results = table();
     % Begin background polling that captures every frame from now until experiment ends
      OptiTrackBridge.StartContinuousCollection();
 
-    % Mark time zero when experiment begins (Uncomment out the Line Below and Change Trigger Code on Motive Computer if bRecording does not work)
-    %OptiTrackBridge.MarkTimeZero();
+
 
 
     % --- THE "READY" SCREEN ---
@@ -353,8 +352,9 @@ results = table();
     Screen('Flip', win); % Push the text to the actual monitor
     wait_key('space');   % Custom function: wait for keyboard input
     if ~isempty(TL), TL.callExperimentStart( ); end
-    
+        
     WaitSecs(0.25);
+    
 
 % --- BEGIN TRIAL ITERATION ---
 global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
@@ -774,10 +774,10 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 %  Added missing comma after 'DistanceFromCent'
                 newRow = table(trueTrial, {participantPosition}, {dirCode}, {typeCode}, {qCode}, storedTargetDeg, targetDist,...
                     walkDistTorso, walkDistHead, headDistFromCenter, torsoDistFromCenter, walkDriftTorso, walkDriftHead,  walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
-                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {PAUSE_CALLED}, {statusStr}, ...
+                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {PAUSE_CALLED}, {OP_EVENT_LOG.incorrectRotation}, {statusStr}, ...
                     'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
                     'WalkDistTorso','WalkDistHead', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'WalkDriftTorso', 'WalkDriftHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
-                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled', 'Status'});
+                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled','IncorrectionRotation', 'Status'});
                 
                 results = [results; newRow];
                 writetable(results, dataFile);
@@ -793,6 +793,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 MasterData(masterIdx).TaskType   = typeCode;
                 MasterData(masterIdx).PauseCalled = PAUSE_CALLED;
                 MasterData(masterIdx).Status     = statusStr;
+                MasterData(masterIdx).IncorrectRotation = 7;
 
                 % Create a sub-folder just for the traces
                 tracePacket = struct();
@@ -859,10 +860,10 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
 
                     newRow = table(trueTrial, {participantPosition}, {dirCode}, {typeCode}, {qCode}, storedTargetDeg, targetDist,...
                     walkDistTorso, walkDistHead, headDistFromCenter, torsoDistFromCenter, walkDriftTorso, walkDriftHead,  walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
-                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {PAUSE_CALLED}, {statusStr}, ...
+                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {PAUSE_CALLED}, {OP_EVENT_LOG.incorrectRotation}, {statusStr}, ...
                     'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
                     'WalkDistTorso','WalkDistHead', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'WalkDriftTorso', 'WalkDriftHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
-                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled', 'Status'});
+                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled','IncorrectionRotation', 'Status'});
                 
                     results = [results; newRow];
                     writetable(results, dataFile);
@@ -883,7 +884,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
 
                 % Create a sub-folder just for the traces
                 tracePacket = struct();
-                                tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
+                tracePacket.CloseEyesHeadTrace = CloseEyesHeadTrace;
                 tracePacket.CloseEyesTorsoTrace = CloseEyesTorsoTrace;
                 tracePacket.PhysicallyWalkHeadTrace = PhysicallyWalkHeadTrace;
                 tracePacket.PhysicallyWalkTorsoTrace = PhysicallyWalkTorsoTrace;
@@ -1125,4 +1126,4 @@ function GuaranteedCleanup()
     % 8. Reset globals
     clear global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE continuousFile
     fprintf('Globals reset\n');
-end   
+end

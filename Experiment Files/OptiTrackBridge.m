@@ -1020,30 +1020,35 @@ end
                 
                 % ===== Append to paused motion buffer if pause is active =====
 
-                if PAUSE_ACTIVE && isfield(PAUSED_MOTION_BUFFER, 'frames')
-                    if ~any(isnan(headPos)) && ~any(isnan(torsoPos))
-                        frame = struct();
-                        frame.rawTimestamp = frameTimestamp;
-                        frame.headPos = headPos;
-                        frame.torsoPos = torsoPos;
-                        frame.headEuler = headEuler;
-                        frame.torsoEuler = torsoEuler;
-                        frame.headErr = headErr;
-                        frame.torsoErr = torsoErr;
-                        
-                        if OP_BRIDGE_STATE.MotiveT0 > 0
-                            frame.time = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
-                        else
-                            if isempty(PAUSED_MOTION_BUFFER.frames)
-                                frame.time = 0;
-                            else
-                                frame.time = frameTimestamp - PAUSED_MOTION_BUFFER.frames{1}.rawTimestamp;
-                            end
-                        end
-                        
-                        PAUSED_MOTION_BUFFER.frames{end+1} = frame;
+                if PAUSE_ACTIVE
+                if ~any(isnan(headPos)) && ~any(isnan(torsoPos))
+                    % Ensure frames field exists
+                    if ~isfield(PAUSED_MOTION_BUFFER, 'frames')
+                        PAUSED_MOTION_BUFFER.frames = {};
                     end
+                    
+                    frame = struct();
+                    frame.rawTimestamp = frameTimestamp;
+                    frame.headPos = headPos;
+                    frame.torsoPos = torsoPos;
+                    frame.headEuler = headEuler;
+                    frame.torsoEuler = torsoEuler;
+                    frame.headErr = headErr;
+                    frame.torsoErr = torsoErr;
+                    
+                    if OP_BRIDGE_STATE.MotiveT0 > 0
+                        frame.time = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                    else
+                        if isempty(PAUSED_MOTION_BUFFER.frames)
+                            frame.time = 0;
+                        else
+                            frame.time = frameTimestamp - PAUSED_MOTION_BUFFER.frames{1}.rawTimestamp;
+                        end
+                    end
+                    
+                    PAUSED_MOTION_BUFFER.frames{end+1} = frame;
                 end
+            end
                 % ==============================================================
                 
             catch ME

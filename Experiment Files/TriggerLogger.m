@@ -41,11 +41,12 @@ end
         % Creates a clear "abort marker" pulse visible in the MEG data
         % ---------------------------------------------------------
     
+        OptiTrackBridge.MarkTimeZero();
         % Fire all channels HIGH
         io64(obj.ioObj, obj.address, 255);
         % Log it
         timestamp = GetSecs - obj.expStartTime;
-        fprintf(obj.logFileID, '%.4f,%s,ALL,255,ON\n', ...
+        fprintf(obj.logFileID, '%.4f,%d,%s,ALL,255,ON\n', ...
             timestamp, 'ExperimentStart');
     
         % Brief hold so hardware registers the pulse
@@ -53,7 +54,7 @@ end
     
         % Drop all channels to LOW
         io64(obj.ioObj, obj.address, 0);
-        fprintf(obj.logFileID, '%.4f,%s,ALL,0,OFF\n', ...
+        fprintf(obj.logFileID, '%.4f,%d,%s,ALL,0,OFF\n', ...
             GetSecs - obj.expStartTime, 'ExperimentStart');
         end
 
@@ -128,7 +129,7 @@ end
             timestamp, trueTrial, 'AbortReset');
     
         % Brief hold so hardware registers the pulse
-        WaitSecs(0.05);
+        WaitSecs(0.5);
     
         % Drop all channels to LOW
         io64(obj.ioObj, obj.address, 0);

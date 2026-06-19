@@ -353,6 +353,8 @@ results = table();
     Screen('Flip', win); % Push the text to the actual monitor
     wait_key('space');   % Custom function: wait for keyboard input
     if ~isempty(TL), TL.callExperimentStart( ); end
+    
+    WaitSecs(0.25);
 
 % --- BEGIN TRIAL ITERATION ---
 global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE

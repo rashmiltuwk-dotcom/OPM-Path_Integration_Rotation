@@ -99,13 +99,13 @@ for i = idx
     end
     
     % Extract Positions (Z and X on floor plane, Y vertical)
-    hx = headTrace.z(i);    % Z data → X display (forward-back on floor)
-    hy = headTrace.x(i);    % X data → Y display (sideways on floor)
-    hz = headTrace.y(i);    % Y data → Z display (height)
+    hx = headTrace.z(i);    % Z data ? X display (forward-back on floor)
+    hy = headTrace.x(i);    % X data ? Y display (sideways on floor)
+    hz = headTrace.y(i);    % Y data ? Z display (height)
     
-    tx = torsoTrace.z(i);   % Z data → X display (forward-back on floor)
-    ty = torsoTrace.x(i);   % X data → Y display (sideways on floor)
-    tz = torsoTrace.y(i);   % Y data → Z display (height)
+    tx = torsoTrace.z(i);   % Z data ? X display (forward-back on floor)
+    ty = torsoTrace.x(i);   % X data ? Y display (sideways on floor)
+    tz = torsoTrace.y(i);   % Y data ? Z display (height)
     
     % --- OFFSET CALIBRATION ---
     % Adjust these if your IMU is mounted offset
@@ -133,7 +133,7 @@ for i = idx
     torsoT = makehgtform('translate', [tx, ty, tz]);
     
     % Build rotation matrices with Z-floor convention
-    % Roll (around X floor) → Pitch (around Y up) → Yaw (around Z up)
+    % Roll (around X floor) ? Pitch (around Y up) ? Yaw (around Z up)
     headRot  = makehgtform('xrotate', hRoll) * makehgtform('yrotate', hPitch) * makehgtform('zrotate', hYaw);
     torsoRot = makehgtform('xrotate', tRoll) * makehgtform('yrotate', tPitch) * makehgtform('zrotate', tYaw);
     

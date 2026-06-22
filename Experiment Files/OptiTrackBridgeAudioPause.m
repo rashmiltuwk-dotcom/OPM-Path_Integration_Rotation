@@ -31,12 +31,14 @@ classdef OptiTrackBridge
             OP_BRIDGE_STATE.IsConnected = false;
             OP_BRIDGE_STATE.IsDummy = false;
             OP_BRIDGE_STATE.MotiveT0 = 0;
+            OP_EVENT_LOG.incorrectRotation = "FALSE"; 
             
             % Initialize event log
             OP_EVENT_LOG.time  = [];
             OP_EVENT_LOG.trial = [];
             OP_EVENT_LOG.event = {};
             OP_EVENT_LOG.state = {};
+            OP_EVENT_LOG.incorrectRotation = {};
 
             % Pre-allocate continuous buffer (high-performance arrays)
             nc = 500000;
@@ -105,9 +107,36 @@ classdef OptiTrackBridge
             clear global OP_BRIDGE_STATE OP_EVENT_LOG OP_CONTINUOUS_BUFFER;
         end
 
+
+        function SetAudioData(audioData)
+            global OP_BRIDGE_STATE
+            OP_BRIDGE_STATE.audioData = audioData;
+            fprintf('>>> Audio data stored in OptiTrackBridge\n');
+        end
+
+        function audioData = GetAudioData()
+            global OP_BRIDGE_STATE
+            audioData = OP_BRIDGE_STATE.audioData;
+        end
+
+
+
         % =================================================================
         % EVENT LOGGING
         % =================================================================
+        function MarkTimeZero()
+        global OP_BRIDGE_STATE
+        if ~isempty(OP_BRIDGE_STATE) && ~isempty(OP_BRIDGE_STATE.NatNetClient)
+            data = OP_BRIDGE_STATE.NatNetClient.getFrame();
+            if ~isempty(data)
+                % Lock the reference time to the current Motive frame
+                OP_BRIDGE_STATE.MotiveT0 = double(data.Timestamp);
+                fprintf('>>> MotiveT0 reference set: %.15f\n', OP_BRIDGE_STATE.MotiveT0);
+            end
+        end
+    end
+
+        
         function startEvent(trialNum, eventName)
             global OP_EVENT_LOG OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
             
@@ -158,6 +187,12 @@ classdef OptiTrackBridge
             OP_EVENT_LOG.trial(i) = trialNum;
             OP_EVENT_LOG.event{i} = eventName;
             OP_EVENT_LOG.state{i} = 'STOP';
+        end
+        
+        function RecordIncorrectRotation(trialNum)
+            global OP_EVENT_LOG
+            OP_EVENT_LOG.incorrectRotation = "TRUE";
+            fprintf('>>> Incorrect rotation recorded for trial %d\n', trialNum);
         end
 
         % =================================================================
@@ -311,8 +346,8 @@ classdef OptiTrackBridge
         % WAIT FOR WALK END / ORIGIN
         % ---------------------------------------------------------
         function [distWalkedTorso, distWalkedHead, headDistFromCenter, torsoDistFromCenter, headTrace, torsoTrace] = WaitForWalkEnd(headID, torsoID, win, tolerance)
-            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial
-            if nargin < 4, tolerance = 0.10; end 
+            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial pahandle
+            if nargin < 4, tolerance = 0.50; end 
             
             if OP_BRIDGE_STATE.IsDummy
                 DrawFormattedText(win, 'DUMMY MODE: Press "x" to simulate walking.', 'center', 'center', [255 255 0]);
@@ -322,20 +357,22 @@ classdef OptiTrackBridge
                     if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                     if kd && kc(KbName('r')), error('Redo_Trial'); end                        
                     if ~PAUSE_ACTIVE && kd && kc(KbName('x')), WaitSecs(0.3); break; end
-                    if kd && any(kc(KbName('p')))
+                    if kd && kc(KbName('p'))
                         if ~PAUSE_ACTIVE
                             PAUSE_ACTIVE = true;
-                            PAUSE_CALLED = "TRUE"; 
+                            PAUSE_CALLED = "TRUE";
                             if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
                             OptiTrackBridge.startEvent(trueTrial, 'Pause');
-                            disp('DUMMY PAUSE: Activated'); 
                         else
                             PAUSE_ACTIVE = false;
                             OptiTrackBridge.stopEvent(trueTrial, 'Pause');
                             if ~isempty(TL), TL.pauseIndicatorEnd(65, trueTrial, 'PauseResume'); end
-                            disp('DUMMY PAUSE: Deactivated');
+                            
+                            % RESUME: Replay walk audio
+                            audioData = OptiTrackBridge.GetAudioData();
+                            play_sound(pahandle, audioData.StartW);
                         end
-                        WaitSecs(0.3);  % debounce
+                        WaitSecs(0.3);
                     end
                     
                 end
@@ -375,19 +412,22 @@ classdef OptiTrackBridge
                 % ===== PAUSE TOGGLE WITH MEG + EVENT LOGGING (NON-INTERRUPTING) =====
                 if kd && kc(KbName('p'))
                     if ~PAUSE_ACTIVE
-                        % PAUSE: Log to MEG and OptiTrack
                         PAUSE_ACTIVE = true;
                         PAUSE_CALLED = "TRUE";
                         if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
                         OptiTrackBridge.startEvent(trueTrial, 'Pause');
                     else
-                        % RESUME: Log to MEG and OptiTrack
                         PAUSE_ACTIVE = false;
                         OptiTrackBridge.stopEvent(trueTrial, 'Pause');
                         if ~isempty(TL), TL.pauseIndicatorEnd(65, trueTrial, 'PauseResume'); end
+                        
+                        % RESUME: Replay walk audio
+                        audioData = OptiTrackBridge.GetAudioData();
+                        play_sound(pahandle, audioData.StartW);
                     end
-                    WaitSecs(0.3);  % debounce
+                    WaitSecs(0.3);
                 end
+
                 % ===================================================================
 
                 % Pull data in a single synchronized call
@@ -400,7 +440,7 @@ classdef OptiTrackBridge
                     continue; 
                 end
                 
-                zTarget = 0.05;
+                zTarget = -0.05;
                 distToCenter = sqrt(currHeadPos(1)^2 + (currHeadPos(3) - zTarget)^2);
                 inSemiCircle = (distToCenter < tolerance) && (currHeadPos(3) >= zTarget);
                 
@@ -473,7 +513,7 @@ classdef OptiTrackBridge
         % WAIT FOR ROTATION DUAL
         % ---------------------------------------------------------
         function [startHead, startTorso, finalHead, finalTorso, headTrace, torsoTrace] = WaitForRotationDual(headID, torsoID, targetDeg, win, dirCode)
-            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial
+            global pahandle OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial pahandle
             
             if OP_BRIDGE_STATE.IsDummy
                 DrawFormattedText(win, 'DUMMY MODE: Press "x" to simulate turning.', 'center', 'center', [255 255 0]);
@@ -483,20 +523,26 @@ classdef OptiTrackBridge
                     if kd && kc(KbName('ESCAPE')), error('User Quit'); end
                     if kd && kc(KbName('r')), error('Redo_Trial'); end
                     if ~PAUSE_ACTIVE && kd && kc(KbName('x')), WaitSecs(0.3); break; end
-                    if kd && any(kc(KbName('p')))
+                    if kd && kc(KbName('p'))
                         if ~PAUSE_ACTIVE
                             PAUSE_ACTIVE = true;
                             PAUSE_CALLED = "TRUE";
                             if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
                             OptiTrackBridge.startEvent(trueTrial, 'Pause');
-                            disp('DUMMY PAUSE: Activated'); 
                         else
                             PAUSE_ACTIVE = false;
                             OptiTrackBridge.stopEvent(trueTrial, 'Pause');
                             if ~isempty(TL), TL.pauseIndicatorEnd(65, trueTrial, 'PauseResume'); end
-                            disp('DUMMY PAUSE: Deactivated');
+                            
+                            % RESUME: Replay rotation audio
+                            audioData = OptiTrackBridge.GetAudioData();
+                            if strcmpi(dirCode, 'L')
+                                play_sound(pahandle, audioData.RotateL);
+                            else
+                                play_sound(pahandle, audioData.RotateR);
+                            end
                         end
-                        WaitSecs(0.3);  % debounce
+                        WaitSecs(0.3);
                     end
                 end
                 startHead = 0; startTorso = 0; finalHead = targetDeg; finalTorso = targetDeg;
@@ -541,19 +587,27 @@ classdef OptiTrackBridge
                     % ===== PAUSE TOGGLE WITH MEG + EVENT LOGGING (NON-INTERRUPTING) =====
                     if kd && kc(KbName('p'))
                         if ~PAUSE_ACTIVE
-                            % PAUSE: Log to MEG and OptiTrack
                             PAUSE_ACTIVE = true;
                             PAUSE_CALLED = "TRUE";
                             if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
                             OptiTrackBridge.startEvent(trueTrial, 'Pause');
                         else
-                            % RESUME: Log to MEG and OptiTrack
                             PAUSE_ACTIVE = false;
                             OptiTrackBridge.stopEvent(trueTrial, 'Pause');
                             if ~isempty(TL), TL.pauseIndicatorEnd(65, trueTrial, 'PauseResume'); end
+                            
+                            % RESUME: Replay rotation audio
+                            audioData = OptiTrackBridge.GetAudioData();
+                            if strcmpi(dirCode, 'L')
+                                play_sound(pahandle, audioData.RotateL);
+                            else
+                                play_sound(pahandle, audioData.RotateR);
+                            end
                         end
-                        WaitSecs(0.3);  % debounce
+                        WaitSecs(0.3);
                     end
+                  
+                  
                     % ===================================================================
                     
                     [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
@@ -598,33 +652,40 @@ classdef OptiTrackBridge
                         pauseStatus = '';
                         pauseColor = white;
                     end
-                    % =========================================
-                    
-                    remaining = targetDeg - abs(accumulatedTurn);
-                    msg = sprintf('Turn Body: %.1f / %.1f\nRemaining: %.1f%s', abs(accumulatedTurn), targetDeg, max(0, remaining), pauseStatus);
-                    DrawFormattedText(win, msg, 'center', 'center', pauseColor);
-                    Screen('Flip', win);
 
+                    
                     % ===== GOAL CHECK: Only complete if NOT paused =====
                     if ~PAUSE_ACTIVE && abs(accumulatedTurn) >= targetDeg
-                        turnedLeftCorrectly  = strcmpi(dirCode, 'L') && (accumulatedTurn >= targetDeg);
-                        turnedRightCorrectly = strcmpi(dirCode, 'R') && (accumulatedTurn <= -targetDeg);
+                        turnedLeftCorrectly  = strcmpi(dirCode, 'L') && (accumulatedTurn >= 45);
+                        turnedRightCorrectly = strcmpi(dirCode, 'R') && (accumulatedTurn <= -45);
                         
                         if turnedLeftCorrectly || turnedRightCorrectly
                             DrawFormattedText(win, 'DONE! STOP.', 'center', 'center', [0 255 0]);
                             Screen('Flip', win);
                             rotationCorrect = true;
-                            break;
+                            break; % Exit the main while true loop
                         else
+                            % INCORRECT DIRECTION - Play feedback audio
                             DrawFormattedText(win, 'INCORRECT DIRECTION\nPress SPACE to try again.', 'center', 'center', [255 0 0]);
                             Screen('Flip', win);
                             
+                            % Get audio from OptiTrackBridge
+                            audioData = OptiTrackBridge.GetAudioData();
+                            
+                            % Play the SAME audio again as the main script
+                            if strcmpi(dirCode, 'L')
+                                play_sound_blocking(pahandle, audioData.RotateL);
+                            else
+                                play_sound_blocking(pahandle, audioData.RotateR);
+                            end
+                            
                             % Wait for Space Bar
+                            KbReleaseWait;
                             while true
                                 [kd, ~, kc] = KbCheck;
                                 if kd && kc(KbName('space'))
-                                    % RESET REFERENCE POINTS ONLY
-                                    accumulatedTurn = 0;
+                                    Screen('Flip', win);
+                                    OptiTrackBridge.RecordIncorrectRotation(trueTrial);
                                     prevTorsoYaw = currTorsoYaw; 
                                     break;
                                 end
@@ -650,8 +711,12 @@ classdef OptiTrackBridge
         % ---------------------------------------------------------
         % RECORD UNTIL KEY
         % ---------------------------------------------------------
-        function [finalHead, finalTorso, headTrace, torsoTrace] = RecordUntilKey(headID, torsoID, keyName, win)
-            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial
+        function [finalHead, finalTorso, headTrace, torsoTrace] = RecordUntilKey(headID, torsoID, keyName, win, eventType, typeCode)
+            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial pahandle
+            
+            % Set defaults just in case the function is called without these arguments
+            if nargin < 5, eventType = ''; end
+            if nargin < 6, typeCode = ''; end
             
             targetKey = KbName(keyName);
             escKey = KbName('ESCAPE');
@@ -667,22 +732,33 @@ classdef OptiTrackBridge
                     if ~PAUSE_ACTIVE && kd && (any(kc(targetKey)) || any(kc(xKey)))
                         WaitSecs(0.3); break; 
                     end
-                    if kd && any(kc(KbName('p')))
-                        if ~PAUSE_ACTIVE
-                            PAUSE_ACTIVE = true;
-                            PAUSE_CALLED = "TRUE"; 
-                            if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
-                            OptiTrackBridge.startEvent(trueTrial, 'Pause');
-                            disp('DUMMY PAUSE: Activated'); 
-                        else
-                            PAUSE_ACTIVE = false;
-                            OptiTrackBridge.stopEvent(trueTrial, 'Pause');
-                            if ~isempty(TL), TL.pauseIndicatorEnd(65, trueTrial, 'PauseResume'); end
-                            disp('DUMMY PAUSE: Deactivated');
+                        if kd && any(kc(KbName('p')))
+                    if ~PAUSE_ACTIVE
+                        PAUSE_ACTIVE = true;
+                        PAUSE_CALLED = "TRUE";
+                        if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
+                        OptiTrackBridge.startEvent(trueTrial, 'Pause');
+                    else
+                        PAUSE_ACTIVE = false;
+                        OptiTrackBridge.stopEvent(trueTrial, 'Pause');
+                        if ~isempty(TL), TL.pauseIndicatorEnd(65, trueTrial, 'PauseResume'); end
+                        
+                        % RESUME: Replay response rotation audio
+                        if strcmp(eventType, 'ResponseRotation')
+                            audioData = OptiTrackBridge.GetAudioData();
+                            if strcmp(typeCode, 'I')
+                                play_sound(pahandle, audioData.ImagineRo);
+                            else
+                                play_sound(pahandle, audioData.PhysicalRo);
+                            end
+                        elseif strcmp(eventType, 'ImagineWalk')
+                            audioData = OptiTrackBridge.GetAudioData();
+                            play_sound(pahandle, audioData.ImagineW);
                         end
-                        WaitSecs(0.3);  % debounce
                     end
-                end
+                    WaitSecs(0.3);
+                        end
+                end     
                 finalHead = 0; finalTorso = 0;
                 headTrace = OptiTrackBridge.EmptyTrace(); torsoTrace = OptiTrackBridge.EmptyTrace();
                 return; 
@@ -712,18 +788,29 @@ classdef OptiTrackBridge
                 % ===== PAUSE TOGGLE WITH MEG + EVENT LOGGING (NON-INTERRUPTING) =====
                 if kd && any(kc(KbName('p')))
                     if ~PAUSE_ACTIVE
-                        % PAUSE: Log to MEG and OptiTrack
                         PAUSE_ACTIVE = true;
                         PAUSE_CALLED = "TRUE";
                         if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
                         OptiTrackBridge.startEvent(trueTrial, 'Pause');
                     else
-                        % RESUME: Log to MEG and OptiTrack
                         PAUSE_ACTIVE = false;
                         OptiTrackBridge.stopEvent(trueTrial, 'Pause');
                         if ~isempty(TL), TL.pauseIndicatorEnd(65, trueTrial, 'PauseResume'); end
+                        
+                        % RESUME: Replay response rotation audio
+                        if strcmp(eventType, 'ResponseRotation')
+                            audioData = OptiTrackBridge.GetAudioData();
+                            if strcmp(typeCode, 'I')
+                                play_sound(pahandle, audioData.ImagineRo);
+                            else
+                                play_sound(pahandle, audioData.PhysicalRo);
+                            end
+                        elseif strcmp(eventType, 'ImagineWalk')
+                            audioData = OptiTrackBridge.GetAudioData();
+                            play_sound(pahandle, audioData.ImagineW);
+                        end
                     end
-                    WaitSecs(0.3);  % debounce
+                    WaitSecs(0.3);
                 end
                 % ===================================================================
                 if ~PAUSE_ACTIVE && kd && any(kc(targetKey)), break; end
@@ -993,12 +1080,7 @@ classdef OptiTrackBridge
                 frameTimestamp = double(data.Timestamp);
                 
                 % Auto-detect Motive recording start (passive T0 capture)
-                if isfield(data, 'bRecording')
-                    if logical(data.bRecording) && OP_BRIDGE_STATE.MotiveT0 == 0
-                        OP_BRIDGE_STATE.MotiveT0 = double(data.Timestamp);
-                        fprintf('>>> Motive recording detected. T0 = %.6f\n', OP_BRIDGE_STATE.MotiveT0);
-                    end
-                end
+
                 
                 for i = 1:data.RigidBody.Length
     rb = data.RigidBody(i);
@@ -1030,30 +1112,35 @@ end
                 
                 % ===== Append to paused motion buffer if pause is active =====
 
-                if PAUSE_ACTIVE && isfield(PAUSED_MOTION_BUFFER, 'frames')
-                    if ~any(isnan(headPos)) && ~any(isnan(torsoPos))
-                        frame = struct();
-                        frame.rawTimestamp = frameTimestamp;
-                        frame.headPos = headPos;
-                        frame.torsoPos = torsoPos;
-                        frame.headEuler = headEuler;
-                        frame.torsoEuler = torsoEuler;
-                        frame.headErr = headErr;
-                        frame.torsoErr = torsoErr;
-                        
-                        if OP_BRIDGE_STATE.MotiveT0 > 0
-                            frame.time = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
-                        else
-                            if isempty(PAUSED_MOTION_BUFFER.frames)
-                                frame.time = 0;
-                            else
-                                frame.time = frameTimestamp - PAUSED_MOTION_BUFFER.frames{1}.rawTimestamp;
-                            end
-                        end
-                        
-                        PAUSED_MOTION_BUFFER.frames{end+1} = frame;
+                if PAUSE_ACTIVE
+                if ~any(isnan(headPos)) && ~any(isnan(torsoPos))
+                    % Ensure frames field exists
+                    if ~isfield(PAUSED_MOTION_BUFFER, 'frames')
+                        PAUSED_MOTION_BUFFER.frames = {};
                     end
+                    
+                    frame = struct();
+                    frame.rawTimestamp = frameTimestamp;
+                    frame.headPos = headPos;
+                    frame.torsoPos = torsoPos;
+                    frame.headEuler = headEuler;
+                    frame.torsoEuler = torsoEuler;
+                    frame.headErr = headErr;
+                    frame.torsoErr = torsoErr;
+                    
+                    if OP_BRIDGE_STATE.MotiveT0 > 0
+                        frame.time = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
+                    else
+                        if isempty(PAUSED_MOTION_BUFFER.frames)
+                            frame.time = 0;
+                        else
+                            frame.time = frameTimestamp - PAUSED_MOTION_BUFFER.frames{1}.rawTimestamp;
+                        end
+                    end
+                    
+                    PAUSED_MOTION_BUFFER.frames{end+1} = frame;
                 end
+            end
                 % ==============================================================
                 
             catch ME
@@ -1118,11 +1205,11 @@ end
         
         function [roll, pitch, yaw] = QuatToEuler(qw, qx, qy, qz)
             t0 = 2.0 * (qw * qx + qy * qz);
-            t1 = 1.0 - 2.0 * (qx * qx + qy * qy);
-            roll = rad2deg(atan2(t0, t1));
+            t1 = 1.0 - 2.0 * (qx * qx + qz * qz);
+            roll = mod(rad2deg(atan2(t0, t1)), 360);
 
-            t2 = max(min(2.0 * (qw * qy - qz * qx), 1.0), -1.0);
-            pitch = rad2deg(asin(t2));
+            t2 = max(min(2.0 * (qw * qz + qx * qy), 1.0), -1.0);
+            pitch = mod(rad2deg(asin(t2)), 360);
             t3 = 2.0 * (qw * qy - qz * qx);
             t4 = 1.0 - 2.0 * (qy * qy + qz * qz);
             yaw = mod(rad2deg(atan2(t3, t4)), 360);

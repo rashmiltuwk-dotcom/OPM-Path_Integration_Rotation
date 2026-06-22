@@ -1,26 +1,32 @@
-%% ============================================================
-%  CSV COMPARISON: WALKING vs IMAGINED, RESPONSE ROTATION
-%% ============================================================
-
 %% --- STEP 1: FILE SELECTION & LOADING ---------------------
 csv_files = {
-    'P001_2026-04-20_110415_Results.csv';
-    % 'P002_1_2026-06-03_Results.csv';
-    % 'P003_1_2026-06-03_Results.csv';
+    'P001_1_2026-06-15_164413_Results.csv';
+    'P001_1_2026-06-19_161428_Results.csv';
+    'P001_1_2026-06-19_164348_Results.csv';
+    'P001_2_2026-06-15_165401_Results.csv';
 };
-
 fprintf('\n%s\n', repmat('=', 1, 100));
 fprintf('CSV COMPARISON PIPELINE: TIMING METRICS\n');
 fprintf('%s\n', repmat('=', 1, 100));
 
-% Load all files
-all_data = [];
+% Initialize all_data as an empty table, not an empty double array []
+all_data = table(); 
 participant_ids = {};
 
 for i = 1:numel(csv_files)
     if exist(csv_files{i}, 'file')
         data_table = readtable(csv_files{i});
-        all_data = [all_data; data_table];
+        
+        % FIX: Handle mismatched table columns gracefully
+        if isempty(all_data)
+            all_data = data_table; % First iteration establishes the base table
+        else
+            % Find common column names between the existing data and the new table
+            common_vars = intersect(all_data.Properties.VariableNames, data_table.Properties.VariableNames, 'stable');
+            
+            % Vertically concatenate keeping ONLY the intersecting columns
+            all_data = [all_data(:, common_vars); data_table(:, common_vars)];
+        end
         
         [~, filename, ~] = fileparts(csv_files{i});
         parts = strsplit(filename, '_');
@@ -33,9 +39,15 @@ for i = 1:numel(csv_files)
 end
 
 % Filter for accepted trials only
-data = all_data(strcmp(all_data.Status, 'Accepted'), :);
-N = height(data);
+% (Added a check just in case the 'Status' column is ever missing)
+if ismember('Status', all_data.Properties.VariableNames)
+    data = all_data(strcmp(all_data.Status, 'Accepted'), :);
+else
+    fprintf('Warning: "Status" column missing! Using all trials.\n');
+    data = all_data;
+end
 
+N = height(data);
 fprintf('\nTotal accepted trials: %d\n', N);
 
 %% --- STEP 2: EXTRACT VARIABLES ----------------------------
@@ -140,8 +152,11 @@ subplot(1, 2, 1);
 hold on;
 scatter(ones(numel(walk_time_phys),1) + randn(numel(walk_time_phys),1)*0.05, walk_time_phys, 80, 'b', 'filled');
 scatter(2*ones(numel(imag_time_phys),1) + randn(numel(imag_time_phys),1)*0.05, imag_time_phys, 80, 'r', 'filled');
-plot([0.7 1.3], [mean(walk_time_phys) mean(walk_time_phys)], 'b-', 'LineWidth', 3);
-plot([1.7 2.3], [mean(imag_time_phys) mean(imag_time_phys)], 'r-', 'LineWidth', 3);
+
+% FIX: Reverted to walk_time_phys and imag_time_phys variables here!
+plot([0.7 1.3], [mean(walk_time_phys, 'omitnan') mean(walk_time_phys, 'omitnan')], 'b-', 'LineWidth', 3);
+plot([1.7 2.3], [mean(imag_time_phys, 'omitnan') mean(imag_time_phys, 'omitnan')], 'r-', 'LineWidth', 3);
+
 set(gca, 'XTick', [1 2], 'XTickLabel', {'Walking', 'Imagined'}, 'XLim', [0.5 2.5], 'YLim', [0 15]);
 ylabel('Time (seconds)', 'FontSize', 12);
 title('Walking vs Imagined Time (Physical Trials)', 'FontSize', 13, 'FontWeight', 'bold');
@@ -153,8 +168,11 @@ subplot(1, 2, 2);
 hold on;
 scatter(ones(numel(rt_rot_phys),1) + randn(numel(rt_rot_phys),1)*0.05, rt_rot_phys, 80, 'b', 'filled');
 scatter(2*ones(numel(rt_rot_imag),1) + randn(numel(rt_rot_imag),1)*0.05, rt_rot_imag, 80, 'r', 'filled');
-plot([0.7 1.3], [mean(rt_rot_phys) mean(rt_rot_phys)], 'b-', 'LineWidth', 3);
-plot([1.7 2.3], [mean(rt_rot_imag) mean(rt_rot_imag)], 'r-', 'LineWidth', 3);
+
+% Correctly maps response rotation variables
+plot([0.7 1.3], [mean(rt_rot_phys, 'omitnan') mean(rt_rot_phys, 'omitnan')], 'b-', 'LineWidth', 3);
+plot([1.7 2.3], [mean(rt_rot_imag, 'omitnan') mean(rt_rot_imag, 'omitnan')], 'r-', 'LineWidth', 3);
+
 set(gca, 'XTick', [1 2], 'XTickLabel', {'Physical', 'Imagined'}, 'XLim', [0.5 2.5], 'YLim', [0 15]);
 ylabel('Time (seconds)', 'FontSize', 12);
 title('Response Rotation Time by Modality', 'FontSize', 13, 'FontWeight', 'bold');
@@ -162,7 +180,6 @@ grid on;
 hold off;
 
 sgtitle('Timing Metrics Comparison', 'FontSize', 14, 'FontWeight', 'bold');
-
 fprintf('\n%s\n', repmat('=', 1, 100));
 
 %% --- LOCAL FUNCTIONS ----------------------------------------

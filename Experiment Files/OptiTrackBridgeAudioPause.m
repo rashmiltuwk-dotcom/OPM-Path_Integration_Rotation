@@ -31,14 +31,14 @@ classdef OptiTrackBridge
             OP_BRIDGE_STATE.IsConnected = false;
             OP_BRIDGE_STATE.IsDummy = false;
             OP_BRIDGE_STATE.MotiveT0 = 0;
-            OP_EVENT_LOG.incorrectRotation = "FALSE"; 
+
             
             % Initialize event log
             OP_EVENT_LOG.time  = [];
             OP_EVENT_LOG.trial = [];
             OP_EVENT_LOG.event = {};
             OP_EVENT_LOG.state = {};
-            OP_EVENT_LOG.incorrectRotation = {};
+            OP_EVENT_LOG.incorrectRotation = 'FALSE'; 
 
             % Pre-allocate continuous buffer (high-performance arrays)
             nc = 500000;
@@ -191,7 +191,7 @@ classdef OptiTrackBridge
         
         function RecordIncorrectRotation(trialNum)
             global OP_EVENT_LOG
-            OP_EVENT_LOG.incorrectRotation = "TRUE";
+            OP_EVENT_LOG.incorrectRotation = 'TRUE';
             fprintf('>>> Incorrect rotation recorded for trial %d\n', trialNum);
         end
 
@@ -360,7 +360,7 @@ classdef OptiTrackBridge
                     if kd && kc(KbName('p'))
                         if ~PAUSE_ACTIVE
                             PAUSE_ACTIVE = true;
-                            PAUSE_CALLED = "TRUE";
+                            PAUSE_CALLED = 'TRUE';
                             if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
                             OptiTrackBridge.startEvent(trueTrial, 'Pause');
                         else
@@ -413,7 +413,7 @@ classdef OptiTrackBridge
                 if kd && kc(KbName('p'))
                     if ~PAUSE_ACTIVE
                         PAUSE_ACTIVE = true;
-                        PAUSE_CALLED = "TRUE";
+                        PAUSE_CALLED = 'TRUE';
                         if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
                         OptiTrackBridge.startEvent(trueTrial, 'Pause');
                     else
@@ -526,7 +526,7 @@ classdef OptiTrackBridge
                     if kd && kc(KbName('p'))
                         if ~PAUSE_ACTIVE
                             PAUSE_ACTIVE = true;
-                            PAUSE_CALLED = "TRUE";
+                            PAUSE_CALLED = 'TRUE';
                             if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
                             OptiTrackBridge.startEvent(trueTrial, 'Pause');
                         else
@@ -588,7 +588,7 @@ classdef OptiTrackBridge
                     if kd && kc(KbName('p'))
                         if ~PAUSE_ACTIVE
                             PAUSE_ACTIVE = true;
-                            PAUSE_CALLED = "TRUE";
+                            PAUSE_CALLED = 'TRUE';
                             if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
                             OptiTrackBridge.startEvent(trueTrial, 'Pause');
                         else
@@ -735,7 +735,7 @@ classdef OptiTrackBridge
                         if kd && any(kc(KbName('p')))
                     if ~PAUSE_ACTIVE
                         PAUSE_ACTIVE = true;
-                        PAUSE_CALLED = "TRUE";
+                        PAUSE_CALLED = 'TRUE';
                         if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
                         OptiTrackBridge.startEvent(trueTrial, 'Pause');
                     else
@@ -789,7 +789,7 @@ classdef OptiTrackBridge
                 if kd && any(kc(KbName('p')))
                     if ~PAUSE_ACTIVE
                         PAUSE_ACTIVE = true;
-                        PAUSE_CALLED = "TRUE";
+                        PAUSE_CALLED = 'TRUE';
                         if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'PauseStart'); end
                         OptiTrackBridge.startEvent(trueTrial, 'Pause');
                     else

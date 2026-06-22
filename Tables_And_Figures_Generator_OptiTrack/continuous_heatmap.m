@@ -1,6 +1,6 @@
 %% PATH HEATMAP VISUALIZER
 timeStart = 0;
-timeEnd   = 600; % seconds
+timeEnd   = 1000; % seconds
 
 figure(1); clf;
 set(gcf, 'Position', [100, 100, 1200, 800], 'Color', 'w');
@@ -19,10 +19,15 @@ torsoZ = torsoTrace.z(torsoMask);
 xLim = [min([headX; torsoX])-1, max([headX; torsoX])+1];
 zLim = [min([headZ; torsoZ])-1, max([headZ; torsoZ])+1];
 
-% Create 2D histograms
-nBins = 30; %  resolution
-[headHist, xEdges, zEdges] = histcounts2(headX, headZ, nBins, 'XBinLimits', xLim, 'YBinLimits', zLim);
-[torsoHist, ~, ~] = histcounts2(torsoX, torsoZ, nBins, 'XBinLimits', xLim, 'YBinLimits', zLim);
+% --- NEW BIN DEFINITION ---
+% Set physical bin size to 0.1 meters (10 cm)
+binSize = 0.1; 
+xEdges = xLim(1):binSize:xLim(2);
+zEdges = zLim(1):binSize:zLim(2);
+
+% Create 2D histograms using specific edges
+[headHist, ~, ~] = histcounts2(headX, headZ, xEdges, zEdges);
+[torsoHist, ~, ~] = histcounts2(torsoX, torsoZ, xEdges, zEdges);
 
 % Plot head heatmap
 subplot(1, 2, 1);

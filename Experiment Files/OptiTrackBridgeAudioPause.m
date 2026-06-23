@@ -925,7 +925,7 @@ classdef OptiTrackBridge
         % WAIT FOR REALIGNMENT (Stationary center check with traces)
         % ---------------------------------------------------------
         function [headTrace, torsoTrace] = WaitForRealignment(headID, torsoID, centerThreshold, requiredTime, win)
-            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
+            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER REALIGN_CALLED
             
             if OP_BRIDGE_STATE.IsDummy
                 WaitSecs(requiredTime);
@@ -984,9 +984,12 @@ classdef OptiTrackBridge
                     idx = idx + 1;
                 end
                 
-                distFromCenter = sqrt(currTorsoPos(1)^2 + currTorsoPos(3)^2);
+                distFromCenter = sqrt(currHeadPos(1)^2 + currHeadPos(3)^2);
                 
                 if distFromCenter > centerThreshold
+
+                    REALIGN_CALLED = 'TRUE';
+
                     stationaryStartTime = GetSecs();
                     if ~isWarningOnScreen
                         DrawFormattedText(win, 'WARN PARTICIPANT: Please return to the center.', 'center', 'center', white);

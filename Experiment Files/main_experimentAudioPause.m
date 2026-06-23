@@ -359,7 +359,7 @@ results = table();
     
 
 % --- BEGIN TRIAL ITERATION ---
-global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
+global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_EVENT_TYPE
     for trialIdx = 1:size(trials, 1) % This will run exactly 8 times per run (1 BLOCK)
         
         % Make trial number and TriggerLogger accessible to event functions
@@ -380,6 +380,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
             PAUSE_ACTIVE = false;
             PAUSED_MOTION_BUFFER.frames = {};
             PAUSE_CALLED = 'FALSE';
+            REALIGN_CALLED = 'FALSE';
             PAUSED_EVENT_TYPE = '';
             
             % 1. CRITICAL: PRE-ALLOCATE VARIABLES FIRST
@@ -519,7 +520,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 % ENSURE CONTINUOUS STATIONARY PERIOD AT (0,0,0)
                 % ---------------------------------------------------------
                 
-                centerThreshold = 0.35;  
+                centerThreshold = 0.25;
                 requiredTime = 0.5;
                 
                 OptiTrackBridge.startEvent(trueTrial, 'RealignWalking');
@@ -776,10 +777,10 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 %  Added missing comma after 'DistanceFromCent'
                 newRow = table(trueTrial, {participantPosition}, {dirCode}, {typeCode}, {qCode}, storedTargetDeg, targetDist,...
                     walkDistTorso, walkDistHead, headDistFromCenter, torsoDistFromCenter, walkDriftTorso, walkDriftHead,  walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
-                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {PAUSE_CALLED}, {OP_EVENT_LOG.incorrectRotation}, {statusStr}, ...
+                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {PAUSE_CALLED}, {REALIGN_CALLED}, {OP_EVENT_LOG.incorrectRotation}, {statusStr}, ...
                     'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
                     'WalkDistTorso','WalkDistHead', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'WalkDriftTorso', 'WalkDriftHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
-                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled','IncorrectionRotation', 'Status'});
+                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled', 'RealignCalled', 'IncorrectionRotation', 'Status'});
                 
                 results = [results; newRow];
                 writetable(results, dataFile);
@@ -794,6 +795,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 MasterData(masterIdx).TargetDist  = targetDist;
                 MasterData(masterIdx).TaskType   = typeCode;
                 MasterData(masterIdx).PauseCalled = PAUSE_CALLED;
+                MasterData(masterIdx).RealignCalled = REALIGN_CALLED;
                 MasterData(masterIdx).Status     = statusStr;
                 MasterData(masterIdx).IncorrectRotation = OP_EVENT_LOG.incorrectRotation;
 
@@ -862,10 +864,10 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
 
                     newRow = table(trueTrial, {participantPosition}, {dirCode}, {typeCode}, {qCode}, storedTargetDeg, targetDist,...
                     walkDistTorso, walkDistHead, headDistFromCenter, torsoDistFromCenter, walkDriftTorso, walkDriftHead,  walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
-                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {PAUSE_CALLED}, {OP_EVENT_LOG.incorrectRotation}, {statusStr}, ...
+                    encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {PAUSE_CALLED}, {REALIGN_CALLED}, {OP_EVENT_LOG.incorrectRotation}, {statusStr}, ...
                     'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
                     'WalkDistTorso','WalkDistHead', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'WalkDriftTorso', 'WalkDriftHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
-                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled','IncorrectionRotation', 'Status'});
+                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled', 'RealignCalled','IncorrectionRotation', 'Status'});
                 
                     results = [results; newRow];
                     writetable(results, dataFile);
@@ -882,6 +884,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE
                 MasterData(masterIdx).HeadDistFromCenter = headDistFromCenter;
                 MasterData(masterIdx).TorsoDistFromCenter = torsoDistFromCenter;
                 MasterData(masterIdx).PauseCalled = PAUSE_CALLED;
+                MasterData(masterIdx).RealignCalled = REALIGN_CALLED;
                 MasterData(masterIdx).Status     = statusStr;
 
                 % Create a sub-folder just for the traces

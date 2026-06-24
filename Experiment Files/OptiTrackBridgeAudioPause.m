@@ -855,71 +855,65 @@ classdef OptiTrackBridge
             torsoTrace.roll = trollData(1:n); torsoTrace.pitch = tpitchData(1:n); torsoTrace.yaw = tyawData(1:n); torsoTrace.error = terrData(1:n);
         end
 
-        % ---------------------------------------------------------
-        % PASSIVE TRACK
-        % ---------------------------------------------------------
-        function [headTrace, torsoTrace] = PassiveTrack(headID, torsoID, durationSecs)
+
+        % =================================================================
+        % START PASSIVE TRACK (Background, no duration limit)
+        % =================================================================
+        function StartPassiveTrack()
+            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
+            
+            if OP_BRIDGE_STATE.IsDummy, return; end
+            
+            % Mark the starting index
+            OP_CONTINUOUS_BUFFER.passiveStartIdx = OP_CONTINUOUS_BUFFER.idx;
+            OP_CONTINUOUS_BUFFER.passiveRecording = true;
+        end
+
+        % =================================================================
+        % STOP PASSIVE TRACK (Extract whenever you call it)
+        % =================================================================
+        function [headTrace, torsoTrace] = StopPassiveTrack()
             global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER
             
             if OP_BRIDGE_STATE.IsDummy
-                WaitSecs(durationSecs);
                 headTrace = OptiTrackBridge.EmptyTrace();
                 torsoTrace = OptiTrackBridge.EmptyTrace();
                 return;
             end
             
-            startTime = GetSecs();
-            maxSamples = 30000;
+            % Stop recording flag
+            OP_CONTINUOUS_BUFFER.passiveRecording = false;
             
-            tData = nan(maxSamples, 1);
-            hxData = nan(maxSamples, 1); hyData = nan(maxSamples, 1); hzData = nan(maxSamples, 1);
-            hrollData = nan(maxSamples, 1); hpitchData = nan(maxSamples, 1); hyawData = nan(maxSamples, 1);
-            herrData = nan(maxSamples, 1);
-            txData = nan(maxSamples, 1); tyData = nan(maxSamples, 1); tzData = nan(maxSamples, 1);
-            trollData = nan(maxSamples, 1); tpitchData = nan(maxSamples, 1); tyawData = nan(maxSamples, 1);
-            terrData = nan(maxSamples, 1);
-            idx = 1;
+            % Extract epoch from continuous buffer
+            startIdx = OP_CONTINUOUS_BUFFER.passiveStartIdx;
+            endIdx = OP_CONTINUOUS_BUFFER.idx - 1;
             
-            deadline = GetSecs() + durationSecs;
-            while GetSecs() < deadline
-                [kd, ~, kc] = KbCheck;
-                if kd && kc(KbName('ESCAPE')), error('User Quit'); end
-                
-                [currHeadPos, currTorsoPos, currHeadEuler, currTorsoEuler, currHeadErr, currTorsoErr, frameTimestamp] = OptiTrackBridge.GetDualData();
-                
-                if ~any(isnan(currHeadPos)) && ~any(isnan(currTorsoPos)) && idx <= maxSamples
-                    % Use global reference: MotiveT0 or first continuous frame
-                    if OP_BRIDGE_STATE.MotiveT0 > 0
-                        tData(idx) = frameTimestamp - OP_BRIDGE_STATE.MotiveT0;
-                    elseif OP_CONTINUOUS_BUFFER.idx > 1
-                        tData(idx) = frameTimestamp - OP_CONTINUOUS_BUFFER.time(1);
-                    else
-                        tData(idx) = frameTimestamp;
-                    end
-                    hxData(idx) = currHeadPos(1); hyData(idx) = currHeadPos(2); hzData(idx) = currHeadPos(3);
-                    hrollData(idx) = currHeadEuler(1); hpitchData(idx) = currHeadEuler(2); hyawData(idx) = currHeadEuler(3);
-                    herrData(idx) = currHeadErr;
-                    txData(idx) = currTorsoPos(1); tyData(idx) = currTorsoPos(2); tzData(idx) = currTorsoPos(3);
-                    trollData(idx) = currTorsoEuler(1); tpitchData(idx) = currTorsoEuler(2); tyawData(idx) = currTorsoEuler(3);
-                    terrData(idx) = currTorsoErr;
-                    idx = idx + 1;
-                end
-                WaitSecs(0.01);
-            end
-            
-            n = idx - 1;
-            if n > 0
-                t = tData(1:n);
-                headTrace.time = t; headTrace.x = hxData(1:n); headTrace.y = hyData(1:n); headTrace.z = hzData(1:n);
-                headTrace.roll = hrollData(1:n); headTrace.pitch = hpitchData(1:n); headTrace.yaw = hyawData(1:n); headTrace.error = herrData(1:n);
-                
-                torsoTrace.time = t; torsoTrace.x = txData(1:n); torsoTrace.y = tyData(1:n); torsoTrace.z = tzData(1:n);
-                torsoTrace.roll = trollData(1:n); torsoTrace.pitch = tpitchData(1:n); torsoTrace.yaw = tyawData(1:n); torsoTrace.error = terrData(1:n);
-            else
+            if endIdx < startIdx
                 headTrace = OptiTrackBridge.EmptyTrace();
                 torsoTrace = OptiTrackBridge.EmptyTrace();
+                return;
             end
-        end
+            
+            t = OP_CONTINUOUS_BUFFER.time(startIdx:endIdx);
+            
+            headTrace.time = t;
+            headTrace.x = OP_CONTINUOUS_BUFFER.hx(startIdx:endIdx);
+            headTrace.y = OP_CONTINUOUS_BUFFER.hy(startIdx:endIdx);
+            headTrace.z = OP_CONTINUOUS_BUFFER.hz(startIdx:endIdx);
+            headTrace.roll = OP_CONTINUOUS_BUFFER.hroll(startIdx:endIdx);
+            headTrace.pitch = OP_CONTINUOUS_BUFFER.hpitch(startIdx:endIdx);
+            headTrace.yaw = OP_CONTINUOUS_BUFFER.hyaw(startIdx:endIdx);
+            headTrace.error = OP_CONTINUOUS_BUFFER.hErr(startIdx:endIdx);
+            
+            torsoTrace.time = t;
+            torsoTrace.x = OP_CONTINUOUS_BUFFER.tx(startIdx:endIdx);
+            torsoTrace.y = OP_CONTINUOUS_BUFFER.ty(startIdx:endIdx);
+            torsoTrace.z = OP_CONTINUOUS_BUFFER.tz(startIdx:endIdx);
+            torsoTrace.roll = OP_CONTINUOUS_BUFFER.troll(startIdx:endIdx);
+            torsoTrace.pitch = OP_CONTINUOUS_BUFFER.tpitch(startIdx:endIdx);
+            torsoTrace.yaw = OP_CONTINUOUS_BUFFER.tyaw(startIdx:endIdx);
+            torsoTrace.error = OP_CONTINUOUS_BUFFER.tErr(startIdx:endIdx);
+end
 
         % ---------------------------------------------------------
         % WAIT FOR REALIGNMENT (Stationary center check with traces)
@@ -938,7 +932,7 @@ classdef OptiTrackBridge
             isWarningOnScreen = false;
             stationaryStartTime = GetSecs();
             
-            maxSamples = 10000;
+            maxSamples = 20000;
             tData = nan(maxSamples, 1);
             hxData = nan(maxSamples, 1); hyData = nan(maxSamples, 1); hzData = nan(maxSamples, 1);
             hrollData = nan(maxSamples, 1); hpitchData = nan(maxSamples, 1); hyawData = nan(maxSamples, 1);

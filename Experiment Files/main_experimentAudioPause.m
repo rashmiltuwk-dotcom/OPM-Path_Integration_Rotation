@@ -457,10 +457,10 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 if ~isempty(TL), TL.startEvent(1, trueTrial, 'CloseEyes'); end
                 OptiTrackBridge.startEvent(trueTrial, 'CloseEyes');
                 
-                % [Audio] "Close eyes" CloseE audio is ~1.13 seconds; track for that exact duration, using the non-blocking play_sound
+                % [Audio] "Close eyes" CloseE audio is ~1.113 seconds; track for that exact duration, using the non-blocking play_sound
                 play_sound(pahandle, audioData.CloseE);
 
-                [CloseEyesHeadTrace, CloseEyesTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, 1.13);
+                [CloseEyesHeadTrace, CloseEyesTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, 1.113);
                 
                 
                 if ~isempty(TL), TL.stopEvent(1, trueTrial, 'CloseEyes'); end

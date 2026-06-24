@@ -457,12 +457,12 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 if ~isempty(TL), TL.startEvent(1, trueTrial, 'CloseEyes'); end
                 OptiTrackBridge.startEvent(trueTrial, 'CloseEyes');
                 
-                % [Audio] "Close eyes" CloseE audio is ~1.113 seconds; track for that exact duration, using the non-blocking play_sound
+
+                OptiTrackBridge.StartPassiveTrack();
+                % [Audio] "Close eyes" CloseE audio is ~1.13 seconds; track for that exact duration, using the non-blocking play_sound
                 play_sound(pahandle, audioData.CloseE);
 
-                [CloseEyesHeadTrace, CloseEyesTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, 1.113);
-                
-                
+                [CloseEyesHeadTrace, CloseEyesTorsoTrace] = OptiTrackBridge.StopPassiveTrack();
                 if ~isempty(TL), TL.stopEvent(1, trueTrial, 'CloseEyes'); end
                 OptiTrackBridge.stopEvent(trueTrial, 'CloseEyes');
                 
@@ -500,9 +500,10 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 [PausedPhysicallyWalkHeadTrace, PausedPhysicallyWalkTorsoTrace] = OptiTrackBridge.ExtractPausedTraces();
                 PAUSED_MOTION_BUFFER.frames = {};
                 
-                captureDuration = 0.5; % Record for 0.5 seconds after they stop
-                [PassiveWalkHeadTrace, PassiveWalkTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, captureDuration);
-                
+
+                OptiTrackBridge.StartPassiveTrack();
+                WaitSecs(0.5);
+                [PassiveWalkHeadTrace, PassiveWalkTorsoTrace] = OptiTrackBridge.StopPassiveTrack();
                 if ~isempty(PassiveWalkTorsoTrace.yaw)
                     % Calculate shortest path drift (handles 360-degree wrap around)
                     initT = sqrt(PassiveWalkTorsoTrace.x(1)^2 + PassiveWalkTorsoTrace.z(1)^2);
@@ -554,8 +555,9 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 
                 if ~isempty(TL), TL.startEvent(2, trueTrial, 'Stationary'); end
                 OptiTrackBridge.startEvent(trueTrial, 'Stationary');
-                [StationaryHeadTraceOne, StationaryTorsoTraceOne] = OptiTrackBridge.PassiveTrack(headID, torsoID, 3.0);
-                
+                OptiTrackBridge.StartPassiveTrack();
+                WaitSecs(3.0);
+                [StationaryHeadTraceOne, StationaryTorsoTraceOne] = OptiTrackBridge.StopPassiveTrack();
                 if ~isempty(TL), TL.stopEvent(2, trueTrial, 'Stationary'); end
                 OptiTrackBridge.stopEvent(trueTrial, 'Stationary');
 
@@ -604,8 +606,9 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 % Immediate feedback: No delay between target hit and "Stop" sound
                 play_sound(pahandle, audioData.stop);
 
-                captureDuration = 0.5; % Record for 0.5 seconds after they stop
-                [PassiveEncodeHeadTrace, PassiveEncodeTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, captureDuration);
+                OptiTrackBridge.StartPassiveTrack();
+                WaitSecs(0.5);
+                [PassiveEncodeHeadTrace, PassiveEncodeTorsoTrace] = OptiTrackBridge.StopPassiveTrack();
                 
                 if ~isempty(PassiveEncodeTorsoTrace.yaw)
                     % Calculate shortest path drift (handles 360-degree wrap around)
@@ -655,7 +658,9 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 [PausedResponseRotationHeadTrace, PausedResponseRotationTorsoTrace] = OptiTrackBridge.ExtractPausedTraces();
                 PAUSED_MOTION_BUFFER.frames = {};
                 
-                [PassiveProdHeadTrace, PassiveProdTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, captureDuration);
+                OptiTrackBridge.StartPassiveTrack();
+                WaitSecs(0.5);
+                [PassiveProdHeadTrace, PassiveProdTorsoTrace] = OptiTrackBridge.StopPassiveTrack();
                 
                 if ~isempty(PassiveProdTorsoTrace.yaw)
                     initT = PassiveProdTorsoTrace.yaw(1); finT = PassiveProdTorsoTrace.yaw(end);
@@ -676,7 +681,9 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 if ~isempty(TL), TL.startEvent(2, trueTrial, 'Stationary'); end
                 OptiTrackBridge.startEvent(trueTrial, 'Stationary');
 
-                [StationaryHeadTraceTwo, StationaryTorsoTraceTwo] = OptiTrackBridge.PassiveTrack(headID, torsoID, 3.0);
+                OptiTrackBridge.StartPassiveTrack();
+                WaitSecs(3.0);
+                [StationaryHeadTraceTwo, StationaryTorsoTraceTwo] = OptiTrackBridge.StopPassiveTrack();
                 
                 if ~isempty(TL), TL.stopEvent(2, trueTrial, 'Stationary'); end
                 OptiTrackBridge.stopEvent(trueTrial, 'Stationary');
@@ -721,7 +728,9 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
 
                 if ~isempty(TL), TL.startEvent(2, trueTrial, 'Stationary'); end
                 OptiTrackBridge.startEvent(trueTrial, 'Stationary');
-                [StationaryHeadTraceThree, StationaryTorsoTraceThree] = OptiTrackBridge.PassiveTrack(headID, torsoID, 3.0);
+                OptiTrackBridge.StartPassiveTrack();
+                WaitSecs(3.0);
+                [StationaryHeadTraceThree, StationaryTorsoTraceThree] = OptiTrackBridge.StopPassiveTrack();
                 
                 if ~isempty(TL), TL.stopEvent(2, trueTrial, 'Stationary'); end
                 OptiTrackBridge.stopEvent(trueTrial, 'Stationary');
@@ -732,10 +741,13 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 % [Trigger] Code: Instruction to open eyes
                 if ~isempty(TL), TL.startEvent(7, trueTrial, 'OpenEyes'); end
                 OptiTrackBridge.startEvent(trueTrial, 'OpenEyes');
-                % [Audio] "Open eyes" OpenE audio is ~1.089 seconds; track for that exact duration, using the non-blocking play_sound
-                play_sound(pahandle, audioData.OpenE);
+
                 
-                [OpenEyesHeadTrace, OpenEyesTorsoTrace] = OptiTrackBridge.PassiveTrack(headID, torsoID, 1.089);
+                OptiTrackBridge.StartPassiveTrack();
+
+                play_sound(pahandle, audioData.OpenE);
+
+                [OpenEyesHeadTrace, OpenEyesTorsoTrace] = OptiTrackBridge.StopPassiveTrack();
                 
                 if ~isempty(TL), TL.stopEvent(7, trueTrial, 'OpenEyes'); end
                 OptiTrackBridge.stopEvent(trueTrial, 'OpenEyes');

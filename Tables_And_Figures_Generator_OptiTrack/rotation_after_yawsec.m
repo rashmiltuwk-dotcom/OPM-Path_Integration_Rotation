@@ -1,4 +1,4 @@
-%% ROTATION ANALYSIS - Just press RUN
+%% ROTATION ANALYSIS
 % Assumes 'MasterData' is already loaded in your workspace!
 % Analyzes absolute velocity AFTER dynamic start index based on target
 % Anchors to PEAK velocity to prevent false-positive early jitters

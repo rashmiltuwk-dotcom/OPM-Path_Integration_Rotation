@@ -4,7 +4,7 @@ figure(2); clf;
 set(gcf, 'Color', 'w', 'Position', [100, 100, 1000, 800], 'Renderer', 'opengl');
 
 % === TIME CONTROL SETTINGS ===
-timeStart = 596;   % Start playback at this time (seconds)
+timeStart = 0;   % Start playback at this time (seconds)
 timeEnd   = 750;   % End playback at this time (seconds)
 % =============================
 
@@ -22,6 +22,7 @@ idx = validIdx(1):1:maxValidIndex;
 % Setup Plot (Z on floor, Y up-down, X sideways)
 % MATLAB convention: X, Y are floor plane, Z is vertical
 ax = axes('Projection', 'perspective');
+set(gca, 'XDir', 'reverse'); 
 hold on; grid on; axis equal; view(3); 
 xlabel('Room Z (Forward-Back)', 'FontSize', 12); 
 ylabel('Room X (Sideways)', 'FontSize', 12); 

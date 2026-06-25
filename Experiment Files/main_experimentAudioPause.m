@@ -392,7 +392,6 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
             [OpenEyesHeadTrace, OpenEyesTorsoTrace, ...
             PhysicallyWalkHeadTrace, PhysicallyWalkTorsoTrace, ...
             RealignHeadTrace, RealignTorsoTrace, ...
-            PassiveWalkHeadTrace, PassiveWalkTorsoTrace, ...
             StationaryHeadTraceOne, StationaryTorsoTraceOne, ...
             EncodingRotateHeadTrace, EncodingRotateTorsoTrace, ...
             StationaryHeadTraceTwo, StationaryTorsoTraceTwo, ...
@@ -501,21 +500,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 PAUSED_MOTION_BUFFER.frames = {};
                 
 
-                OptiTrackBridge.StartPassiveTrack();
-                WaitSecs(0.5);
-                [PassiveWalkHeadTrace, PassiveWalkTorsoTrace] = OptiTrackBridge.StopPassiveTrack();
-                if ~isempty(PassiveWalkTorsoTrace.yaw)
-                    % Calculate shortest path drift (handles 360-degree wrap around)
-                    initT = sqrt(PassiveWalkTorsoTrace.x(1)^2 + PassiveWalkTorsoTrace.z(1)^2);
-                    finT = sqrt(PassiveWalkTorsoTrace.x(end)^2 + PassiveWalkTorsoTrace.z(end)^2);
-                    walkDriftTorso = finT - initT;
-                    
-                    initH = sqrt(PassiveWalkHeadTrace.x(1)^2 + PassiveWalkHeadTrace.z(1)^2);
-                    finH = sqrt(PassiveWalkHeadTrace.x(end)^2 + PassiveWalkHeadTrace.z(end)^2);
-                    walkDriftHead = finH - initH;
-                else
-                    walkDriftTorso = 0; walkDriftHead = 0;
-                end 
+
 
                 % ---------------------------------------------------------
                 % ENSURE CONTINUOUS STATIONARY PERIOD AT (0,0,0)
@@ -820,8 +805,6 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 tracePacket.PhysicallyWalkTorsoTrace = PhysicallyWalkTorsoTrace;
                 tracePacket.RealignHeadTrace = RealignHeadTrace;
                 tracePacket.RealignTorsoTrace = RealignTorsoTrace;
-                tracePacket.PassiveWalkHeadTrace = PassiveWalkHeadTrace;
-                tracePacket.PassiveWalkTorsoTrace = PassiveWalkTorsoTrace;
                 tracePacket.PausedPhysicallyWalkHeadTrace = PausedPhysicallyWalkHeadTrace;
                 tracePacket.PausedPhysicallyWalkTorsoTrace = PausedPhysicallyWalkTorsoTrace;
                 tracePacket.StationaryHeadTraceOne = StationaryHeadTraceOne;
@@ -907,8 +890,6 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 tracePacket.PhysicallyWalkTorsoTrace = PhysicallyWalkTorsoTrace;
                 tracePacket.RealignHeadTrace = RealignHeadTrace;
                 tracePacket.RealignTorsoTrace = RealignTorsoTrace;
-                tracePacket.PassiveWalkHeadTrace = PassiveWalkHeadTrace;
-                tracePacket.PassiveWalkTorsoTrace = PassiveWalkTorsoTrace;
                 tracePacket.PausedPhysicallyWalkHeadTrace = PausedPhysicallyWalkHeadTrace;
                 tracePacket.PausedPhysicallyWalkTorsoTrace = PausedPhysicallyWalkTorsoTrace;
                 tracePacket.StationaryHeadTraceOne = StationaryHeadTraceOne;

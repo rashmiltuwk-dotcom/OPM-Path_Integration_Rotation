@@ -87,6 +87,7 @@ title(sprintf('Filtered Path: XZ Coordinates (N = %d Trials)', length(validTrial
 xlabel('Room X Position (Meters)', 'FontSize', 14);
 ylabel('Room Z Position (Meters)', 'FontSize', 14);
 legend([pHead, pTorso, pTarget], {'Head Path', 'Torso Path', 'Target Center'}, 'Location', 'bestoutside');
+set(gca, 'XDir', 'reverse'); 
 axis equal; grid on; hold off;
  
 %% --- LOCAL FUNCTIONS ---------------------------------------

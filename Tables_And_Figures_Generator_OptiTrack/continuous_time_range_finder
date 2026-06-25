@@ -17,4 +17,6 @@ title(sprintf('Paths: XZ Coordinates (t = %.1f – %.1f s)', timeStart, timeEnd)
 xlabel('Room X Position (Meters)', 'FontSize', 14);
 ylabel('Room Z Position (Meters)', 'FontSize', 14);
 legend({'Head Path', 'Torso Path', 'Target Center'}, 'Location', 'bestoutside');
-axis equal; grid on; hold off;
+axis equal;
+set(gca, 'XDir', 'reverse'); 
+grid on; hold off;

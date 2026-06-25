@@ -38,6 +38,7 @@ title(sprintf('Head Position Density (t = %.1f - %.1f s)', timeStart, timeEnd), 
 xlabel('Room X Position (Meters)', 'FontSize', 12);
 ylabel('Room Z Position (Meters)', 'FontSize', 12);
 set(gca, 'YDir', 'normal');
+set(gca, 'XDir', 'reverse');
 
 % Plot torso heatmap
 subplot(1, 2, 2);
@@ -48,5 +49,6 @@ title(sprintf('Torso Position Density (t = %.1f - %.1f s)', timeStart, timeEnd),
 xlabel('Room X Position (Meters)', 'FontSize', 12);
 ylabel('Room Z Position (Meters)', 'FontSize', 12);
 set(gca, 'YDir', 'normal');
+set(gca, 'XDir', 'reverse');
 
 sgtitle('Movement Density Heatmaps', 'FontSize', 16);

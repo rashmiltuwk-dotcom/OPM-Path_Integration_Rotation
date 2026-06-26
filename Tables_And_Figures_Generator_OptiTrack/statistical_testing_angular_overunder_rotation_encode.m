@@ -1,19 +1,19 @@
 %% ============================================================
 %  ACCURACY SUMMARY: FINAL ENCODING ERROR
 %  ACTIVE ENCODING + PASSIVE ENCODING
-%  MEAN & SD (DEGREES)
+%  MEAN & SD (DEGREES) - SIGNED ERRORS (VECTOR CANCELLATION)
 %  TARGET ANGLES: [60, 120, 240, 300]
 %% ============================================================
-
+ 
 %% --- STEP 1: DATA EXTRACTION ---
 accepted = MasterData(strcmp({MasterData.Status}, 'Accepted'));
 N = numel(accepted);
 if N == 0, error('No accepted trials in MasterData.'); end
-
+ 
 % Initialize storage
 final_err_t = NaN(N,1); final_err_h = NaN(N,1);
 modality = cell(N,1); enc_targ = NaN(N,1);
-
+ 
 for i = 1:N
     tr = accepted(i);
     modality{i} = tr.TaskType;
@@ -53,49 +53,65 @@ for i = 1:N
     totalDispT = dispT + passT;
     totalDispH = dispH + passH;
     
-    % Final error: combined displacement vs target
-    final_err_t(i) = abs(mod(totalDispT - tr.TargetDeg + 180, 360) - 180);
-    final_err_h(i) = abs(mod(totalDispH - tr.TargetDeg + 180, 360) - 180);
+    % Final error: SIGNED (allows vector cancellation)
+    final_err_t(i) = mod(totalDispT - tr.TargetDeg + 180, 360) - 180;
+    final_err_h(i) = mod(totalDispH - tr.TargetDeg + 180, 360) - 180;
     
 end
-
+ 
 %% --- STEP 2: FINAL ENCODING SUMMARY (INDIVIDUAL TARGETS) ---
 fprintf('\n--- FINAL ENCODING ERROR (ACTIVE + PASSIVE): MEAN ± SD (DEGREES) ---\n');
-fprintf('%-15s | %-15s | %-15s\n', 'Target', 'Torso (°)', 'Head (°)');
-fprintf('-----------------------------------------------------\n');
-
+fprintf('%-15s | %-20s | %-20s\n', 'Target', 'Torso (°)', 'Head (°)');
+fprintf('----------------------------------------------------------\n');
+ 
 enc_targets_individual = [60, 120, 240, 300];
 final_mean_t = NaN(4,1); final_sd_t = NaN(4,1);
 final_mean_h = NaN(4,1); final_sd_h = NaN(4,1);
-
+final_abs_mean_t = NaN(4,1); final_abs_mean_h = NaN(4,1);
+ 
 for i = 1:4
     idx = enc_targ == enc_targets_individual(i);
     t_vals = final_err_t(idx);
     h_vals = final_err_h(idx);
-    final_mean_t(i) = mean(t_vals); final_sd_t(i) = std(t_vals);
-    final_mean_h(i) = mean(h_vals); final_sd_h(i) = std(h_vals);
-    fprintf('%-15s | %5.2f ± %4.2f | %5.2f ± %4.2f\n', ...
+    
+    % Signed mean (shows bias, allows cancellation)
+    final_mean_t(i) = mean(t_vals);
+    final_mean_h(i) = mean(h_vals);
+    
+    % SD of signed errors
+    final_sd_t(i) = std(t_vals);
+    final_sd_h(i) = std(h_vals);
+    
+    % Absolute mean (magnitude of bias)
+    final_abs_mean_t(i) = abs(final_mean_t(i));
+    final_abs_mean_h(i) = abs(final_mean_h(i));
+    
+    fprintf('%-15s | %+6.2f ± %4.2f | %+6.2f ± %4.2f\n', ...
         sprintf('%d°', enc_targets_individual(i)), final_mean_t(i), final_sd_t(i), final_mean_h(i), final_sd_h(i));
 end
-
+ 
 %% --- STEP 3: FINAL ENCODING ERROR PLOT ---
-
+ 
 enc_labels = {'60°', '120°', '240°', '300°'};
 x_enc = 1:4;
-
+ 
 figure('Name', 'Final Encoding Error', 'Color', 'w', 'Position', [100 100 700 450]);
 hold on;
-
+ 
+% Plot signed means (can go negative to show cancellation)
 b1 = bar(x_enc - 0.2, final_mean_t, 0.35, 'FaceColor', [0.2 0.4 0.8], 'EdgeColor', 'none'); % Blue - Torso
 b2 = bar(x_enc + 0.2, final_mean_h, 0.35, 'FaceColor', [0.8 0.2 0.2], 'EdgeColor', 'none'); % Red - Head
-
+ 
+% Error bars on signed means
 errorbar(x_enc - 0.2, final_mean_t, final_sd_t, 'k.', 'LineWidth', 1.5, 'CapSize', 8, 'MarkerSize', 0.1);
 errorbar(x_enc + 0.2, final_mean_h, final_sd_h, 'k.', 'LineWidth', 1.5, 'CapSize', 8, 'MarkerSize', 0.1);
-
+ 
+% Add zero line to show cancellation
+plot(xlim, [0 0], 'k--', 'LineWidth', 1);
+ 
 set(gca, 'XTick', x_enc, 'XTickLabel', enc_labels, 'FontSize', 12, 'Box', 'off');
-ylabel('Absolute Error (°)', 'FontSize', 13);
+ylabel('Signed Error (°)', 'FontSize', 13);
 xlabel('Target Angle', 'FontSize', 13);
-title('Final Encoding Error (Active + Passive)', 'FontSize', 14, 'FontWeight', 'bold');
+title('Final Encoding Error (Active + Passive, Signed)', 'FontSize', 14, 'FontWeight', 'bold');
 legend([b1 b2], {'Torso', 'Head'}, 'Location', 'northwest', 'FontSize', 11);
-ylim([0 max([final_mean_t + final_sd_t; final_mean_h + final_sd_h]) * 1.2]);
 hold off;

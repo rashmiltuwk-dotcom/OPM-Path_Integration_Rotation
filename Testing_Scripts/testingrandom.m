@@ -1,17 +1,11 @@
-Operation terminated by user during dlmread
+Data type is missing or incorrect, assigning default.
+Completed                               :          11:41:41 - 26/06/2026
+Detecting all-triggers synchronization pulse (first occurrence = experiment start)...
+Motive T=0 (mocap recording onset) at OPM sample 72116 (48.077 s into file).
+Running trigger detection with onset/offset pairing...
+Marked 0 event(s) in aborted trial blocks (to be excluded later).
+Operator '==' is not supported for operands of type 'cell'.
 
-
-In spm_opm_read_lvm (line 54)
-data = dlmread(S.filename, '\t',S.headerlength,0);
-
-In spm_opm_create>read_neuro1_data (line 630)
-        [lbv] = spm_opm_read_lvm(args);
-
-In spm_opm_create (line 91)
-        S = read_neuro1_data(S);
-
-In untitled (line 22)
-D1            = spm_opm_create(S_create);
+Error in untitled (line 167)
+        if S.onsetOffsetPairs(pair_idx, 1) == onset_cond_id
  
-
->> 

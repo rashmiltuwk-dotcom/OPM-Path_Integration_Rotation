@@ -815,6 +815,8 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;
                 tracePacket.PausedEncodingRotateHeadTrace = PausedEncodingRotateHeadTrace;
                 tracePacket.PausedEncodingRotateTorsoTrace = PausedEncodingRotateTorsoTrace;
+                tracePacket.IncorrectRotationHeadTrace = IncorrectRotationHeadTrace;
+                tracePacket.IncorrectRotationTorsoTrace = IncorrectRotationTorsoTrace;
                 tracePacket.ResponseRotationHeadTrace = ResponseRotationHeadTrace;
                 tracePacket.ResponseRotationTorsoTrace = ResponseRotationTorsoTrace;
                 tracePacket.PassiveProdHeadTrace = PassiveProdHeadTrace;

@@ -654,31 +654,34 @@ classdef OptiTrackBridge
                     end
 
                     
-                    % ===== GOAL CHECK: Only complete if NOT paused =====
-                    if ~PAUSE_ACTIVE && abs(accumulatedTurn) >= targetDeg
-                        turnedLeftCorrectly  = strcmpi(dirCode, 'L') && (accumulatedTurn >= 45);
-                        turnedRightCorrectly = strcmpi(dirCode, 'R') && (accumulatedTurn <= -45);
-                        
-                        if turnedLeftCorrectly || turnedRightCorrectly
-                            DrawFormattedText(win, 'DONE! STOP.', 'center', 'center', [0 255 0]);
-                            Screen('Flip', win);
-                            rotationCorrect = true;
-                            break; % Exit the main while true loop
-                        else
-                            % INCORRECT DIRECTION - Play feedback audio
+                    % ===== INCORRECT DIRECTION - CAPTURE TRACES =====
+                            global PAUSE_ACTIVE
+                            PAUSE_ACTIVE = true;
+
+                            if ~isempty(TL), TL.pauseIndicatorStart(65, trueTrial, 'IncorrectDirection'); end
+                            OptiTrackBridge.startEvent(trueTrial, 'IncorrectDirection');
+
                             DrawFormattedText(win, 'INCORRECT DIRECTION\nPress SPACE to try again.', 'center', 'center', [255 0 0]);
                             Screen('Flip', win);
-                            
+
                             % Get audio from OptiTrackBridge
                             audioData = OptiTrackBridge.GetAudioData();
-                            
-                            % Play the SAME audio again as the main script
+
+                            % Play audio (frames captured while PAUSE_ACTIVE = true)
                             if strcmpi(dirCode, 'L')
                                 play_sound_blocking(pahandle, audioData.RotateL);
                             else
                                 play_sound_blocking(pahandle, audioData.RotateR);
                             end
-                            
+
+                            OptiTrackBridge.stopEvent(trueTrial, 'IncorrectDirection');
+                            if ~isempty(TL), TL.pauseIndicatorEnd(65, trueTrial, 'IncorrectDirection'); end
+                            PAUSE_ACTIVE = false;
+
+                            % Extract incorrect rotation traces
+                            [IncorrectRotationHeadTrace, IncorrectRotationTorsoTrace] = OptiTrackBridge.ExtractPausedTraces();
+                            PAUSED_MOTION_BUFFER.frames = {};
+
                             % Wait for Space Bar
                             KbReleaseWait;
                             while true

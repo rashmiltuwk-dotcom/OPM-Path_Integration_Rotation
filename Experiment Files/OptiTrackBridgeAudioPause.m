@@ -686,7 +686,7 @@ classdef OptiTrackBridge
                             if ~isempty(TL), TL.pauseIndicatorEnd(65, trueTrial, 'IncorrectDirection'); end
                             PAUSE_ACTIVE = false;
 
-                            [IncorrectRotationHeadTrace, IncorrectRotationTorsoTrace] = OptiTrackBridge.ExtractPausedTraces();
+                            [PausedEncodingRotateHeadTrace, PausedEncodingRotateTorsoTrace] = OptiTrackBridge.ExtractPausedTraces();
                             PAUSED_MOTION_BUFFER.frames = {};
 
                             KbReleaseWait;

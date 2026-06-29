@@ -51,7 +51,7 @@ end
         OptiTrackBridge.MarkTimeZero();
 
         % All channels 1-7 = binary 01111111 = decimal 127
-        allChannels = 256;
+        allChannels = 126;
     
         % Add Master Sync (Channel 8)
         outValue = bitor(allChannels);  % = 255 (binary 11111111)

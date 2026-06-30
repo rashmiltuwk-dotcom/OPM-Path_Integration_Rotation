@@ -43,28 +43,29 @@ classdef TriggerLogger < handle
 end
         
         function callExperimentStart(obj, trueTrial)
-            OptiTrackBridge.MarkTimeZero();
-        
-            % Channels 2-7 = binary 01111110 = decimal 126
-            allChannels = 126;
-            eventName = 'ExperimentStart';
+                OptiTrackBridge.MarkTimeZero();
             
-            % Fire channels 2-7 HIGH
-            io64(obj.ioObj, obj.address, allChannels);
-            
-            % Log it
-            timestamp = GetSecs - obj.expStartTime;
-            fprintf(obj.logFileID, '%.4f,%d,%s,%s,%d,ON\n', ...
-                timestamp, trueTrial, eventName, '2-7', allChannels);
-            
-            % Brief hold so hardware registers the pulse
-            WaitSecs(0.05);
-            
-            % Drop all channels to LOW
-            io64(obj.ioObj, obj.address, 0);
-            fprintf(obj.logFileID, '%.4f,%d,%s,%s,0,OFF\n', ...
-                GetSecs - obj.expStartTime, trueTrial, eventName, '2-7');
-        end
+                % Channels 2-7 = binary 01111110 = decimal 126
+                allChannels = 126;
+                eventName = 'ExperimentStart';
+                channelLabel = '2-7';
+                
+                % Fire channels 2-7 HIGH
+                io64(obj.ioObj, obj.address, allChannels);
+                
+                % Log it
+                timestamp = GetSecs - obj.expStartTime;
+                fprintf(obj.logFileID, '%.4f,%d,%s,%s,%d,ON\n', ...
+                    timestamp, trueTrial, eventName, channelLabel, allChannels);
+                
+                % Brief hold so hardware registers the pulse
+                WaitSecs(0.05);
+                
+                % Drop all channels to LOW
+                io64(obj.ioObj, obj.address, 0);
+                fprintf(obj.logFileID, '%.4f,%d,%s,%s,%d,OFF\n', ...
+                    GetSecs - obj.expStartTime, trueTrial, eventName, channelLabel, 0);
+            end
 
         function startEvent(obj, triggerChannel, trueTrial, eventName)
             % ---------------------------------------------------------

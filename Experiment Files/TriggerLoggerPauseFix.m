@@ -43,34 +43,26 @@ classdef TriggerLogger < handle
 end
         
         function callExperimentStart(obj, trueTrial)
-        % ---------------------------------------------------------
-        % RESET ALL TRIGGERS: Fires all channels 1-7 together, then drops to 0
-        % Creates a clear "abort marker" pulse visible in the MEG data
-        % ---------------------------------------------------------
-
-        OptiTrackBridge.MarkTimeZero();
-
-        % All channels 1-7 = binary 01111111 = decimal 127
-        allChannels = 126;
-    
-        % Add Master Sync (Channel 8)
-        outValue = bitor(allChannels);  % = 255 (binary 11111111)
-
-    
-        % Fire all channels HIGH
-        io64(obj.ioObj, obj.address, outValue);
-        % Log it
-        timestamp = GetSecs - obj.expStartTime;
-        fprintf(obj.logFileID, '%.4f,%d,%s,ALL,255,ON\n', ...
-            timestamp, trueTrial, 'ExperimentStart');
-    
-        % Brief hold so hardware registers the pulse
-        WaitSecs(0.05);
-    
-        % Drop all channels to LOW
-        io64(obj.ioObj, obj.address, 0);
-        fprintf(obj.logFileID, '%.4f,%d,%s,ALL,0,OFF\n', ...
-            GetSecs - obj.expStartTime, trueTrial, 'ExperimentStart');
+            OptiTrackBridge.MarkTimeZero();
+        
+            % Channels 2-7 = binary 01111110 = decimal 126
+            allChannels = 126;
+            
+            % Fire channels 2-7 HIGH
+            io64(obj.ioObj, obj.address, allChannels);
+            
+            % Log it
+            timestamp = GetSecs - obj.expStartTime;
+            fprintf(obj.logFileID, '%.4f,%d,%s,ALL,126,ON\n', ...
+                timestamp, trueTrial, 'ExperimentStart');
+            
+            % Brief hold so hardware registers the pulse
+            WaitSecs(0.05);
+            
+            % Drop all channels to LOW
+            io64(obj.ioObj, obj.address, 0);
+            fprintf(obj.logFileID, '%.4f,%d,%s,ALL,0,OFF\n', ...
+                GetSecs - obj.expStartTime, trueTrial, 'ExperimentStart');
         end
 
         function startEvent(obj, triggerChannel, trueTrial, eventName)

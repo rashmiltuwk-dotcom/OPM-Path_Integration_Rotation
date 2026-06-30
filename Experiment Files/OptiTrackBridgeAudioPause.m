@@ -686,7 +686,7 @@ classdef OptiTrackBridge
                             if ~isempty(TL), TL.pauseIndicatorEnd(65, trueTrial, 'IncorrectDirection'); end
                             PAUSE_ACTIVE = false;
 
-                            [PausedEncodingRotateHeadTrace, PausedEncodingRotateTorsoTrace] = OptiTrackBridge.ExtractPausedTraces();
+                            [IncorrectRotationHeadTrace, IncorrectRotationTorsoTrace] = OptiTrackBridge.ExtractPausedTraces();
                             PAUSED_MOTION_BUFFER.frames = {};
 
                             KbReleaseWait;
@@ -850,6 +850,16 @@ classdef OptiTrackBridge
                     terrData(idx) = currTorsoErr;
                     idx = idx + 1;                      
                 end
+                if PAUSE_ACTIVE
+                    pauseStatus = ' [PAUSED]';
+                    pauseColor = [255 255 0];
+                else
+                    pauseStatus = '';
+                    pauseColor = white;
+                end
+
+                DrawFormattedText(win, sprintf('Perform task...%s\nPress %s when finished.', pauseStatus, keyName), 'center', 'center', pauseColor);
+                Screen('Flip', win);
                 WaitSecs(0.01); 
             end
             

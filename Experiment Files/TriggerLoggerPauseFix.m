@@ -25,22 +25,22 @@ classdef TriggerLogger < handle
     
     methods
         function obj = TriggerLogger(subjectID)
-    obj.address = hex2dec('3FF8');  % Correct address from your test script
-    
-    obj.ioObj = io64;
-    status = io64(obj.ioObj);
-    if status ~= 0
-        error('TriggerLogger:NoHardware', 'Failed to initialize io64.');
-    end
-    io64(obj.ioObj, obj.address, 0);  % safety reset
-    
-    logName = sprintf('Log_Subj%s_%s.csv', subjectID, datestr(now, 'yyyymmdd_HHMM'));
-    obj.logFileID = fopen(logName, 'a');
-    fprintf(obj.logFileID, 'SystemTime,trueTrial,EventName,TriggerChannel,PortValueSent,State\n');
-    obj.expStartTime = GetSecs;
-    
-    disp(['TriggerLogger Initialized. Log saving to: ' logName]);
-end
+            obj.address = hex2dec('3FF8');  % Correct address from your test script
+            
+            obj.ioObj = io64;
+            status = io64(obj.ioObj);
+            if status ~= 0
+                error('TriggerLogger:NoHardware', 'Failed to initialize io64.');
+            end
+            io64(obj.ioObj, obj.address, 0);  % safety reset
+            
+            logName = sprintf('Log_Subj%s_%s.csv', subjectID, datestr(now, 'yyyymmdd_HHMM'));
+            obj.logFileID = fopen(logName, 'a');
+            fprintf(obj.logFileID, 'SystemTime,trueTrial,EventName,TriggerChannel,PortValueSent,State\n');
+            obj.expStartTime = GetSecs;
+            
+            disp(['TriggerLogger Initialized. Log saving to: ' logName]);
+        end
         
         function callExperimentStart(obj, trueTrial)
             OptiTrackBridge.MarkTimeZero();
@@ -126,34 +126,33 @@ end
         end
 
         function resetAllTriggers(obj, trueTrial)
-        % ---------------------------------------------------------
-        % RESET ALL TRIGGERS: Fires all channels 1-7 together, then drops to 0
-        % Creates a clear "abort marker" pulse visible in the MEG data
-        % ---------------------------------------------------------
-    
-        % All channels 1-7 = binary 01111111 = decimal 127
-        allChannels = 127;
-    
-        % Add Master Sync (Channel 8)
-        outValue = bitor(allChannels, 128);  % = 255 (binary 11111111)
-    
-        % Fire all channels HIGH
-        io64(obj.ioObj, obj.address, outValue);
-    
-        % Log it
-        timestamp = GetSecs - obj.expStartTime;
-        fprintf(obj.logFileID, '%.4f,%d,%s,ALL,255,ON\n', ...
-            timestamp, trueTrial, 'AbortReset');
-    
-        % Brief hold so hardware registers the pulse
-        WaitSecs(0.05);
-    
-        % Drop all channels to LOW
-        io64(obj.ioObj, obj.address, 0);
-        fprintf(obj.logFileID, '%.4f,%d,%s,ALL,0,OFF\n', ...
-            GetSecs - obj.expStartTime, trueTrial, 'AbortReset');
+            % ---------------------------------------------------------
+            % RESET ALL TRIGGERS: Fires all channels 1-7 together, then drops to 0
+            % Creates a clear "abort marker" pulse visible in the MEG data
+            % ---------------------------------------------------------
+        
+            % All channels 1-7 = binary 01111111 = decimal 127
+            allChannels = 127;
+        
+            % Add Master Sync (Channel 8)
+            outValue = bitor(allChannels, 128);  % = 255 (binary 11111111)
+        
+            % Fire all channels HIGH
+            io64(obj.ioObj, obj.address, outValue);
+        
+            % Log it
+            timestamp = GetSecs - obj.expStartTime;
+            fprintf(obj.logFileID, '%.4f,%d,%s,ALL,255,ON\n', ...
+                timestamp, trueTrial, 'AbortReset');
+        
+            % Brief hold so hardware registers the pulse
+            WaitSecs(0.05);
+        
+            % Drop all channels to LOW
+            io64(obj.ioObj, obj.address, 0);
+            fprintf(obj.logFileID, '%.4f,%d,%s,ALL,0,OFF\n', ...
+                GetSecs - obj.expStartTime, trueTrial, 'AbortReset');
         end
-
 
         function pauseIndicatorStart(obj, triggerChannel, trueTrial, eventName)
             % ---------------------------------------------------------
@@ -174,7 +173,7 @@ end
             % This reads back the current value on the port (e.g., 132 if Ch3 is active)
             % The value encodes: activeChannel (bits 1-7) + Master Sync (bit 8)
             obj.prePauseValue = io64(obj.ioObj, obj.address);
-    
+        
             % --- 2. DROP ALL TRIGGERS TO 0V ---
             % This immediately silences the port. The active channel goes DOWN (0V)
             % along with the Master Sync. The MEG will record this as a falling edge.
@@ -189,7 +188,6 @@ end
             fprintf(obj.logFileID, '%.4f,%d,%s,%d,0,OFF\n', ...
                 timestamp, trueTrial, 'PauseIndicator', obj.activeChannel);
         end
-
 
         function pauseIndicatorEnd(obj, triggerChannel, trueTrial, eventName)
             % ---------------------------------------------------------
@@ -211,7 +209,7 @@ end
             % If it was 132 (Ch3 + Master Sync) before, it becomes 132 again now.
             % This triggers a rising edge in the MEG and brings Ch3 back to 5V.
             io64(obj.ioObj, obj.address, obj.prePauseValue);
-    
+        
             % --- 2. LOG THE RESUME EVENT ---
             % Log WHEN the resume happened, WHICH channel is running again (activeChannel),
             % and what value was restored to the port (prePauseValue).
@@ -222,8 +220,6 @@ end
                 timestamp, trueTrial, 'PauseIndicator', obj.activeChannel, obj.prePauseValue);
         end
 
-
-        
         function close(obj)
             % ---------------------------------------------------------
             % CLEANUP: Runs safely at the end of the experiment or during a crash

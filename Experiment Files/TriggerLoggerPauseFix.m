@@ -47,23 +47,22 @@ classdef TriggerLogger < handle
         
             % Channels 2-7 = binary 01111110 = decimal 126
             allChannels = 126;
-            eventName = 'ExperimentStart';
             
             % Fire channels 2-7 HIGH
             io64(obj.ioObj, obj.address, allChannels);
             
             % Log it
             timestamp = GetSecs - obj.expStartTime;
-            fprintf(obj.logFileID, '%.4f,%d,%s,%d,%d,ON\n', ...
-                timestamp, trueTrial, eventName, allChannels, allChannels);
+            fprintf(obj.logFileID, '%.4f,%d,%s,%s,%d,ON\n', ...
+                timestamp, trueTrial, 'ExperimentStart', 'ALL', allChannels);
             
             % Brief hold so hardware registers the pulse
             WaitSecs(0.05);
             
             % Drop all channels to LOW
             io64(obj.ioObj, obj.address, 0);
-            fprintf(obj.logFileID, '%.4f,%d,%s,%d,%d,OFF\n', ...
-                GetSecs - obj.expStartTime, trueTrial, eventName, allChannels, 0);
+            fprintf(obj.logFileID, '%.4f,%d,%s,%s,%d,OFF\n', ...
+                GetSecs - obj.expStartTime, trueTrial, 'ExperimentStart', 'ALL', 0);
         end
 
         function startEvent(obj, triggerChannel, trueTrial, eventName)

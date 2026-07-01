@@ -876,8 +876,6 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 MasterData(masterIdx).TargetDeg  = storedTargetDeg;
                 MasterData(masterIdx).TargetDist  = targetDist;
                 MasterData(masterIdx).TaskType   = typeCode;
-                MasterData(masterIdx).HeadDistFromCenter = headDistFromCenter;
-                MasterData(masterIdx).TorsoDistFromCenter = torsoDistFromCenter;
                 MasterData(masterIdx).PauseCalled = PAUSE_CALLED;
                 MasterData(masterIdx).RealignCalled = REALIGN_CALLED;
                 MasterData(masterIdx).Status     = statusStr;

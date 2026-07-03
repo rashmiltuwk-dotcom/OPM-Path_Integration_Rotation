@@ -169,15 +169,15 @@ set(gca, 'XDir', 'reverse');
 grid on;
 
 % Set room bounds: -2 to +2 on both axes
-xlim([-2, 2]);
-ylim([-2, 2]);
+xlim([-1.5, 1.5]);
+ylim([-1.5, 1.5]);
 
 hold off;
 drawnow expose;
 figure(fig);
 shg;
 
-fprintf('Figure complete. Ready for screenshot.\n');
+fprintf('Figure complete. \n');
 
 %% --- LOCAL FUNCTIONS ----------------------------------------
 function val = resolve_filter(code, map)

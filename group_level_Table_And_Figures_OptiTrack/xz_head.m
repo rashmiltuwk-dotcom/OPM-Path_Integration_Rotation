@@ -115,7 +115,6 @@ hold on;
 drawnow;
 
 participantColors = lines(nParticipants);
-plot(0, 0, 'k*', 'MarkerSize', 15, 'LineWidth', 2);
 
 %% --- 4. PLOT TRACES ----------------------------------------
 headCount = 0;
@@ -149,41 +148,36 @@ end
 
 fprintf('Total: %d traces plotted\n', headCount);
 
-% Set axis limits to actual data range
-if ~isempty(allX) && ~isempty(allZ)
-    xpad = 0.001;
-    zpad = 0.001;
-    xlim([min(allX) - xpad, max(allX) + xpad]);
-    ylim([min(allZ) - zpad, max(allZ) + zpad]);
-end
-
 %% --- 5. FORMAT PLOT ----------------------------------------
-title(sprintf('Filtered Path: XZ Coordinates (N = %d Trials, %d Participants)', ...
-    numel(unique([subset.TrialNum])), nParticipants), 'FontSize', 16);
+title(sprintf('Walking Pattern (%d Participants)', nParticipants), 'FontSize', 16);
 xlabel('Room X Position (Meters)', 'FontSize', 14);
 ylabel('Room Z Position (Meters)', 'FontSize', 14);
 
+% Create legend for participants
 pHandles = gobjects(1, nParticipants);
 for i = 1:nParticipants
     pHandles(i) = plot(nan, nan, 'Color', participantColors(i, :), 'LineWidth', 3);
 end
-legend([pHandles, plot(nan, nan, 'k*', 'MarkerSize', 15)], [participants, {'Target Center'}], ...
+
+% Replot target marker on top (last so it appears in front)
+plot(0, 0, 'k*', 'MarkerSize', 20, 'LineWidth', 2);
+
+legend([pHandles, plot(nan, nan, 'k*', 'MarkerSize', 20)], [participants, {'Target'}], ...
     'Location', 'bestoutside');
 
 set(gca, 'XDir', 'reverse');
 grid on;
+
+% Set room bounds: -2 to +2 on both axes
+xlim([-2, 2]);
+ylim([-2, 2]);
+
 hold off;
-
-fprintf('Figure should now be visible. Press Ctrl+C to exit.\n');
-
-% Force display
 drawnow expose;
-
-% Bring figure to foreground
 figure(fig);
 shg;
 
-fprintf('Figure complete..\n');
+fprintf('Figure complete. Ready for screenshot.\n');
 
 %% --- LOCAL FUNCTIONS ----------------------------------------
 function val = resolve_filter(code, map)

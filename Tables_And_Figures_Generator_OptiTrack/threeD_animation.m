@@ -52,12 +52,7 @@ baseHeadZ = sz * headRadius;
 surf(baseHeadX, baseHeadY, baseHeadZ, 'Parent', headTransform, ...
     'FaceColor', [0.2 0.6 1.0], 'EdgeColor', 'none', 'FaceAlpha', 0.9);
 
-% HEAD FORWARD INDICATOR (3D Red Arrow pointing forward along X)
-% Arrow along X with barbs in Z-Y plane
-hx_arr = [0, 0.25, NaN, 0.19, 0.25, 0.19, NaN, 0.19, 0.25, 0.19];
-hy_arr = [0, 0, NaN, -0.04, 0, 0.04, NaN, 0, 0, 0];
-hz_arr = [0, 0, NaN, 0, 0, 0, NaN, -0.04, 0, 0.04];
-plot3(hx_arr, hy_arr, hz_arr, 'r-', 'LineWidth', 4, 'Parent', headTransform);
+
 
 % 2. Torso Geometry (Parented to torsoTransform)
 tWidth  = 0.30; % 30 cm wide (Y - left-right)
@@ -73,12 +68,6 @@ baseTorsoVertices = [vX', vY', vZ'];
 patch('Vertices', baseTorsoVertices, 'Faces', faces, 'Parent', torsoTransform, ...
     'FaceColor', [1.0 0.4 0.4], 'EdgeColor', 'k', 'FaceAlpha', 0.8, 'LineWidth', 0.5);
 
-% TORSO FORWARD INDICATOR (3D Green Arrow pointing forward along X)
-% Arrow along X with barbs in Z-Y plane
-tx_arr = [0, 0.35, NaN, 0.27, 0.35, 0.27, NaN, 0.27, 0.35, 0.27];
-ty_arr = [0, 0, NaN, -0.05, 0, 0.05, NaN, 0, 0, 0];
-tz_arr = [0, 0, NaN, 0, 0, 0, NaN, -0.05, 0, 0.05];
-plot3(tx_arr, ty_arr, tz_arr, 'g-', 'LineWidth', 4, 'Parent', torsoTransform);
 
 % Lighting
 camlight; 
@@ -148,3 +137,4 @@ for i = idx
     % Force the GPU to render this frame immediately
     drawnow; 
 end
+

@@ -4,12 +4,13 @@ close all % MATLAB built-in function: Closes all open figure windows.
 pl=1;
  
 % Change to your path format
-addpath('C:/Users/ucjvmtu/Downloads/spm12') % MATLAB built-in function: Adds the specified folder to the search path.
+addpath('C:/Users/spaceandmem/rashmil_opm/spm/') % MATLAB built-in function: Adds the specified folder to the search path.
+addpath('C:/Users/spaceandmem/rashmil_opm/data_dump/') 
 spm('defaults','EEG') % External function (SPM12): Initializes SPM defaults specifically for M/EEG data.
  
-cd('C:/Users/ucjvmtu/Downloads/spm12'); % MATLAB built-in function: Changes the current working directory.
+cd('C:/Users/spaceandmem/rashmil_opm/data_dump/'); % MATLAB built-in function: Changes the current working directory.
 S= [];
-S.data = 'triggers-run-006_array1.lvm';
+S.data = 'Imagniation-run-002_30-06-2026_16-59-42_array1.lvm';
 D1 = spm_opm_create(S); % External function (SPM12): Reads OPM data and creates an SPM M/EEG object.
  
 figure() % MATLAB built-in function: Opens a new blank figure window.

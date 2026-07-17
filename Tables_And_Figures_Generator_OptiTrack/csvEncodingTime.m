@@ -1,5 +1,5 @@
 %% ============================================================
-%  CSV COMPARISON: ENCODE TIME BY QUESTION (Q1, Q2, Q3, Q4)
+%  CSV COMPARISON: ENCODE TIME BY Quadrant (Q1, Q2, Q3, Q4)
 %% ============================================================
 
 %% --- STEP 1: FILE SELECTION & LOADING ---------------------
@@ -59,7 +59,7 @@ q_type = table2array(data(:, 'Q'));
 is_phys = strcmp(task_type, 'P');
 ... 
 
-% Filter metrics per unique Question type and strip NaNs
+% Filter metrics per unique Quadrant type and strip NaNs
 et_q1 = encode_time(strcmp(q_type, 'Q1'));
 et_q1 = et_q1(~isnan(et_q1));
 
@@ -80,14 +80,14 @@ fprintf('%s\n', repmat('=', 1, 100));
 fprintf('%-25s  %8s  %12s  %12s\n', 'Condition', 'N', 'Mean (s)', 'SD (s)');
 fprintf('%s\n', repmat('-', 1, 65));
 
-fprintf('%-25s  %8d  %12.2f  %12.2f\n', 'Question 1 (Q1)', numel(et_q1), mean(et_q1), std(et_q1));
-fprintf('%-25s  %8d  %12.2f  %12.2f\n', 'Question 2 (Q2)', numel(et_q2), mean(et_q2), std(et_q2));
-fprintf('%-25s  %8d  %12.2f  %12.2f\n', 'Question 3 (Q3)', numel(et_q3), mean(et_q3), std(et_q3));
-fprintf('%-25s  %8d  %12.2f  %12.2f\n', 'Question 4 (Q4)', numel(et_q4), mean(et_q4), std(et_q4));
+fprintf('%-25s  %8d  %12.2f  %12.2f\n', 'Quadrant 1 (Q1)', numel(et_q1), mean(et_q1), std(et_q1));
+fprintf('%-25s  %8d  %12.2f  %12.2f\n', 'Quadrant 2 (Q2)', numel(et_q2), mean(et_q2), std(et_q2));
+fprintf('%-25s  %8d  %12.2f  %12.2f\n', 'Quadrant 3 (Q3)', numel(et_q3), mean(et_q3), std(et_q3));
+fprintf('%-25s  %8d  %12.2f  %12.2f\n', 'Quadrant 4 (Q4)', numel(et_q4), mean(et_q4), std(et_q4));
 fprintf('%s\n', repmat('=', 1, 100));
 
 %% --- STEP 5: VISUALIZATION --------------------------------
-figure('Name', 'Encode Time Comparison by Question', 'NumberTitle', 'off', 'Position', [100 100 800 500]);
+figure('Name', 'Encode Time Comparison by Quadrant', 'NumberTitle', 'off', 'Position', [100 100 800 500]);
 hold on;
 
 % Jitter and plot scatter data points
@@ -105,6 +105,6 @@ plot([3.7 4.3], [mean(et_q4) mean(et_q4)], 'k-', 'LineWidth', 3);
 % Formatting the axes
 set(gca, 'XTick', 1:4, 'XTickLabel', {'Q1', 'Q2', 'Q3', 'Q4'}, 'XLim', [0.5 4.5]);
 ylabel('Encode Time (seconds)', 'FontSize', 12);
-title('Encode Time Distribution across Questions', 'FontSize', 13, 'FontWeight', 'bold');
+title('Encode Time Distribution across Quadrants', 'FontSize', 13, 'FontWeight', 'bold');
 grid on;
 hold off;

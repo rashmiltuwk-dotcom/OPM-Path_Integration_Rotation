@@ -10,6 +10,7 @@ function runExperimentTest
 
 clear all; close all; sca;
 
+global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE continuousFile OP_EVENT_LOG pahandle
 
 
 %[MATLAB] Wipe memory & close windows, ensures something else is not playing;
@@ -210,7 +211,6 @@ OptiTrackBridge.SetAudioData(audioData);
 
 % ===== PAUSE SYSTEM INITIALIZATION (NON-INTERRUPTING) =====
 % Global variables to track pause state
-global PAUSE_ACTIVE PAUSED_MOTION_BUFFER PAUSED_EVENT_TYPE continuousFile OP_EVENT_LOG pahandle
 PAUSE_ACTIVE = false;           % true when paused, false when running
 PAUSED_MOTION_BUFFER.frames = {}; % Will store motion data during pause
 PAUSED_EVENT_TYPE = '';         % Tracks which event is being paused
@@ -219,7 +219,7 @@ PAUSED_EVENT_TYPE = '';         % Tracks which event is being paused
 % Standard: Define the Map HERE. 
 % This is your "Look-up Table." It never changes during the experiment.
 % different display and recorded angle as people are told to stop, but may take a few milliseconds (controlling for reaction time)
-angleMap = containers.Map({'Q1','Q2','Q3','Q4'}, [55, 115, 235, 295]); % For tracking
+angleMap = containers.Map({'Q1','Q2','Q3','Q4'}, [50, 110, 230, 290]); % For tracking
 storedAngleMap = containers.Map({'Q1','Q2','Q3','Q4'}, [60, 120, 240, 300]); % For saving/displaying
 distance =  containers.Map({'D1','D2','D3','D4'}, [1.0, 1.5, 2.0, 2.5]);
 
@@ -353,7 +353,7 @@ results = table();
         'center', 'center', white);
     Screen('Flip', win); % Push the text to the actual monitor
     wait_key('space');   % Custom function: wait for keyboard input
-    if ~isempty(TL), TL.callExperimentStart( ); end
+    if ~isempty(TL), TL.callExperimentStart(0); end
         
     WaitSecs(0.25);
     
@@ -382,6 +382,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
             PAUSE_CALLED = 'FALSE';
             REALIGN_CALLED = 'FALSE';
             PAUSED_EVENT_TYPE = '';
+            OP_EVENT_LOG.incorrectRotation = 'FALSE'; 
             
             % 1. CRITICAL: PRE-ALLOCATE VARIABLES FIRST
             [walkDistTorso, walkDistHead, headDistFromCenter, torsoDistFromCenter, walkDriftTorso, walkDriftHead, walkTime, startHead, startTorso, actualHead, actualTorso, turnTime, ...
@@ -459,7 +460,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
 
                 OptiTrackBridge.StartPassiveTrack();
                 % [Audio] "Close eyes" CloseE audio is ~1.13 seconds; track for that exact duration, using the non-blocking play_sound
-                play_sound(pahandle, audioData.CloseE);
+                play_sound_blocking(pahandle, audioData.CloseE);
 
                 [CloseEyesHeadTrace, CloseEyesTorsoTrace] = OptiTrackBridge.StopPassiveTrack();
                 if ~isempty(TL), TL.stopEvent(1, trueTrial, 'CloseEyes'); end
@@ -506,10 +507,10 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 % ENSURE CONTINUOUS STATIONARY PERIOD AT (0,0,0)
                 % ---------------------------------------------------------
                 
-                centerThreshold = 0.25;
+                centerThreshold = 0.30;
                 requiredTime = 0.5;
                 
-                OptiTrackBridge.startEvent(trueTrial, 'RealignWalking');
+                OptiTrackBridge.startEvent(trueTrial, 'RealignWalk');
                 [RealignHeadTrace, RealignTorsoTrace] = OptiTrackBridge.WaitForRealignment(headID, torsoID, centerThreshold, requiredTime, win);
                 OptiTrackBridge.stopEvent(trueTrial, 'RealignWalk');
 
@@ -592,7 +593,13 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 play_sound(pahandle, audioData.stop);
 
                 OptiTrackBridge.StartPassiveTrack();
-                WaitSecs(0.5);
+                passiveStartTime = GetSecs();
+                while (GetSecs() - passiveStartTime) < 0.5
+                    [kd, ~, kc] = KbCheck;
+                    if kd && kc(KbName('ESCAPE')), error('User Quit'); end
+                    if kd && kc(KbName('r')), error('Redo_Trial'); end
+                    WaitSecs(0.01);
+                end
                 [PassiveEncodeHeadTrace, PassiveEncodeTorsoTrace] = OptiTrackBridge.StopPassiveTrack();
                 
                 if ~isempty(PassiveEncodeTorsoTrace.yaw)
@@ -629,7 +636,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 % 3. DUAL TRACKING: Head and Torso (Continuous Recording)
                 % Instead of 'WaitForRotation' (which stops at a target), we use 
                 % 'RecordUntilKey', which records until they hit '1!'.
-                [actHead, actTorso, ResponseRotationHeadTrace, ResponseRotationTorsoTrace] = ...
+                [startProdHead, startProdTorso, actHead, actTorso, ResponseRotationHeadTrace, ResponseRotationTorsoTrace] = ...
                     OptiTrackBridge.RecordUntilKey(headID, torsoID, '1!', win, 'ResponseRotation', typeCode);
                 
                 % 4. CALCULATE TASK DURATION (TaskTime)
@@ -644,7 +651,13 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 PAUSED_MOTION_BUFFER.frames = {};
                 
                 OptiTrackBridge.StartPassiveTrack();
-                WaitSecs(0.5);
+                passiveStartTime = GetSecs();
+                while (GetSecs() - passiveStartTime) < 0.5
+                    [kd, ~, kc] = KbCheck;
+                    if kd && kc(KbName('ESCAPE')), error('User Quit'); end
+                    if kd && kc(KbName('r')), error('Redo_Trial'); end
+                    WaitSecs(0.01);
+                end
                 [PassiveProdHeadTrace, PassiveProdTorsoTrace] = OptiTrackBridge.StopPassiveTrack();
                 
                 if ~isempty(PassiveProdTorsoTrace.yaw)
@@ -691,7 +704,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 
                 % 3. THE "STOP" BUTTON (Key '1!')
 
-                [~, ~, ImagineWalkingHeadTrace, ImagineWalkingTorsoTrace] = ...
+                [~, ~, ~, ~, ImagineWalkingHeadTrace, ImagineWalkingTorsoTrace] = ...
                     OptiTrackBridge.RecordUntilKey(headID, torsoID, '1!', win, 'ImagineWalk', typeCode);
                 
                 % 4. THE CALCULATION
@@ -730,7 +743,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 
                 OptiTrackBridge.StartPassiveTrack();
 
-                play_sound(pahandle, audioData.OpenE);
+                play_sound_blocking(pahandle, audioData.OpenE);
 
                 [OpenEyesHeadTrace, OpenEyesTorsoTrace] = OptiTrackBridge.StopPassiveTrack();
                 
@@ -749,8 +762,8 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 % 1. Compute raw differences
                 rawEncodeHead = actualHead - startHead;
                 rawEncodeTorso = actualTorso - startTorso;
-                prodTurnAmount = actHead - actualHead;
-                prodTorsoTurn = actTorso - actualTorso;
+                prodTurnAmount = actHead - startProdHead;
+                prodTorsoTurn = actTorso - startProdTorso;
 
 
                 % 2. Fix the boundary crossing for encoding based on OptiTrack's layout
@@ -777,7 +790,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                     encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {PAUSE_CALLED}, {REALIGN_CALLED}, {OP_EVENT_LOG.incorrectRotation}, {statusStr}, ...
                     'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
                     'WalkDistTorso','WalkDistHead', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'WalkDriftTorso', 'WalkDriftHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
-                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled', 'RealignCalled', 'IncorrectionRotation', 'Status'});
+                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled', 'RealignCalled', 'IncorrectRotation', 'Status'});
                 
                 results = [results; newRow];
                 writetable(results, dataFile);
@@ -852,7 +865,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 if strcmp(ME.message, 'Redo_Trial')
                     
                     PsychPortAudio('Stop', pahandle); 
-                    if ~isempty(TL), TL.resetAllTriggers(trialIdx); end
+                    if ~isempty(TL), TL.resetAllTriggers(trueTrial); end
                     
                     statusStr = 'Aborted_Mid_Trial';
 
@@ -862,7 +875,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                     encodeTurnAmount, encodeTorsoTurn, encodeDriftHead, encodeDriftTorso, actHead, actTorso, rt_Rot, prodTurnAmount, prodTorsoTurn, prodDriftHead, prodDriftTorso, imagineWalkTime, {rank}, attemptNum, {PAUSE_CALLED}, {REALIGN_CALLED}, {OP_EVENT_LOG.incorrectRotation}, {statusStr}, ...
                     'VariableNames', {'Trial', 'Position', 'Dir','Type','Q','TargetDeg', 'DistanceFromCent', ...
                     'WalkDistTorso','WalkDistHead', 'HeadDistFromCenter', 'TorsoDistFromCenter', 'WalkDriftTorso', 'WalkDriftHead', 'WalkTime', 'StartHead', 'StartTorso', 'EncodeHead', 'EncodeTorso', 'EncodeTime', ...
-                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled', 'RealignCalled','IncorrectionRotation', 'Status'});
+                    'EncodeTurnAmountHead', 'EncodeTurnAmountTorso', 'EncodeDriftHead', 'EncodeDriftTorso', 'ProdHead', 'ProdTorso', 'RT_Rot', 'ProdTurnAmountHead', 'ProdTurnAmountTorso', 'ProdDriftHead', 'ProdDriftTorso', 'RT_ImagWalk', 'Rank', 'Attempt', 'PauseCalled', 'RealignCalled','IncorrectRotation', 'Status'});
                 
                     results = [results; newRow];
                     writetable(results, dataFile);

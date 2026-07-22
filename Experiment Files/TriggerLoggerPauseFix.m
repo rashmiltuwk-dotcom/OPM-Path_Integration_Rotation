@@ -44,18 +44,14 @@ classdef TriggerLogger < handle
         
         function callExperimentStart(obj, trueTrial)
             OptiTrackBridge.MarkTimeZero();
+            io64(obj.ioObj, obj.address, 255);
+            timestamp = GetSecs - obj.expStartTime;
+            fprintf(obj.logFileID, '%.4f,%d,%s,ALL,255,ON\n', timestamp, trueTrial, 'ExperimentStart');
         
-            % Channels 2-7 = binary 01111110 = decimal 126
-            allChannels = 126;
-            eventName = 'ExperimentStart';
-            
-            % Fire channels 2-7 HIGH
-            io64(obj.ioObj, obj.address, allChannels);
-            
-            
-            % Brief hold so hardware registers the pulse
             WaitSecs(0.05);
-            
+        
+            io64(obj.ioObj, obj.address, 0);
+            fprintf(obj.logFileID, '%.4f,%d,%s,ALL,0,OFF\n', GetSecs - obj.expStartTime, trueTrial, 'ExperimentStart');
         end
 
         function startEvent(obj, triggerChannel, trueTrial, eventName)

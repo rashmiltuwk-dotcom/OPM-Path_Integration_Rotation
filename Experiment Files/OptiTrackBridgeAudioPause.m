@@ -720,7 +720,7 @@ classdef OptiTrackBridge
         % ---------------------------------------------------------
         % RECORD UNTIL KEY
         % ---------------------------------------------------------
-        function [finalHead, finalTorso, headTrace, torsoTrace] = RecordUntilKey(headID, torsoID, keyName, win, eventType, typeCode)
+        function [startHead, startTorso, finalHead, finalTorso, headTrace, torsoTrace] = RecordUntilKey(headID, torsoID, keyName, win, eventType, typeCode)
             global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial pahandle
             
             % Set defaults just in case the function is called without these arguments
@@ -768,10 +768,20 @@ classdef OptiTrackBridge
                     WaitSecs(0.3);
                         end
                 end     
+                startHead = 0; startTorso = 0;
                 finalHead = 0; finalTorso = 0;
                 headTrace = OptiTrackBridge.EmptyTrace(); torsoTrace = OptiTrackBridge.EmptyTrace();
                 return; 
             end
+
+            % Capture baseline orientation at the true start of this phase
+            startHeadEuler = [NaN NaN NaN]; startTorsoEuler = [NaN NaN NaN];
+            while any(isnan(startHeadEuler)) || any(isnan(startTorsoEuler))
+                [~, ~, startHeadEuler, startTorsoEuler, ~, ~] = OptiTrackBridge.GetDualData();
+                WaitSecs(0.01);
+            end
+            startHead = startHeadEuler(3);
+            startTorso = startTorsoEuler(3);
 
             startTime = GetSecs();
             white = WhiteIndex(win);

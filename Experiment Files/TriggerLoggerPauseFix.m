@@ -142,70 +142,49 @@ classdef TriggerLogger < handle
                 GetSecs - obj.expStartTime, trueTrial, 'AbortReset');
         end
 
+        % ---------------------------------------------------------
+        % PAUSE START: Fires a pulse to mark the beginning of a pause.
+        % Saves the current port state first so it can be restored on resume,
+        % preventing any active event channel from being wiped when the
+        % pause fires mid-trial.
+        %
+        % The function is queued by a keyboard input (P for PAUSE) in the main
+        % code (not done here).
+        % ---------------------------------------------------------
         function pauseIndicatorStart(obj, triggerChannel, trueTrial, eventName)
-            % ---------------------------------------------------------
-            % PAUSE START: Pauses the active trigger channel and logs the pause event
-            % 
-            % LOGIC:
-            % 1. Read the current port state (e.g., 132 for Ch3 + Master Sync)
-            % 2. Drop ALL triggers to 0V (silent period during pause)
-            % 3. Log which channel was paused (activeChannel) for CSV readability
-            %
-            % The key insight: prePauseValue stores the EXACT number that was
-            % sent to the port before pause (e.g., 132). This encodes both the
-            % active channel AND the Master Sync bit. When resumed, sending this
-            % exact number back restores everything perfectly.
-            % ---------------------------------------------------------
-            
-            % --- 1. SNAPSHOT: Save the exact port state before dropping it ---
-            % This reads back the current value on the port (e.g., 132 if Ch3 is active)
-            % The value encodes: activeChannel (bits 1-7) + Master Sync (bit 8)
+            % --- 1. Save current port state ---
+            % Read back whatever is currently active on the port so we can
+            % restore it when the experiment resumes.
             obj.prePauseValue = io64(obj.ioObj, obj.address);
-        
-            % --- 2. DROP ALL TRIGGERS TO 0V ---
-            % This immediately silences the port. The active channel goes DOWN (0V)
-            % along with the Master Sync. The MEG will record this as a falling edge.
-            io64(obj.ioObj, obj.address, 0);
-            
-            % --- 3. LOG THE PAUSE EVENT ---
-            % Log WHEN the pause happened, WHICH channel was running (activeChannel),
-            % and that the port is now at 0 (silent).
-            % The CSV row will look like: "7.5000,1,PauseIndicator,3,0,OFF"
-            % Meaning: At 7.5s, trial 1, Channel 3 was paused and dropped to 0
+
+                % --- 2. KEEPING OTHER FUNCTION ALIVE + ADD PAUSE MARKER ---
+            % Instead of replacing, combine: 
+            % prePauseValue keeps Ch3 + Ch8, we ADD Ch1 + Ch7 on top
+            pauseMarker = 65;  % Ch1 + Ch7
+            outValue = bitor(obj.prePauseValue, pauseMarker);
+            io64(obj.ioObj, obj.address, outValue);
+
+            % --- 3. Write to CSV Log ---
             timestamp = GetSecs - obj.expStartTime;
-            fprintf(obj.logFileID, '%.4f,%d,%s,%d,0,OFF\n', ...
-                timestamp, trueTrial, 'PauseIndicator', obj.activeChannel);
+            fprintf(obj.logFileID, '%.4f,%d,%s,%d,%d,ON\n', ...
+                timestamp, trueTrial, 'PauseIndicator', 65, outValue);
         end
+
 
         function pauseIndicatorEnd(obj, triggerChannel, trueTrial, eventName)
             % ---------------------------------------------------------
-            % PAUSE END: Resumes the trigger channel that was active before the pause
-            %
-            % LOGIC:
-            % 1. Restore the port to its pre-pause state (prePauseValue)
-            % 2. This automatically brings back the active channel to 5V
-            % 3. Log the resumption with the restored port value
-            %
-            % Why does this work? Because prePauseValue contains the complete
-            % port state from before the pause (e.g., 132 for Ch3 + Master Sync).
-            % Sending 132 back to the port activates Ch3 and the Master Sync exactly
-            % as they were before, creating a rising edge in the MEG.
+            % PAUSE END: Restores the port to its pre-pause state and logs resumption.
+            % Sending prePauseValue (rather than 0) ensures any event channel
+            % that was active when the pause was triggered is correctly restored.
             % ---------------------------------------------------------
 
-            % --- 1. RESTORE pre-pause port state ---
-            % Send the EXACT number that was on the port before pause back to the port.
-            % If it was 132 (Ch3 + Master Sync) before, it becomes 132 again now.
-            % This triggers a rising edge in the MEG and brings Ch3 back to 5V.
+            % --- 1. Restore pre-pause port state ---
             io64(obj.ioObj, obj.address, obj.prePauseValue);
-        
-            % --- 2. LOG THE RESUME EVENT ---
-            % Log WHEN the resume happened, WHICH channel is running again (activeChannel),
-            % and what value was restored to the port (prePauseValue).
-            % The CSV row will look like: "10.0000,1,PauseIndicator,3,132,ON"
-            % Meaning: At 10.0s, trial 1, Channel 3 resumed at port value 132 (5V)
+
+            % --- 2. Write to CSV Log ---
             timestamp = GetSecs - obj.expStartTime;
-            fprintf(obj.logFileID, '%.4f,%d,%s,%d,%d,ON\n', ...
-                timestamp, trueTrial, 'PauseIndicator', obj.activeChannel, obj.prePauseValue);
+            fprintf(obj.logFileID, '%.4f,%d,%s,%d,%d,OFF\n', ...
+                timestamp, trueTrial, 'PauseIndicator', 65, obj.prePauseValue);
         end
 
         function close(obj)

@@ -397,10 +397,11 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
             EncodingRotateHeadTrace, EncodingRotateTorsoTrace, ...
             StationaryHeadTraceTwo, StationaryTorsoTraceTwo, ...
             ResponseRotationHeadTrace, ResponseRotationTorsoTrace, ...
-            ImagineWalkingHeadTrace, ImagineWalkingTorsoTrace, ...
             StationaryHeadTraceThree, StationaryTorsoTraceThree, ...
             PassiveEncodeHeadTrace, PassiveEncodeTorsoTrace, ...
             PassiveProdHeadTrace, PassiveProdTorsoTrace, ...
+            ImagineWalkingHeadTrace, ImagineWalkingTorsoTrace, ...
+            StationaryHeadTraceFour, StationaryTorsoTraceFour, ...
             CloseEyesHeadTrace, CloseEyesTorsoTrace, ...
             PausedPhysicallyWalkHeadTrace, PausedPhysicallyWalkTorsoTrace, ...
             PausedEncodingRotateHeadTrace, PausedEncodingRotateTorsoTrace, ...
@@ -614,6 +615,20 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 end 
 
                 % ---------------------------------------------------------
+                % THREE SECOND STATIONARY TIME PERIOD
+                % ---------------------------------------------------------
+               
+                % Trigger Channel 2 is used to mark this stationary epoch in the MEG.
+                
+                if ~isempty(TL), TL.startEvent(2, trueTrial, 'Stationary'); end
+                OptiTrackBridge.startEvent(trueTrial, 'Stationary');
+                OptiTrackBridge.StartPassiveTrack();
+                WaitSecs(3.0);
+                [StationaryHeadTraceTwo, StationaryTorsoTraceTwo] = OptiTrackBridge.StopPassiveTrack();
+                if ~isempty(TL), TL.stopEvent(2, trueTrial, 'Stationary'); end
+                OptiTrackBridge.stopEvent(trueTrial, 'Stationary');
+
+                % ---------------------------------------------------------
                 % EVENT 4: ROTATION TASK (Physical/Imagined)
                 % ---------------------------------------------------------
                 % ===== SET PAUSE EVENT TYPE =====
@@ -681,7 +696,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
 
                 OptiTrackBridge.StartPassiveTrack();
                 WaitSecs(3.0);
-                [StationaryHeadTraceTwo, StationaryTorsoTraceTwo] = OptiTrackBridge.StopPassiveTrack();
+                [StationaryHeadTraceThree, StationaryTorsoTraceThree] = OptiTrackBridge.StopPassiveTrack();
                 
                 if ~isempty(TL), TL.stopEvent(2, trueTrial, 'Stationary'); end
                 OptiTrackBridge.stopEvent(trueTrial, 'Stationary');
@@ -728,7 +743,7 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 OptiTrackBridge.startEvent(trueTrial, 'Stationary');
                 OptiTrackBridge.StartPassiveTrack();
                 WaitSecs(3.0);
-                [StationaryHeadTraceThree, StationaryTorsoTraceThree] = OptiTrackBridge.StopPassiveTrack();
+                [StationaryHeadTraceFour, StationaryTorsoTraceFour] = OptiTrackBridge.StopPassiveTrack();
                 
                 if ~isempty(TL), TL.stopEvent(2, trueTrial, 'Stationary'); end
                 OptiTrackBridge.stopEvent(trueTrial, 'Stationary');
@@ -828,20 +843,22 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;
                 tracePacket.PausedEncodingRotateHeadTrace = PausedEncodingRotateHeadTrace;
                 tracePacket.PausedEncodingRotateTorsoTrace = PausedEncodingRotateTorsoTrace;
+                tracePacket.StationaryHeadTraceTwo = StationaryHeadTraceTwo;
+                tracePacket.StationaryTorsoTraceTwo = StationaryTorsoTraceTwo;
                 tracePacket.ResponseRotationHeadTrace = ResponseRotationHeadTrace;
                 tracePacket.ResponseRotationTorsoTrace = ResponseRotationTorsoTrace;
                 tracePacket.PassiveProdHeadTrace = PassiveProdHeadTrace;
                 tracePacket.PassiveProdTorsoTrace = PassiveProdTorsoTrace;
                 tracePacket.PausedResponseRotationHeadTrace = PausedResponseRotationHeadTrace;
                 tracePacket.PausedResponseRotationTorsoTrace = PausedResponseRotationTorsoTrace;
-                tracePacket.StationaryHeadTraceTwo = StationaryHeadTraceTwo;
-                tracePacket.StationaryTorsoTraceTwo = StationaryTorsoTraceTwo;
+                tracePacket.StationaryHeadTraceThree = StationaryHeadTraceThree;
+                tracePacket.StationaryTorsoTraceThree = StationaryTorsoTraceThree;
                 tracePacket.ImagineWalkingHeadTrace = ImagineWalkingHeadTrace;
                 tracePacket.ImagineWalkingTorsoTrace = ImagineWalkingTorsoTrace;
                 tracePacket.PausedImagineWalkingHeadTrace = PausedImagineWalkingHeadTrace;
-                tracePacket.PausedImagineWalkingTorsoTrace = PausedImagineWalkingTorsoTrace;                
-                tracePacket.StationaryHeadTraceThree = StationaryHeadTraceThree;
-                tracePacket.StationaryTorsoTraceThree = StationaryTorsoTraceThree;
+                tracePacket.PausedImagineWalkingTorsoTrace = PausedImagineWalkingTorsoTrace;
+                tracePacket.StationaryHeadTraceFour = StationaryHeadTraceFour;
+                tracePacket.StationaryTorsoTraceFour = StationaryTorsoTraceFour;
                 tracePacket.OpenEyesHeadTrace = OpenEyesHeadTrace;
                 tracePacket.OpenEyesTorsoTrace = OpenEyesTorsoTrace;
 
@@ -911,20 +928,22 @@ global TL PAUSE_CALLED PAUSE_ACTIVE PAUSED_MOTION_BUFFER REALIGN_CALLED PAUSED_E
                 tracePacket.PassiveEncodeTorsoTrace = PassiveEncodeTorsoTrace;
                 tracePacket.PausedEncodingRotateHeadTrace = PausedEncodingRotateHeadTrace;
                 tracePacket.PausedEncodingRotateTorsoTrace = PausedEncodingRotateTorsoTrace;
+                tracePacket.StationaryHeadTraceTwo = StationaryHeadTraceTwo;
+                tracePacket.StationaryTorsoTraceTwo = StationaryTorsoTraceTwo;
                 tracePacket.ResponseRotationHeadTrace = ResponseRotationHeadTrace;
                 tracePacket.ResponseRotationTorsoTrace = ResponseRotationTorsoTrace;
                 tracePacket.PassiveProdHeadTrace = PassiveProdHeadTrace;
                 tracePacket.PassiveProdTorsoTrace = PassiveProdTorsoTrace;
                 tracePacket.PausedResponseRotationHeadTrace = PausedResponseRotationHeadTrace;
                 tracePacket.PausedResponseRotationTorsoTrace = PausedResponseRotationTorsoTrace;
-                tracePacket.StationaryHeadTraceTwo = StationaryHeadTraceTwo;
-                tracePacket.StationaryTorsoTraceTwo = StationaryTorsoTraceTwo;
+                tracePacket.StationaryHeadTraceThree = StationaryHeadTraceThree;
+                tracePacket.StationaryTorsoTraceThree = StationaryTorsoTraceThree;
                 tracePacket.ImagineWalkingHeadTrace = ImagineWalkingHeadTrace;
                 tracePacket.ImagineWalkingTorsoTrace = ImagineWalkingTorsoTrace;
                 tracePacket.PausedImagineWalkingHeadTrace = PausedImagineWalkingHeadTrace;
-                tracePacket.PausedImagineWalkingTorsoTrace = PausedImagineWalkingTorsoTrace;                
-                tracePacket.StationaryHeadTraceThree = StationaryHeadTraceThree;
-                tracePacket.StationaryTorsoTraceThree = StationaryTorsoTraceThree;
+                tracePacket.PausedImagineWalkingTorsoTrace = PausedImagineWalkingTorsoTrace;
+                tracePacket.StationaryHeadTraceFour = StationaryHeadTraceFour;
+                tracePacket.StationaryTorsoTraceFour = StationaryTorsoTraceFour;
                 tracePacket.OpenEyesHeadTrace = OpenEyesHeadTrace;
                 tracePacket.OpenEyesTorsoTrace = OpenEyesTorsoTrace;
                 % =====================================================

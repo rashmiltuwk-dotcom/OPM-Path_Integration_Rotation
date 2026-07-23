@@ -171,7 +171,7 @@ pahandle = PsychPortAudio('Open', [], 1, 1, 48000, 2);
 
 % [MATLAB] Define a cell array of audio filenames needed for the task.
 files = {'CloseE','OpenE','Return', 'Restart' ,'Rank','ImagineS','StartW','stop',...
-         'ImagineW','RotateL','RotateR','ImagineRo','PhysicalRo'};
+         'ImagineW','RotateL','RotateR','ImagineRo','PhysicalRo','WrongDir'};
 
 % [MATLAB] Loop through and load each audio file into memory.
 % NOTE THAT THIS HAS BEEN PRACTICED TO PREVENT AUDIO GLITCHES

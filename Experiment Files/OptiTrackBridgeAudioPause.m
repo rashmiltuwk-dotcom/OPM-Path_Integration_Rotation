@@ -346,7 +346,7 @@ classdef OptiTrackBridge
         % WAIT FOR WALK END / ORIGIN
         % ---------------------------------------------------------
         function [distWalkedTorso, distWalkedHead, headDistFromCenter, torsoDistFromCenter, headTrace, torsoTrace] = WaitForWalkEnd(headID, torsoID, win, tolerance)
-            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial pahandle
+            global OP_BRIDGE_STATE OP_CONTINUOUS_BUFFER PAUSE_ACTIVE TL t PAUSE_CALLED trueTrial pahandle PAUSED_MOTION_BUFFER
             if nargin < 4, tolerance = 0.50; end 
             
             if OP_BRIDGE_STATE.IsDummy
@@ -676,11 +676,7 @@ classdef OptiTrackBridge
                             Screen('Flip', win);
 
                             audioData = OptiTrackBridge.GetAudioData();
-                            if strcmpi(dirCode, 'L')
-                                play_sound_blocking(pahandle, audioData.RotateL);
-                            else
-                                play_sound_blocking(pahandle, audioData.RotateR);
-                            end
+                            play_sound_blocking(pahandle, audioData.WrongDir);
 
                             OptiTrackBridge.stopEvent(trueTrial, 'IncorrectDirection');
                             if ~isempty(TL), TL.pauseIndicatorEnd(65, trueTrial, 'IncorrectDirection'); end
@@ -695,7 +691,14 @@ classdef OptiTrackBridge
                                 if kd && kc(KbName('space'))
                                     Screen('Flip', win);
                                     OptiTrackBridge.RecordIncorrectRotation(trueTrial);
-                                    prevTorsoYaw = currTorsoYaw; 
+
+                                    if strcmpi(dirCode, 'L')
+                                        play_sound_blocking(pahandle, audioData.RotateL);
+                                    else
+                                        play_sound_blocking(pahandle, audioData.RotateR);
+                                    end
+
+                                    prevTorsoYaw = currTorsoYaw;
                                     break;
                                 end
                                 if kd && kc(KbName('ESCAPE')), error('User Quit'); end
